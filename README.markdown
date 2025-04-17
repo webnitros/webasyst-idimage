@@ -1,3 +1,9 @@
+# Start
+
+```shell
+docker compose up -d
+```
+
 # Webasyst #
 
 Webasyst is an open-source PHP framework for fast development of web apps with a password-protected user backend and a publicly available website frontend.

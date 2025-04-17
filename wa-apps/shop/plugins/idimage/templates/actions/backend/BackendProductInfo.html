@@ -1,0 +1,85 @@
+<h1>IdImage</h1>
+
+<div class="s-product-media-section">
+
+    <div class="s-photos-section">
+        <div class="s-section-header">
+            <h2 class="s-title">Превью для поиска</h2>
+        </div>
+        <br>
+        <div class="alert small">
+            <div class="flexbox space-8">
+                <div class="message-text wide">
+                    Для этого изображения будут найдены товары по визуальному сходству
+                </div>
+            </div>
+        </div>
+        <div class="s-section-body">
+            <div class="s-photos-list">
+                <div class="s-photo-wrapper" data-id="{$product_id}">
+                    <div class="s-description-wrapper flexbox space-12 middle">
+                        <div class="s-photo-wrapper is-main" data-id="353">
+                            <div class="s-photo-block">
+                                <div class="s-photo cursor-pointer" style="background-image: url('{$thumb}');"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="s-product-media-section">
+
+    <div class="s-photos-section">
+        <div class="s-section-header">
+            <h2 class="s-title">Похожие товары</h2>
+        </div>
+
+
+        <br>
+        <div class="alert small">
+            <div class="flexbox space-8">
+                <div class="message-text wide">
+                    Найденые похожие товары для текущей карточки товара. Минимальная степень схожести товаров <b>{$minimumScore}%</b>
+                </div>
+            </div>
+        </div>
+
+
+        {if $similar_exist}
+        <div class="s-section-body">
+            <div class="s-photos-list">
+                {foreach $similar as $item}
+                <div class="s-photo-wrapper" data-id="{$item.id}">
+                    <a href="{$item.url}" class="s-description-wrapper flexbox space-12 middle">
+                        <div class="s-photo-wrapper is-main" data-id="{$item.id}">
+                            <div class="s-photo-block">
+                                <div class="s-photo cursor-pointer" style="background-image: url('{$item.thumb}');"></div>
+                            </div>
+                            <div class="s-description-wrapper flexbox space-12 middle">
+                                <div class="s-column-details wide">
+                                    <p class="s-description-text editable">
+                                        <small><b>{$item.probability}%</b> - {$item.name}</small>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {/foreach}
+            </div>
+        </div>
+        {else}
+            <div>Схожих товаров не найдено</div>
+        {/if}
+    </div>
+</div>
+
+
+<style>
+    .s-product-media-section .s-photos-section .s-photos-list .s-photo-wrapper {
+        margin: 0 10px;
+    }
+</style>

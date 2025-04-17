@@ -1,0 +1,9 @@
+{
+  "name": "idimage",
+  "version": "1.0.0",
+  "title": "IdImage",
+  "vendor": "myname",
+  "description": "Автоматический подбор аналогичных товаров по изображению\n\n",
+  "img": "img/idimage.png",
+  "shop_plugin": true
+}

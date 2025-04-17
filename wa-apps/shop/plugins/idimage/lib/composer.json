@@ -1,0 +1,17 @@
+{
+  "name": "astraw/idimage",
+  "description": "description",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "webnitros",
+      "email": "info@bustep.ru"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "IdImage\\": "src/"
+    }
+  }
+}

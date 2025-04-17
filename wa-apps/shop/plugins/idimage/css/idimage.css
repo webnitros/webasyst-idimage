@@ -1,0 +1,8 @@
+.idimage {
+    margin-top: 10px;
+}
+
+.idimage img {
+    max-width: 100%;
+    border: 1px solid #ccc;
+}

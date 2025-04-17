@@ -1,0 +1,76 @@
+services:
+  app:
+    build:
+      dockerfile: ./docker/app/Dockerfile
+      target: ${APP_BUILD_TARGET:-deploy}
+    volumes:
+      - '.:/var/www/html'
+    working_dir: /var/www/html
+    networks:
+      - sail
+    depends_on:
+      mysql:
+        condition: service_healthy
+    user: '82:82'
+  nginx:
+    build:
+      dockerfile: ./docker/nginx/Dockerfile
+      target: ${APP_BUILD_TARGET:-deploy}
+    volumes:
+      - './docker/nginx/templates:/etc/nginx/templates'
+      - './docker/nginx/deployment:/etc/nginx/deployment'
+      - './:/var/www/html'
+    ports:
+      - ${PUB_NGINX_PORT:-0}:80
+    depends_on:
+      - app
+      - mysql
+    working_dir: /var/www/html
+    networks:
+      - sail
+  mysql:
+    image: 'mysql/mysql-server:8.0'
+    ports:
+      - '${FORWARD_DB_PORT:-3306}:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: '${MYSQL_DATABASE}'
+      MYSQL_USER: '${MYSQL_USER}'
+      MYSQL_PASSWORD: '${MYSQL_PASSWORD}'
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+    volumes:
+      - 'sail-mysql:/var/lib/mysql'
+      #- './docker/mysql/dumps:/docker-entrypoint-initdb.d'
+    networks:
+      - sail
+    command:
+      - '--skip-log-bin'
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-p${MYSQL_PASSWORD}" ]
+      retries: 24
+      interval: 5s
+      timeout: 120s
+  pma:
+    image: linuxserver/phpmyadmin:latest
+    links:
+      - mysql
+    environment:
+      - PMA_ABSOLUTE_URI=/phpmyadmin/
+      - PMA_HOST=mysql
+      - PHP_INI_SESSION.gc_maxlifetime=3600
+      - SESSION_TIMEOUT=86400
+      - UPLOAD_LIMIT=100M
+    depends_on:
+      - mysql
+    restart: always
+    networks:
+      - sail
+    volumes:
+      - sail-session:/var/lib/php/sessions
+
+networks:
+  sail:
+volumes:
+  sail-session:
+  sail-mysql:

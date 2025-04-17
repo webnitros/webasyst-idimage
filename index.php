@@ -1,5 +1,6 @@
 <?php
-
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 $path = dirname(__FILE__).'/wa-config/SystemConfig.class.php';
 
 if (file_exists($path)) {
