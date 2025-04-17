@@ -1,0 +1,52 @@
+{capture assign="_component_table_filters_storefronts"}
+<div class="s-filter-storefronts-section s-pane-item dropbox">
+    <div class="s-dropbox-toggle js-dropbox-toggle" v-bind:class="{ 'text-blue' : has_value }">
+        <span class="s-icon text-light-gray"><i class="fas fa-store"></i></span>
+        <span class="s-name is-adaptive">[`Storefronts`]</span>
+    </div>
+    <div class="dropbox-body right">
+        <div class="s-dropbox-content-section">
+            <div class="s-section-header">
+                <component-table-filters-search
+                    v-if="items.length"
+                    class="s-search-form"
+                    v-model="search_string"
+                    v-bind:placeholder="'{_w("Find a storefront")|escape}'"></component-table-filters-search>
+                <span v-else>[`You have no storefronts.`]</span>
+            </div>
+            <div class="s-section-body" v-if="items.length">
+                <div class="s-storefronts-list">
+                    <template v-for="storefront in items">
+                        <div v-show="!storefront.is_hide" class="s-storefront-wrapper flexbox space-8">
+                            <div class="s-checkbox-wrapper">
+                                <template v-if="storefront.is_locked">
+                                    <component-checkbox v-bind:model-value="true" v-bind:disabled="true"></component-checkbox>
+                                </template>
+                                <template v-else>
+                                    <component-checkbox v-model="storefront.states.enabled" v-on:change="onChange"></component-checkbox>
+                                </template>
+                            </div>
+                            <div class="s-name-wrapper wide">
+                                <span class="s-name"
+                                      v-text="storefront.name"
+                                      v-bind:class="{ 'cursor-pointer' : !storefront.is_locked }"
+                                      v-on:click="changeStorefront(storefront)"></span>
+                            </div>
+                        </div>
+                    </template>
+                    <div class="s-storefront-wrapper" v-if="empty_search_result">[`Storefronts not found.`]</div>
+                </div>
+            </div>
+            <div class="s-section-footer" v-if="items.length">
+                <button class="button small blue" type="button"
+                        v-bind:disabled="!states.is_changed || !has_value"
+                        v-on:click="save">[`Apply`]</button>
+                <button class="button small outlined" type="button"
+                        v-bind:disabled="!has_value"
+                        v-on:click="reset">[`Reset filter`]</button>
+            </div>
+        </div>
+    </div>
+</div>
+{/capture}
+{$_components["component-table-filters-storefronts"] = $_component_table_filters_storefronts|strip}

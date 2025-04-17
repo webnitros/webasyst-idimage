@@ -1,0 +1,217 @@
+<div class="flexbox s-settings">
+    <div class="sidebar width-20rem blank shop-second-sidebar">
+        <div class="align-center custom-mt-4 mobile-only">
+            <button class="button small circle light-gray js-expand-sidebar"><i class="fas fa-arrow-right"></i></button>
+        </div>
+
+        <div class="shop-second-sidebar-wrapper">
+            <ul class="menu large" id="s-settings-menu">
+
+                <!-- GENERAL -->
+                <li>
+                    <a href="?action=settings#/general/">
+                        <span class="icon"><i class="fas fa-sliders-h"></i></span>
+                        <span class="shop-sidebar-hidden">[`General settings`]</span>
+                    </a>
+                </li>
+                {if shopHelper::isSettingsMarketplacesSectionVisible()}
+                    <li>
+                        <a href="?action=settings#/marketplaces/">
+                            <span class="icon"><i class="fas fa-shopping-cart"></i></span>
+                            <span class="shop-sidebar-hidden">[`Marketplaces`]</span>
+                        </a>
+                    </li>
+                {/if}
+                <li>
+                    <a href="?action=settings#/shipping/">
+                        <span class="icon"><i class="fas fa-truck"></i></span>
+                        <span class="shop-sidebar-hidden">[`Shipping`]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/payment/">
+                        <span class="icon"><i class="fas fa-credit-card"></i></span>
+                        <span class="shop-sidebar-hidden">[`Payment`]</span>
+                        {if $wa->shop->hasDeactivatedPayments()}<i class="fas fa-exclamation-circle text-red"></i>{/if}
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/pos/">
+                        <span class="icon"><i class="fas fa-cash-register"></i></span>
+                        <span class="shop-sidebar-hidden">[`POS`]</span>
+                    </a>
+                </li>
+
+                <!-- plugin hook: 'backend_settings.sidebar_top_li' -->
+                {* @event backend_settings.%plugin_id%.sidebar_top_li *}
+                {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
+
+                {if empty($is_premium)}
+                <li class="top-padded">
+                    <a href="?action=settings#/premium/" class="custom-mb-12">
+                        <span class="count"><span class="badge green">%</span></span>
+                        <span class="icon"><i class="fas fa-star text-yellow"></i></span>
+                        <span class="shop-sidebar-hidden">[`Upgrade to Premium`]</span>
+                    </a>
+                </li>
+                {/if}
+
+
+                <!-- PRODUCTS -->
+                <li class="top-padded">
+                    <a href="?action=settings#/typefeat/">
+                        <span class="icon"><i class="fas fa-cubes"></i></span>
+                        <span class="shop-sidebar-hidden">[`Product types & features`]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/unit/">
+                        <span class="icon"><i class="fas fa-vial"></i></span>
+                        <span class="shop-sidebar-hidden{if empty($is_premium)} text-light-gray{/if}">[`Product quantity units`]</span>
+                        {if empty($is_premium)}
+                            <span class="count small"><i class="fas fa-star fa-xs"></i></span>
+                        {/if}
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/search/">
+                        <span class="icon"><i class="fas fa-search"></i></span>
+                        <span class="shop-sidebar-hidden">[`Product search`]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/images/">
+                        <span class="icon"><i class="fas fa-camera"></i></span>
+                        <span class="shop-sidebar-hidden">[`Images`]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/stock/">
+                        <span class="icon"><i class="fas fa-home"></i></span>
+                        <span class="shop-sidebar-hidden">[`Stocks`]</span>
+                    </a>
+                </li>
+
+                <!-- plugin hook: 'backend_settings.sidebar_middle_li' -->
+                {* @event backend_settings.%plugin_id%.sidebar_middle_li *}
+                {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_middle_li)}{/foreach}{/if}
+
+                <!-- ORDERS -->
+                <li class="top-padded">
+                    <a href="?action=settings#/orderStates/">
+                        <span class="icon"><i class="fas fa-flag"></i></span>
+                        <span class="shop-sidebar-hidden">[`Order states`]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/orderEditor/">
+                        <span class="icon"><i class="fas fa-money-check"></i></span>
+                        <span class="shop-sidebar-hidden">[`Order editor`]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/checkout/">
+                        <span class="icon"><i class="fas fa-route"></i></span>
+                        <span class="shop-sidebar-hidden">[`Checkout`]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/schedule/">
+                        <span class="icon"><i class="fas fa-clock"></i></span>
+                        <span class="shop-sidebar-hidden">[`Working hours`]</span>
+                    </a>
+                </li>
+
+                <!-- ETC -->
+                <li class="top-padded">
+                    <a href="?action=settings#/currencies/">
+                        <span class="icon"><i class="fas fa-{if $wa->locale() == 'ru_RU'}ruble{else}dollar{/if}-sign"></i></span>
+                        <span class="shop-sidebar-hidden">[`Currencies`]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/taxes/">
+                        <span class="icon"><i class="fas fa-percent"></i></span>
+                        <span class="shop-sidebar-hidden">[`Taxes`]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/printform/">
+                        <span class="icon"><i class="fas fa-print"></i></span>
+                        <span class="shop-sidebar-hidden">[`Printable forms`]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/notifications/">
+                        <span class="icon"><i class="fas fa-bell"></i></span>
+                        <span class="shop-sidebar-hidden">[`Notifications`]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/analytics/">
+                        <span class="icon"><i class="fas fa-chart-line"></i></span>
+                        <span class="shop-sidebar-hidden">[`Analytics`]</span>
+                    </a>
+                </li>
+
+                <!-- plugin hook: 'backend_settings.sidebar_bottom_li' -->
+                {* @event backend_settings.%plugin_id%.sidebar_bottom_li *}
+                {if !empty($backend_settings)}{foreach $backend_settings as $_}{ifset($_.sidebar_bottom_li)}{/foreach}{/if}
+
+                <li class="top-padded">
+                    <a class="item" href="[`https://support.webasyst.com/`]" target="_blank">
+                        <span class="count small"><i class="fas fa-external-link-alt s-menu-link-new-window"></i></span>
+                        <span class="s-icon-main icon"><i class="fas fa-question-circle"></i></span>
+                        <span class="s-name">[`Help`]</span>
+                    </a>
+                </li>
+                {if !empty($is_premium)}
+                <li>
+                    <a href="?action=settings#/premium/" class="custom-mb-12">
+                        <span class="icon"><i class="fas fa-star"></i></span>
+                        <span class="shop-sidebar-hidden">[`Premium`]</span>
+                    </a>
+                </li>
+                {/if}
+
+
+                {if $wa->user()->isAdmin() && waSystemConfig::isDebug()}
+                    <li class="top-padded">
+                        <a href="?action=settings#/reset/">
+                            <span class="icon"><i class="fas fa-power-off"></i></span>
+                            <span class="shop-sidebar-hidden">[`Reset`]</span>
+                        </a>
+                    </li>
+                {/if}
+
+            </ul>
+
+        </div>
+    </div>
+
+    <div class="content content-mobile-friendly not-blank">
+        <div class="article wide">
+            <div class="article-body custom-pb-0" id="s-settings-content">
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{$wa_app_static_url}js/settings/settings.js?v={$wa->version()}"></script>
+<script>
+    $.settings.init({
+        debug: true,
+        loading: null,
+        backend_url: {$wa_backend_url|json_encode},
+        shop_marketing_url: {"`$wa_app_url`marketing/"|json_encode},
+        installer_access: {$wa->user()->isAdmin('installer')|json_encode}
+    });
+
+    $.settings.onPreLoad = function(section) {
+        var $article = $('.article');
+        $article.removeClass('wider').addClass('wide');
+
+        if (['typefeat', 'orderStates', 'compatibility', 'notifications', 'printform', 'marketplaces'].includes(section) || section.startsWith('checkout')) {
+            $article.addClass('wider').removeClass('wide');
+        }
+    };
+</script>

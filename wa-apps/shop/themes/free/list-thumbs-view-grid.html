@@ -1,0 +1,375 @@
+{strip}
+    {$action = $wa->param('action')}
+    {$_price_range = $theme_settings.price_range_in_product_list}
+    {$available = $ignoreStock || $p.count === null || $p.count > 0}
+
+    {if !isset($text_in_stock)}{$text_in_stock = "[`In stock`]"}{/if}
+    {if !isset($text_unit)}{$text_unit = "[`unit`]"}{/if}
+    {if !isset($text_out_stock)}{$text_out_stock = "[`Out of stock`]"}{/if}
+    {if !isset($text_art_code)}{$text_art_code = "[`Vendor code`]"}{/if}
+
+    {$_features_product_tile = (!$wa->isMobile() && !empty($theme_settings.product_show_tile_features)) || ($wa->isMobile() && !empty($theme_settings.product_show_tile_mobile_features))}
+
+    {$short_list_features = []}
+    {if isset($p.features) && !empty($p.features) && $_features_product_tile && !empty($features)}
+        {if $theme_settings.preview_features_product == 'short'}
+            {if !empty($theme_settings.codes_features_product)}
+                {$aliases = ","|explode:$theme_settings.codes_features_product}
+                {foreach $p.features as $f_code => $f_value}
+                    {if in_array($f_code, $aliases)}
+                        {$short_list_features[$f_code] = $f_value}
+                    {/if}
+                {/foreach}
+            {/if}
+        {else if $theme_settings.preview_features_product == 'first'}
+            {$count_output_short_features = (int) $theme_settings.preview_features_product_count}
+            {if $count_output_short_features}
+                {foreach $p.features as $f_code => $f_value}
+                    {if $f_value@iteration > $count_output_short_features}{break}{/if}
+                    {$short_list_features[$f_code] = $f_value}
+                {/foreach}
+            {/if}
+        {else}
+            {$short_list_features = $p.features}
+        {/if}
+    {/if}
+
+
+
+    {$images = []}
+    {if isset($products_images[$p.id]) && !empty($products_images[$p.id])}
+        {$images = array_values($products_images[$p.id])}
+    {/if}
+    {$isProductTilePreviewTileGallery = true}
+    {$preview_image = $wa->shop->productImgUrl($p, '60')}
+
+    {$showProduct = true}
+
+    {if !empty($swipeImage)}
+        <script>
+            imgObjProducts[{$p.id}] = [];
+            {foreach $images as $image}
+                imgObjProducts[{$p.id}].push("{$image['url_300x0']}");
+            {/foreach}
+        </script>
+    {/if}
+
+    {if !empty($isSlider) && $theme_settings.slider_hide_products_without_residue && !$available}
+        {$showProduct = false}
+    {/if}
+
+    {if $showProduct}
+        <div class="Product-grid {if $action != 'search' && $action != 'brandPage' && $action != 'brand'} -{$theme_settings.count_product_row}{else}-five{/if} js-Product-grid js-preview-cart{if $isProductTilePreviewTileGallery} grid-gallery js-grid-gallery{/if} {if class_exists('shopSaleskuPlugin') &&  method_exists('shopSaleskuPlugin','isAction') && shopSaleskuPlugin::isAction()}salesku_plugin-product{/if}" data-product-num="{$p.id}">
+            {$badge_html = $wa->shop->badgeHtml($p.badge)}
+            {if $badge_html}
+                {$badge_html}
+            {/if}
+            <div class="product__box--image">
+
+                {if !$wa->isMobile()}
+                    {if $theme_settings.product_quick_dialog}
+                        <div class="js-dialog Product-grid_dialog Product-grid_action">
+                            <span class="js-card-dialog product-action " data-href="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1">
+        {*                        <i class="fi-rr-zoom-in"></i>*}
+                                [`Quick View`]
+                            </span>
+                        </div>
+                    {/if}
+                {/if}
+                {$img_width = $theme_settings.width_grid_img|trim|default:'380'}
+                {$img_size = "`$img_width`x0"}
+                {if $wa->shop->productImgUrl($p, $img_size) and file_exists($wa->server('DOCUMENT_ROOT')|cat:$wa->shop->productImgUrl($p, $img_size))}
+                    {$img_props = getimagesize($wa->server('DOCUMENT_ROOT')|cat:$wa->shop->productImgUrl($p, $img_size))}
+                {/if}
+                <a class="Product-grid_img list-thumb-image js-grid-block-gallery {$theme_settings.category_image_contain} {$theme_settings.category_image_valign} {$theme_settings.category_image_size}" href="{$p.frontend_url}" {if $theme_settings.category_image_size == 'auto'}style="padding-bottom: {if not empty($img_props)}{ceil($img_props[1] / $img_props[0] * 100)}%{else}100%{/if}"{/if} {if $theme_settings.category_image_size == 'manual'}style="padding-bottom: {$theme_settings.category_image_size_manual}"{/if}>
+                    {if isset($p.autobadge) && !empty($p.autobadge)}{$p.autobadge}{/if}
+                    {if $wa_app == 'shop' && class_exists('shopProtilegalleryPlugin')}
+                        {$blockHtmlProtilegallery = shopProtilegalleryPlugin::productItem($p)}
+                    {/if}
+                    <div class="list-thumb-image_wrap">
+                        {if isset($blockHtmlProtilegallery) && !empty($blockHtmlProtilegallery)}
+                            {$blockHtmlProtilegallery}
+                        {else}
+                            {$class_img = "js-product-preview-img"}
+                            {$product_preview_images_lazy = true}
+                            {if !empty($lazy_class) && $product_preview_images_lazy && !empty($p.image_id)}{$class_img = "`$class_img` $lazy_class"}{/if}
+                            {$dummy96 = "{$wa_theme_url}img/dummy96.png"}
+                            {$image = $wa->shop->productImgHtml($p, "{$img_size}", ['class' => $class_img, 'alt' => $p.name, 'default' => $dummy96])}
+                            {if $product_preview_images_lazy && !empty($p.image_id)}
+                                {$image = $image|replace:"src":"src='`$wa_theme_url`img/lazy-image.png' data-src"}
+                            {/if}
+                            {$image}
+                        {/if}
+                    </div>
+                    {if $isProductTilePreviewTileGallery}
+                        {$tile_length = count($images)}
+                        {if (int)$theme_settings.preview_gallerytile_count_product && count($images) > (int)$theme_settings.preview_gallerytile_count_product}
+                            {$tile_length = (int)$theme_settings.preview_gallerytile_count_product}
+                        {/if}
+                        {if !$wa->isMobile()}
+                            <span class="grid-gallery__list js-grid-gallery-items">
+                                {if count($images) > 1}
+                                    {for $iteration=1 to $tile_length}
+                                        <span class="grid-gallery__el js-grid-gallery-item" data-img="{$images[$iteration-1]|@end}" style="width: calc(100%/{if $tile_length < 8}{$tile_length}{else}7{/if});" data-id="{$iteration}"></span>
+                                        {if $iteration == 7}
+                                            {break}
+                                        {/if}
+                                    {/for}
+                                {/if}
+                            </span>
+                        {/if}
+                    {/if}
+
+                    {$_badge_percent = $theme_settings.product_discount_percentage == 1 && $product.compare_price > $product.price  &&  $product.price != 0}
+                    {if $_badge_percent && $product.compare_price > $product.price}
+                        {if $theme_settings.product_discount_percentage == 1}
+                            {$product.compare_price = $product.compare_price}
+                            {$product.price = $product.price}
+                            {$discount = (($product.compare_price-$product.price)/$product.compare_price)*100}
+                            {$discount = ceil($discount)}
+
+                            {$productDiscount = isset($discount) && $product.price > 0}
+                            <div class="badge product-card_discounts {if !$productDiscount} -Close{/if}"{if $product.sku_count < 2} data-compare="{$product.compare_price}"{/if}>
+                                <span data-minimal="3" class="js-product-discount ">{if $productDiscount}-{$discount}%{/if}</span>
+                            </div>
+                        {/if}
+                    {/if}
+                </a>
+            </div>
+            {if $isProductTilePreviewTileGallery }
+                <div class="dotted-img">
+                    <ul class="dotted-img__list">
+                        {if $tile_length > 1}
+                            {for $iteration=1 to $tile_length}
+                                <li class="dotted-img__item {if $iteration == 1}-Active{/if}" data-id="{$iteration}"></li>
+                                {if $iteration == 7}
+                                    {break}
+                                {/if}
+                            {/for}
+                        {/if}
+                    </ul>
+                </div>
+            {/if}
+
+            <form class="js-add-to-cart" method="post" action="{$wa->getUrl('shop/frontendCart/add')}">
+                <input type="hidden" name="product_id" value="{$p.id}">
+                <div class="Product-grid_content">
+                    <div class="Product-grid_prices{if $p.compare_price} -hasComparePrice{/if}">
+                        {if empty($p.price) && !empty($theme_settings.text_zero_price)}
+                            <span class="Product-grid_zero-price">{$theme_settings.text_zero_price}</span>
+                        {elseif $_price_range && ($p.max_price && $p.min_price  && $p.max_price > $p.min_price) && !(class_exists('shopSaleskuPlugin') &&  method_exists('shopSaleskuPlugin','isAction') && shopSaleskuPlugin::isAction())}
+                            <span class="small-price">
+                                {$minPrice = $p.min_price}
+                                {$maxPrice = $p.max_price}
+                                <span class="nowrap">{shop_currency_html($minPrice)}</span>
+                                <span class="small-price__dots">...</span>
+                                <span class="nowrap">{shop_currency_html($maxPrice)}</span>
+                            </span>
+                        {else}
+                            <div class="nowrap price">{shop_currency_html($p.price)}</div>
+                            {if $p.compare_price}
+                                <div class="nowrap old-price">{shop_currency_html($p.compare_price)}</div>
+                                {if !$wa->isMobile() && empty($isSlider)}
+                                    {$_badge_percent = $theme_settings.product_discount_percentage == 1 && $product.compare_price > $product.price  &&  $product.price != 0}
+                                    {if $_badge_percent && $product.compare_price > $product.price}
+                                        {if $theme_settings.product_discount_percentage == 1}
+                                            {$product.compare_price = $product.compare_price}
+                                            {$product.price = $product.price}
+                                            {$discount = (($product.compare_price-$product.price)/$product.compare_price)*100}
+                                            {$discount = ceil($discount)}
+
+                                            {$productDiscount = isset($discount) && $product.price > 0}
+                                            <div class="badge product-card_discounts {if !$productDiscount} -Close{/if}"{if $product.sku_count < 2} data-compare="{$product.compare_price}"{/if} style="background-image:url('{$wa_theme_url}img/svg/badge-sale.svg')">
+                                                <span data-minimal="3" class="js-product-discount ">{if $productDiscount}{$discount}%{/if}</span>
+                                            </div>
+                                        {/if}
+                                    {/if}
+                                {/if}
+
+                            {/if}
+                        {/if}
+                    </div>
+                    <div class="Product-grid_description">
+                        <div class="Product-grid_name">
+                            <a title="{$p.name}" href="{$p.frontend_url}">
+                                {$p.name}
+                                {if isset($p.video_url) && !empty($p.video_url)}
+                                    <span class="Product__video-icon">
+                                        <img src="{$wa_active_theme_url}/img/svg/youtube.svg" alt="">
+                                    </span>
+                                {/if}
+                            </a>
+                        </div>
+                        {if $theme_settings.show_summary_grid}
+                            <div class="product_short-desc">{$p.summary}</div>
+                        {/if}
+                        {if count($short_list_features) > 0}
+                            <div class="Product-list_features">
+                                {foreach $short_list_features as $f_code => $f_value}
+                                    {if is_array($f_value)}
+                                        {$text_feature_value = implode(' ', $f_value)}
+                                        {$text_feature = "`$features[$f_code].name`: `$text_feature_value`"}
+                                    {else}
+                                        {$text_feature = "`$features[$f_code].name`: `$f_value`"}
+                                    {/if}
+                                    {if $features[$f_code].type != 'divider'}
+                                        <div class="Product-list__features__item" title="{$text_feature|strip_tags}">
+                                            <span class="Product-list__features__title">{$features[$f_code].name|escape}: </span>
+                                            <span class="Product-list__features__value{if $features[$f_code].type == 'color'} Product-list__features__value--wrap{/if}">
+                                                {if is_array($f_value)}
+                                                    {if $features[$f_code].type == 'color'}
+                                                        {implode(', ', $f_value)}
+                                                    {else}
+                                                        {implode(', ', $f_value)}
+                                                    {/if}
+                                                {else}
+                                                    {$f_value}
+                                                {/if}
+                                            </span>
+                                        </div>
+                                    {/if}
+                                {/foreach}
+                            </div>
+                        {/if}
+                    </div>
+                    {if ($theme_settings.preview_stock || ($p.rating > 0 && $theme_settings.product_ratings) || (isset($p.video_url) && !empty($p.video_url))) || ($theme_settings.show_grid_sku && isset($all_skus) && count($all_skus) > 0)}
+                        <div class="Product-grid_stock-sku-box{if $theme_settings.grid_sku_article_column} Product-grid_stock-sku-box--column{/if}">
+                            {if $theme_settings.preview_stock || ($p.rating > 0 && $theme_settings.product_ratings) || (isset($p.video_url) && !empty($p.video_url))}
+                                {if $theme_settings.preview_stock}
+                                    {if !empty($theme_settings.text_product_preorder)}
+                                        {$text_product_preorder = $theme_settings.text_product_preorder}
+                                    {else}
+                                        {$text_product_preorder = "[`Pre-order only`]"}
+                                    {/if}
+                                    {if $available}
+                                        <div class="Product-grid_stock">
+                                            <div class="Product-stock nowrap">
+                                                {if $ignoreStock && $p.count !== null && $p.count == 0}
+                                                    <div class="Product-stock_item Product-stock_item-critical">
+                                                        {$text_product_preorder}
+                                                    </div>
+                                                {else}
+                                                    <div class="Product-stock_item Product-stock_item-high">
+                                                        {$text_in_stock}
+                                                        {if $theme_settings.preview_stock_count && $p.count !== null}
+                                                            : {$p.count} {$text_unit}
+                                                        {/if}
+                                                    </div>
+                                                {/if}
+                                            </div>
+                                        </div>
+                                    {else}
+                                        <div class="Product-stock_item Product-stock_item-out">
+                                            {$text_out_stock}
+                                        </div>
+                                    {/if}
+                                {/if}
+                            {/if}
+                            {if $theme_settings.show_grid_sku}
+                                <div class="Product-grid_sku hint">
+                                    {if isset($all_skus) && count($all_skus) > 0 && isset($p.skus_list.sku) && !empty($p.skus_list.sku)}
+                                        {$text_art_code}: {$p.skus_list.sku}
+                                    {/if}
+                                </div>
+                            {/if}
+                        </div>
+                    {/if}
+                    {if $p.rating > 0 && $theme_settings.product_ratings}
+                        <div class="product_rating rating nowrap">
+                            <div class="rating -color" style="width: {$product.rating * 100 / 5}%">
+                                <i class="icon16 star"></i>
+                                <i class="icon16 star"></i>
+                                <i class="icon16 star"></i>
+                                <i class="icon16 star"></i>
+                                <i class="icon16 star"></i>
+                            </div>
+                            <div class="rating -zero">
+                                <i class="icon16 star"></i>
+                                <i class="icon16 star"></i>
+                                <i class="icon16 star"></i>
+                                <i class="icon16 star"></i>
+                                <i class="icon16 star"></i>
+                            </div>
+                        </div>
+                        <span class="rating__total">{$p.rating_count}</span>
+                    {elseif $p.rating == 0 && $theme_settings.product_ratings}
+                        <a class="rating -zero" href="{$p.frontend_url}?reviews=scroll">
+                            <div class="">
+                                <i class="icon10 star"></i>
+                            </div>
+                            <div class="">
+                                <i class="icon10 star"></i>
+                            </div>
+                            <div class="">
+                                <i class="icon10 star"></i>
+                            </div>
+                            <div class="">
+                                <i class="icon10 star"></i>
+                            </div>
+                            <div class="">
+                                <i class="icon10 star"></i>
+                            </div>
+                        </a>
+                    {/if}
+                </div>
+                {if class_exists('shopSaleskuPlugin') &&  method_exists('shopSaleskuPlugin','isAction') && shopSaleskuPlugin::isAction() && !$wa->isMobile()}
+                    {shopSaleskuPluginView::displayOptions($p)}
+                {/if}
+
+
+                <div class="Product-grid_bottom">
+                    {if $theme_settings.show_number_item_add_in_grid}
+                        <div class="Cart__Qty__wrap">
+                            <span class="js-qty Cart__Qty Cart__Qty--mini">
+                                {if $available}
+                                    <span data-type="-" class="js-qty-button Cart__Qty_act sdColor"><span>–</span></span>
+                                    <input type="text" name="quantity" value="1" class="js-number">
+                                    <span data-type="+" class="js-qty-button Cart__Qty_act sdColor"><span>+</span></span>
+                                {/if}
+                            </span>
+                        </div>
+                    {/if}
+                    <div class="Product-grid_cart">
+                        {if $available}
+                            {$addedText = "[`Added`]"}
+                            {if $p.sku_count > 1
+                            && !(class_exists('shopSaleskuPlugin') &&  method_exists('shopSaleskuPlugin','isAction') && shopSaleskuPlugin::isAction())}
+                                {if $wa_app == 'shop'}
+                                    <span class="button js-card-dialog addtocart" data-href="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1&select-options=1">[`Add to cart`]</span>
+                                {else}
+                                    <a class="button addtocart" href="{$p.frontend_url}">Нет в наличии</a>
+                                {/if}
+                            {else}
+                                <span class="button js-submit-form addtocart" data-added-text="{$addedText}">[`Add to cart`]</span>
+                            {/if}
+                        {else}
+                            {if $theme_settings.use_plugin_arrived}
+                                {shopArrivedPlugin::getListFormHtml($p)}
+                            {else}
+                                <div class="button disabled Product-stock-out nowrap">
+                                    [`Add to cart`]
+                                </div>
+                            {/if}
+                        {/if}
+                    </div>
+                    <div class="Product-grid_action">
+                        {if $theme_settings.favorites}
+                            <span data-product="{$p.id}" class="js-favorites-add product-action bg-sdСolor add-to-favorite{if in_array($p.id, $favorites)} active{/if}">
+                        <i class="fi-rr-heart"></i>
+                    </span>
+                        {/if}
+                        {if $theme_settings.compare}
+                            <span class="js-compare-add product-action bg-sdСolor add-to-compare{if $wa->shop->inComparison($p.id)} active{/if}" data-product="{$p.id}" data-url="{$p.frontend_url}" data-img="{$preview_image}" data-name="{$p.name}">
+                            <i class="fi-rr-compare"></i>
+                    </span>
+                        {/if}
+                    </div>
+                </div>
+            </form>
+        </div>
+    {/if}
+{/strip}
+
+
+
+

@@ -1,0 +1,37 @@
+{if method_exists($wa->shop, 'checkout')}
+    {$cartUrl = $wa->shop->checkout()->cartUrl()}
+{else}
+    {$cartUrl = $wa->getUrl('shop/frontend/cart')}
+{/if}
+{$items = $wa->shop->cart->items()}
+
+
+
+{$dummy96 = "{$wa_theme_url}img/dummy96.png"}
+{if count($items)}
+    <div class="sb-wrap sidebar-views">
+        <div class="sb-wrap_head maincolor">[`Composition of order`]</div>
+        {foreach $items as $item}
+            <div class="header_cart-preview__product">
+                <div class="header_cart-preview__product-img">
+                    <a href="{$wa->shop->productUrl($item.product)}" title="{$item.product.name|escape}">{$wa->shop->productImgHtml($item.product, '48x48', ['default' => $dummy96])}</a>
+                </div>
+                <div class="header_cart-preview__product-info">
+                    <a href="{$wa->shop->productUrl($item.product)}">{$item.product.name|escape}</a>
+                    <div class="header_cart-preview__product-price">
+                        {$product_price = (int) $item.price}
+                        {if empty($product_price) && !empty($theme_settings.text_zero_price)}
+                            {$theme_settings.text_zero_price}
+                        {else}
+                            {shop_currency_html($item.price, true)}
+                        {/if}
+                        <span class="hint nowrap">x {$item.quantity}</span>
+                    </div>
+                </div>
+            </div>
+        {/foreach}
+        <div class="sb-wrap_bottom sdColor">
+            <a href="{$cartUrl}">[`Edit the order`]</a> &rarr;
+        </div>
+    </div>
+{/if}

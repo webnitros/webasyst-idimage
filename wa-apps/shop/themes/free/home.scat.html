@@ -1,0 +1,44 @@
+{strip}
+    {if count($categories)}
+        {$total_max_subcat = $theme_settings.total_max_maxcat_homepage}
+        {$_lazy = true}
+        <ul class="js-list-categories categories" data-lazy="{$_lazy}">
+            {foreach $categories as $category}
+                <li class="categories-el">
+                    {if isset($Wmimages[$category.id].image)}
+                        {$category.params.image = $Wmimages[$category.id].image}
+                    {/if}
+                    {if isset($skImages[$category.id].image)}
+                        {$category.params.image = $skImages[$category.id].image}
+                    {/if}
+                    {if isset($category.params.image)}
+                        <div class="categories-el-image">
+                            <a href="{$category.url}">
+                                <img class="js-cat-item-image" src="{$wa_theme_url}img/lazy-image.png" data-src="{$category.params.image}" alt="{$category.name}">
+                            </a>
+                        </div>
+                    {/if}
+                    <div class="categories-el-content">
+                        <div class="categories-el_title">
+                            <a href="{$category.url}">{$category.name}</a>
+                        </div>
+                        {if isset($category.childs) && $category.childs && count($category.childs)}
+                            <ul class="categories-el_subs">
+                                {$index = 0}
+                                {foreach $category.childs as $keyCategorylvl2 => $categorylvl2}
+                                    {$index = $index + 1}
+                                    {if $index > $total_max_subcat && $total_max_subcat}{break}{/if}
+                                    <li class="icon-before"><a href="{$categorylvl2.url}">{$categorylvl2.name}</a>
+                                    </li>
+                                {/foreach}
+                            </ul>
+                            {if count($category.childs) > $total_max_subcat && $total_max_subcat}
+                                <a class="categories-el_more box-hlighted" href="{$category.url}">[`All categories`]</a>
+                            {/if}
+                        {/if}
+                    </div>
+                </li>
+            {/foreach}
+        </ul>
+    {/if}
+{/strip}

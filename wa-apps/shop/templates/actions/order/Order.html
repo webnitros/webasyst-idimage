@@ -1,0 +1,811 @@
+{if empty($order)}
+    <div class="width-100 align-center">
+        <i class="fas fa-shopping-cart text-light-gray" style="font-size: 10rem; margin-right: 1.5rem;"></i>
+        <p class="gray large custom-mt-48">[`There are no orders in this view.`]</p>
+    </div>
+{else}
+    <div class="s-order not-blank width-100 height-100" id="s-order-block">
+        <div class="article wider">
+        <div class="article-body custom-py-20">
+
+        <div class="s-split-order-wrapper block double-padded" id="s-split-order-wrapper">
+            {if !empty($actions_html)}
+                {foreach $actions_html as $h}
+                    {$h}
+                {/foreach}
+            {/if}
+            <div class="s-split-order-block flexbox">
+                <div class="s-split-order-content custom-mr-16 custom-mr-0-mobile">
+
+                    <!-- order title -->
+                    <div class="s-order-title-wrapper flexbox middle">
+                        <div class="wide">
+                            <h1 class="custom-mb-16 flexbox wrap space-12" id="s-order-title">
+
+                                <a href="#/orders/{if $filter_params_str}{$filter_params_str}&view=table/{/if}" class="back order-list" style="display:none;"><i class="fas fa-arrow-circle-left"></i></a>
+                                <a href="#/order/{$order.id}/{if $filter_params_str}{$filter_params_str}/{/if}" class="back read-mode" style="display:none;"><i class="fas fa-arrow-circle-left"></i></a>
+
+                                <span class="nowrap">{wa_currency_html($order.total, $order.currency)}</span>
+                                <span class="nowrap hint">{$wa->shop->orderId($order.id)}</span>
+                                <i class="fas fa-spinner fa-spin loading" style="display:none"></i>
+
+
+                                <!-- plugin hook: 'backend_order.title_suffix' -->
+                                {* @event backend_order.%plugin_id%.title_suffix *}
+                                {if !empty($backend_order)}{foreach $backend_order as $_}{ifset($_.title_suffix)}{/foreach}{/if}
+
+                                <span class="s-state-with-time smallest" data-state-id="{$order.state_id}">
+                                    {if $order.state}
+                                        <span class="text-ellipsis custom-mr-8" style="{$order.state->getStyle()}">
+                                            <i class="{$wa->shop->convertIcon($order.state->getOption('icon'))}"></i>
+                                            <span title="{$order.state->getName()|escape}">{$order.state->getName()|escape}</span>
+                                        </span>
+                                        {if $last_action_datetime}
+                                            <em class="hint nowrap">{$last_action_datetime|wa_datetime:'humandatetime'}</em>
+                                            <em class="hint nowrap s-print-only">{$last_action_datetime|wa_datetime:'datetime'}</em>
+                                        {/if}
+                                    {else}
+                                        <span class="gray nowrap text-ellipsis">
+                                            [`Unknown state`]: {$order.state_id}
+                                        </span>
+                                    {/if}
+                                </span>
+                            </h1>
+                        </div>
+                        <div class="s-order-more-details-wrapper custom-mb-auto custom-mt-4">
+                            <button type="menu" class="button rounded light-gray js-more-details" title="[`More details`]"><i class="fas fa-bars text-dark-gray"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- order action buttons -->
+                    <div class="s-order-readable">
+                        <ul class="flexbox wrap unstyled space-8 s-order-actions workflow-actions">
+                            {foreach $buttons as $b}
+                                <li>{$b}</li>
+                            {/foreach}
+
+                            <!-- plugin hook: 'backend_order.action_button' -->
+                            {* @event backend_order.%plugin_id%.action_button *}
+                            {if !empty($backend_order)}{foreach $backend_order as $_}{if (!empty($_.action_button))}<li>{$_.action_button}</li>{/if}{/foreach}{/if}
+                        </ul>
+                        <div class="workflow-content" id="workflow-content" style="display: none;"></div>
+                    </div>
+
+                    <!-- customer info -->
+                    <div class="s-order-customer custom-mb-24">
+                    <div class="flexbox space-16">
+                        <div class="image">
+                            {if $customer_essentials.id|default:'0'}
+                                <a href="?action=customers#/id/{$customer_essentials.id|default:'0'}">
+                                    <img src="{$order_icon}" class="userpic userpic48" />
+                                </a>
+                            {else}
+                                <img src="{$order_icon}" class="userpic userpic48" />
+                            {/if}
+                        </div>
+                        <div class="details">
+                            {$customers_rights = $wa->userRights('customers')}
+
+                            <h5 class="custom-mb-4" style="height: 24px;">
+                                {if $customers_rights && $customer_essentials.id|default:'0'}
+                                    <a href="?action=customers#/id/{$customer_essentials.id|default:'0'}" {if !$customer_essentials.name|escape} class="gray"{/if}>
+                                        {$customer_essentials.name|default:'[`(no name)`]'|escape}
+                                    </a>
+                                {else}
+                                    <span class="gray">{$customer_essentials.name|default:'[`(no customer information)`]'|escape}</span>
+                                {/if}
+                                {if $customer_essentials.registered|default:false}
+                                    <i class="fas fa-check-circle fa-xs text-green" title="[`Registered customer`]"></i>
+                                {/if}
+                                {if !empty($customer) && !empty($customer_essentials.id)}
+                                    {if $customer.number_of_orders == 1}
+                                        <em class="hint">[`New customer`]</em>
+                                    {else}
+                                        <em class="hint">{_w('%d order', '%d orders', $customer.number_of_orders)}</em>
+                                    {/if}
+                                {/if}
+                            </h5>
+
+                            {if $main_contact_info}
+
+                                {include file="./../customers/include.top_fields.html"
+                                    top=$main_contact_info
+                                    similar_contacts=$similar_contacts
+                                    need_other_values=true
+                                inline}
+
+                            {/if}
+
+                            {if !empty($params.customer_timezone)}
+                                <p class="small custom-mt-0" title="[`Current time in the timezone where the client placed this order`]">
+                                    <i class="fas fa-clock text-gray custom-mr-4"></i>
+                                    [`Client current time:`]
+                                    <strong>{waDateTime::format('time', null, $params.customer_timezone)}</strong>
+                                    <span class="hint">{$params.customer_timezone}</span>
+                                </p>
+                            {/if}
+
+                        </div>
+                    </div>
+                    </div>
+
+                    {if $order.comment}
+                        <blockquote class="alert info s-order-comment break-words"><i class="fas fa-comment custom-mr-8 opacity-30"></i>{$order.comment|escape}</blockquote>
+                    {/if}
+
+                    <!-- plugin hook: 'backend_order.info_section' -->
+                    {* @event backend_order.%plugin_id%.info_section *}
+                    {if !empty($backend_order)}{foreach $backend_order as $_}{if (!empty($_.info_section))}{$_.info_section}{/if}{/foreach}{/if}
+
+                    <div class="s-order-shipping-and-payment flexbox full-width wrap-mobile space-16 break-word">
+                        {if ($shipping_address) || !empty($params.shipping_name)}
+                            <div class="s-block width-50 width-100-mobile custom-mr-0-mobile s-order-shipping">
+
+                                <h6 class="custom-mb-8">
+                                    <span class="gray">[`Shipping`]{if !empty($params.shipping_name)} —{/if}</span> <span>{ifset($params.shipping_name)}</span>
+                                </h6>
+                                {if $shipping_address}
+                                    <p class="s-order-address small custom-mt-4">
+                                        {$shipping_address_html}
+                                    </p>
+                                    {if !empty($shipping_custom_fields)}
+                                        <p class="s-order-shipping-custom-fields">
+                                            {foreach $shipping_custom_fields as $f}
+                                                {$f.title}: {$f.value|escape}<br>
+                                            {/foreach}
+                                        </p>
+                                    {/if}
+                                    {if $customer_delivery_date || $customer_delivery_time || $customer_delivery_date_str}
+                                        <p class="s-order-customer-delivery-date{if !empty($shipping_date)} grey{/if}">
+                                            [`Preferred shipping time:`]
+                                            {if $customer_delivery_date}
+                                                <span class="customer-delivery-date">{wa_date('date', $customer_delivery_date, waDateTime::getDefaultTimezone())|escape}</span>
+                                            {elseif $customer_delivery_date_str}
+                                                <span>{$customer_delivery_date_str|escape}</span>
+                                            {/if}
+                                            {if $customer_delivery_time}
+                                                {if $customer_delivery_date}
+                                                    &nbsp;
+                                                {/if}
+                                                {strip}
+                                                <span class="customer-delivery-time-from">{$customer_delivery_time.from_hours|escape}:{$customer_delivery_time.from_minutes|escape}</span>
+                                                –
+                                                <span class="customer-delivery-time-to">{$customer_delivery_time.to_hours|escape}:{$customer_delivery_time.to_minutes|escape}</span>
+                                                {/strip}
+                                            {/if}
+                                        </p>
+                                    {/if}
+
+                                {/if}
+
+                                {$_package = shopShipping::extractItemsTotal($order.params, true)}
+                                {if $_package}
+                                    {if !empty($_package.package_total_weight)}
+                                        <p>[`Total order weight`]: {$_package.package_total_weight}</p>
+                                    {/if}
+                                    {if !empty($_package)}
+                                        <p title="[`Width × length × height`]">[`Total order dimensions`]: {$_package.package_total_width}&times;{$_package.package_total_length}×{$_package.package_total_height}</p>
+                                    {/if}
+                                {/if}
+
+                                {if $shipping_address}
+                                    {if !empty($courier)}
+                                        <!-- Courier -->
+                                        <h6 class="custom-mt-16">
+                                            <span class="gray">[`Courier`] —</span>
+                                            <a href="#/orders/{if isset($courier.enabled)}hash={'search/&params.courier_id='|urlencode|cat:$courier.id}{else}courier_contact_id={$courier.id}{/if}">{$courier.name|escape}</a>
+                                        </h6>
+                                    {/if}
+
+                                    {strip}
+                                        {$edit_shipping_details_available = false}
+                                        {if !empty($order.state)}
+                                            {$available_actions = $order.state->getActions()}
+                                            {$edit_shipping_details_available = !empty($available_actions.editshippingdetails)}
+                                        {/if}
+                                        {if $edit_shipping_details_available || !empty($shipping_date)}
+                                            <p class="small">
+                                                {if !empty($shipping_date)}
+                                                    [`Shipping time`]: {wa_date('date', $shipping_date, waDateTime::getDefaultTimezone())|escape} {$shipping_time_start|escape}–{$shipping_time_end|escape}
+                                                    {if !empty($order.state)}<br>{/if}
+                                                {/if}
+                                            </p>
+                                        {/if}
+                                    {/strip}
+                                {/if}
+
+                                <!-- shipping plugin output -->
+                                {if !empty($params.tracking_number)}
+                                    <h6 class="custom-mt-16">
+                                        <span class="gray">[`Shipment tracking number`] —</span>
+                                        <span>{$params.tracking_number|escape}</span>
+                                        <a href="javascript:void(0)" class="wf-action" data-action-id="editshippingdetails" data-container="#workflow-content"><i class="fas fa-edit fa-xs"></i></a>
+                                    </h6>
+                                {/if}
+                                {if !empty($tracking) && $order.state_id != 'completed'}
+                                    <blockquote class="plugin s-tracking">
+                                        {$tracking}
+                                    </blockquote>
+                                {/if}
+
+                                {if !empty($edit_shipping_details_available)}
+                                    <a href="javascript:void(0)" class="wf-action button light-gray smaller" data-action-id="editshippingdetails" data-container="#workflow-content"><i class="fas fa-truck opacity-30 custom-mr-4"></i> [`Shipping details`]</a>
+                                {/if}
+
+                            </div>
+                        {/if}
+
+                            <div class="s-block width-50 width-100-mobile s-order-payment{if !empty($order.paid_date)} highlighted green{elseif !empty($order.auth_date)} highlighted yellow{elseif $order.state_id == 'refunded'} highlighted orange{/if}">
+
+                                <h6>
+                                    {if !empty($order.paid_date)}
+                                        <i class="fas fa-check-circle s-order-paid-checkmark"></i>
+                                    {/if}
+                                    <span class="gray">[`Payment`]</span>
+                                    {if !empty($params.payment_name)}
+                                        <span class="gray">—</span>
+                                        <span>{$params.payment_name|escape}</span>
+                                    {/if}
+                                </h6>
+                                {if $billing_address !== null}
+                                    <p class="s-order-address">{$billing_address}</p>
+                                {/if}
+
+                                {if !empty($order.paid_date)}
+
+                                    <p class="small">{sprintf('[`Order was paid on %s`]', $order.paid_date|wa_date:'humandate')}</p>
+
+                                {elseif !empty($order.auth_date)}
+
+                                    <p class="small"><em>{sprintf('[`Order payment was captured on %s`]', $order.auth_date|wa_date:'humandate')}</em></p>
+
+                                {else}
+                                    {if $order.state_id === 'deleted'}
+                                        <div><p class="gray small">[`Payment links are not eligible for deleted orders.`]</p></div>
+                                    {else}
+                                        {if $order.state_id == 'refunded'}
+                                            <p class="small text-orange"><i class="fas fa-times"></i> <strong>[`Order payment was refunded`]</strong></p>
+                                        {else}
+                                            <p class="small"><em>[`Order was not paid yet`]</em></p>
+                                        {/if}
+
+                                        <h6 class="gray custom-mt-16">[`Payment link`]</h6>
+
+                                        {* <pre class="break-all small" id="js-payment-url">{$order.payment_url}</pre> *}
+                                        <button class="button smaller green nowrap js-copy-btn" data-url="{$order.payment_url}" data-title-copied="[`Copied`]" data-initial-title="[`Copy link`]" style="height:29px;">[`Copy link`]</button>
+                                        <a href="{$order.payment_url}" target="_blank" class="button smaller light-gray">[`Open link`] <i class="fas fa-external-link-alt fa-xs opacity-30"></i></a>
+                                    {/if}
+                                {/if}
+
+                            </div>
+
+                    </div>
+
+                    <!-- order content -->
+                    {$visible_fulfilment_mode = !in_array($order.state_id, ['shipped', 'completed', 'refunded', 'deleted'])}
+                    <table id="s-order-items"
+                        class="s-order-items-table s-order-readable{if $visible_fulfilment_mode} s-order-items-table--fulfilmented-mode{/if}">
+                        {$_has_granted_calc_profit = $wa->user()->getRights('shop', 'reports')}
+                        {$_sum_purchase_price = 0}
+                        {$_total_items_profit = 0}
+                        {$_total_service_items_profit = 0}
+                        {if $order.items}
+                            <thead>
+                                <tr>
+                                    {if $visible_fulfilment_mode}
+                                        <th colspan="3" class="custom-pl-0">
+                                            {$_description = _w('Fulfillment mode is for your personal control of assembling an order. Checked items are not synced with the server and other users.')}
+                                            <div class="flexbox middle">
+                                                <button type="button" class="js-show-fulfilment-mode button nobutton rounded custom-m-0 custom-p-2 small"><i class="fas fa-tasks"></i> [`Fulfillment mode`] <span class="js-fulfilment-mode-counter badge small hidden custom-ml-4"></span></button>
+
+                                                <span id="tooltip-fulfilment-mode" data-wa-tooltip-content="{$_description}">
+                                                    <i class="fas fa-info-circle text-light-gray"></i>
+                                                </span>
+                                                <script>
+                                                    (function($) {
+                                                        $("#tooltip-fulfilment-mode").waTooltip();
+                                                    })(jQuery);
+                                                </script>
+                                            </div>
+                                            <p class="hint-fulfilment-mode hint custom-my-8 custom-ml-4 semibold text-gray">{$_description}</p>
+                                        </th>
+                                    {else}
+                                        <th colspan="2"></th>
+                                    {/if}
+                                    <th class="align-right valign-bottom nowrap">[`Qty`]</th>
+                                    <th class="align-right valign-bottom nowrap">[`Total`]</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {$subtotal = 0}
+                                {$current_chapter = $wa->whichUI()}
+                                {foreach $order.items as $item}
+                                    {if $item.type=='product'}
+                                        {if '1.3' == $current_chapter}
+                                            {$link_edit = shopHelper::getBackendEditorUrl($item.product_id, 'product')}
+                                        {else}
+                                            {$link_edit = shopHelper::getBackendEditorUrl($item.product_id, 'prices')}
+                                        {/if}
+                                    {else}
+                                        {$link_edit = "?action=products#/services/{$item.service_id}/"}
+                                    {/if}
+
+                                    <tr class="s-product-wrapper{if $item.type == 'service'} is-product small{/if}"
+                                        data-id="{$item.id}" data-type="{$item.type}"{if $item.parent_id} data-parent="{$item.parent_id}"{/if}>
+                                        {if $visible_fulfilment_mode}
+                                            <td class="js-product-fulfilment-td s-product-fulfilment min-width valign-top">
+                                                <label class="large">
+                                                    <span class="wa-checkbox">
+                                                        <input type="checkbox" name="order_item" value="{$item.id}">
+                                                        <span>
+                                                            <span class="icon">
+                                                                <i class="fas fa-check"></i>
+                                                            </span>
+                                                        </span>
+                                                    </span>
+                                                </label>
+                                            </td>
+                                        {/if}
+                                        <td class="s-product-image min-width custom-mx-auto-mobile valign-top">
+                                            {if $item.type != 'service'}
+                                                {if !empty($item.image_id)}
+                                                    {$wa->shop->productImgHtml(['id' => $item.product_id, 'image_id' => $item.image_id, 'image_filename' => $item.image_filename, 'ext' => $item.ext], '96x96', ["class" => "s-ordered-product-image"])}
+                                                {else}
+                                                    <img src="{$wa_app_static_url}img/image-dummy.svg" class="s-ordered-product-image not-found" />
+                                                {/if}
+                                            {/if}
+                                        </td>
+                                        <td>
+                                            <div class="s-product-basic-info align-left-mobile">
+                                                {if $item.type == 'service'}<span class="gray s-overhanging-plus">+</span>{/if}
+
+                                                {if !empty($item.deleted)}
+                                                    <strong class="js-item-name-label">{$item.name|escape|default:"[`(no name)`]"}</strong>
+                                                    {if empty($item.product_id) && empty($item.sku_id)}
+                                                        <input class="js-item-name-field width-100 bold custom-mb-8" type="text" name="item_changed_name" value="{$item.name}" style="display: none">
+                                                        <span class="item-name-controls">
+                                                            <a href="javascript:void(0);" class="js-edit-item-name small custom-ml-4"><i class="fas fa-edit"></i></a>
+                                                            <button class="js-save-item-name smaller" style="display: none">[`Save`]</button>
+                                                            <button class="js-close-item-name smaller light-gray" style="display: none">[`Cancel`]</button>
+                                                        </span>
+                                                        <p class="hint error-msg js-save-name-error" style="display: none"></p>
+                                                    {else}
+                                                        <span class="gray">{if $item.type == 'product'}[`deleted product`]{else}[`deleted service`]{/if}</span>
+                                                    {/if}
+                                                {else}
+                                                    <a href="{$link_edit}" class="{if $item.type == 'product'}bold{/if}">{$item.name|escape}</a>
+                                                {/if}
+                                                {if empty($item.deleted) && $item.type == 'product' && $item.current_product_name|escape != $item.name|escape}
+                                                    <div class="s-product-previous-name">
+                                                        <i class="fas fa-exclamation-triangle text-yellow"></i>
+                                                        <span class="gray">
+                                                            [`Current name`]: {$item.current_product_name|escape}
+                                                        </span>
+                                                    </div>
+                                                {/if}
+                                                {if !empty($item.sku_code) && empty($item.deleted)}
+                                                    <br>
+                                                    <span class="hint">{$item.sku_code|escape}</span>
+                                                {/if}
+
+                                                {if !empty($item.stock)}
+                                                    <br><span class="smaller">@{$item.stock.name|escape}</span>
+                                                {/if}
+                                                {if !empty($item.stock_icon)}
+                                                    <br><span class="smaller">{$item.stock_icon}</span>
+                                                {/if}
+
+                                                {if $item.product_codes}
+                                                    <div class="s-marking-section width-60">
+                                                        <table class="s-marking-list borderless single-lined ">
+                                                            {foreach $item.product_codes as $_code}
+                                                            <tr class="s-mark-wrapper">
+                                                                <td class="s-section-icon">
+                                                                    {if !empty($_code.icon) && $_code.code_plugin_enabled}
+                                                                        <img src="{$wa_url}{$_code.icon}">
+                                                                    {else}
+                                                                        <i class="fas fa-qrcode text-dark-gray large"></i>
+                                                                    {/if}
+                                                                </td>
+                                                                <td class="min-width nowrap">
+                                                                    <a class="s-name wf-action" href="javascript:void(0);" title="{$_code.code|escape}" data-action-id="editcode" data-form-in-dialog="1" data-item-id="{$item.id|escape}" data-code-id="{$_code.id|escape}">
+                                                                        {$_code.name|escape}
+                                                                    </a>
+                                                                </td>
+                                                                <td class="min-width">
+                                                                    <span class="s-count-text flexbox middle space-4">
+                                                                        {strip}
+                                                                        {if count($_code.values) >= $item.quantity}
+                                                                            <i class="fas fa-check-circle text-green"></i>
+                                                                        {else}
+                                                                            <i class="fas fa-exclamation-triangle text-yellow"></i>
+                                                                        {/if}
+                                                                        <span>{sprintf_wp("%s out of %s", count($_code.values), $item.quantity)}</span>
+                                                                        {/strip}
+                                                                    </span>
+                                                                </td class="min-width">
+                                                                <td></td>
+                                                                </tr>
+                                                            {/foreach}
+                                                        </table>
+                                                    </div>
+                                                {/if}
+                                            </div>
+                                        </td>
+                                        <td class="align-right nowrap" aria-label="[`Qty`]">
+                                            <span class="gray large">&times;</span> <span class="semibold large">{$item.quantity}</span><br>
+                                            <span class="gray small">{wa_currency_html($item.price, $order.currency)}</span>
+                                            {if !empty($item.stock_unit)}
+                                                <span class="s-unit">{$item.stock_unit.name_short|escape}</span>
+                                            {/if}
+                                        </td>
+                                        <td aria-label="[`Total`]" class="align-right nowrap">
+                                            <div{if $item.total_discount > 0} title="{sprintf_wp("Total discount for this order item: %s.", wa_currency($item.total_discount, $order.currency))|escape}"{/if}>{wa_currency_html($item.price * $item.quantity, $order.currency)}</div>
+                                            {if $_has_granted_calc_profit && $item.purchase_price > 0}
+                                                {if $item.tax_included == '1'}
+                                                    {$_item_profit = ($item.price - $item.purchase_price - $item.price / (100 + $item.tax_percent) * $item.tax_percent) * $item.quantity}
+                                                {else}
+                                                    {$_item_profit = ($item.price - $item.purchase_price) * $item.quantity}
+                                                {/if}
+
+                                                {$_item_percent_profit = 0}
+                                                {if $item.quantity > 0}
+                                                    {$_item_percent_profit = (($_item_profit / $item.purchase_price) * 100 / $item.quantity)|round}
+                                                {/if}
+
+                                                {$_total_items_profit = $_total_items_profit + $_item_profit}
+
+                                                {$_sum_purchase_price = $_sum_purchase_price + $item.purchase_price * $item.quantity}
+
+                                                <div class="bold smaller text-{if $item.price - $item.purchase_price > 0}green{else}red{/if}" title="[`Estimated profit`] = [`Price`] &minus; [`Purchase price`]{if $item.tax_included == '1'} &minus; [`Tax`]{/if}">{if $item.price - $item.purchase_price > 0}&plus;{/if}{wa_currency_html($_item_profit, $order.currency)} ({$_item_percent_profit}%)</div>
+                                            {/if}
+
+                                            {if $_has_granted_calc_profit && $item.type == 'service'}
+                                                {$_total_service_items_profit = $_total_service_items_profit + $item.price * $item.quantity}
+                                            {/if}
+                                        </td>
+                                    </tr>
+                                    {$subtotal = $subtotal + $item.price*$item.quantity}
+                                {/foreach}
+                                </tbody>
+                            {else}
+                                <tbody>
+                                <tr>
+                                    <td colspan="4" class="s-empty-order-note">[`Order content is unknown`]</td>
+                                </tr>
+                                </tbody>
+                            {/if}
+                        <tfoot>
+                            {$_colspan = (empty($visible_fulfilment_mode)) ? 2 : 3}
+                            {if !empty($subtotal)}
+                                <tr>
+                                    <td colspan="{$_colspan}" class="width-100-mobile"></td>
+                                    <td class="align-right"><br>[`Subtotal`]</td>
+                                    <td class="align-right nowrap"><br>{wa_currency_html($subtotal, $order.currency)}</td>
+                                </tr>
+                            {/if}
+                            <tr class="no-border">
+                                <td colspan="{$_colspan}" class="width-100-mobile"></td>
+                                <td class="align-right">
+                                    [`Discount`]
+                                    {if !empty($order.coupon.code)}
+                                        {if !empty($order.coupon.id) && $order.coupon.right}
+                                            <a href="{$wa_app_url}marketing/coupons/{$order.coupon.id|escape}/">
+                                        {/if}
+                                        <i class="fas fa-tags custom-mx-4"></i><strong>{$order.coupon.code|escape}</strong>
+                                        {if !empty($order.coupon.id) && $order.coupon.right}
+                                            </a>
+                                        {/if}
+                                    {/if}
+                                </td>
+                                <td class="align-right nowrap">&minus; {wa_currency_html($order.discount, $order.currency)}</td>
+                            </tr>
+                            {if isset($params.shipping_name) || $order.shipping > 0}
+                                <tr>
+                                    <td colspan="{$_colspan}" class="width-100-mobile"></td>
+                                    <td class="align-right">[`Shipping`]</td>
+                                    <td class="align-right nowrap">{wa_currency_html($order.shipping, $order.currency)}</td>
+                                </tr>
+                            {/if}
+                            {if !empty($order.tax|default:'')}
+                                <tr>
+                                    <td colspan="{$_colspan}" class="width-100-mobile"></td>
+                                    <td class="align-right">[`Tax`]</td>
+                                    <td class="align-right nowrap">{wa_currency_html($order.tax, $order.currency)}</td>
+                                </tr>
+                            {/if}
+                            <tr class="bold larger">
+                                <td colspan="{$_colspan}" class="width-100-mobile custom-p-0-mobile"></td>
+                                <td class="align-right custom-pl-0-mobile">[`Total`]</td>
+                                <td class="align-right nowrap">
+                                    <div>{wa_currency_html($order.total, $order.currency)}</div>
+                                    {if $_has_granted_calc_profit && $_sum_purchase_price}
+                                        {$_total_profit = $_total_items_profit + $_total_service_items_profit - $order.discount}
+
+                                        {$_total_percent_profit = (($_total_profit / $_sum_purchase_price) * 100)|round}
+
+                                        <div class="bold smaller text-{if $_total_profit > 0}green{else}red{/if}" title="[`Estimated profit`] = [`Profit by all products`] &plus; [`Services`] &minus; [`Discount`]">{if $_total_profit > 0}+{/if}{wa_currency_html($_total_profit, $order.currency)} ({$_total_percent_profit}%)</div>
+                                    {/if}
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+
+                    <div id="s-order-items-edit" class="s-order-editable" style="display:none;"></div>
+
+                    <!-- order processing timeline -->
+                    <div class="s-order-readable s-order-timeline small">
+                        <h4>[`Order timeline`]</h4>
+                        <p class="workflow-actions">
+                            {foreach $bottom_buttons as $b}
+                                {$b}
+                            {/foreach}
+                        </p>
+                        <div class="workflow-content"></div>
+                        <div class="fields">
+                            {foreach $log as $row}
+                                <div class="field">
+                                    <div class="name">{$row.datetime|wa_datetime:"humandatetime"}</div>
+                                    <div class="value">
+                                        {if $row.action_id}
+                                            {if $row.contact_id}
+                                                <i class="icon userpic userpic20" style="background-image: url({waContact::getPhotoUrl($row.contact_id, $row.contact_photo, 20)});"></i>
+                                                {$row.contact_name|escape}
+                                            {elseif $row.action_id == 'callback' && !empty($row.plugin)}
+                                                {if !empty($row.plugin_icon_url)}
+                                                    <i class="icon" style="background-image: url('{$row.plugin_icon_url}');"></i>
+                                                {/if}
+                                                {$row.plugin|default:''|escape}
+                                            {/if}
+                                            {if !empty($row.params.actor_courier_name)}
+                                                {if $row.contact_id}<br>{/if}
+                                                <i class="fas fa-walking"></i>
+                                                {$row.params.actor_courier_name|escape}
+                                            {/if}
+                                            <strong>{if $row.action}{$row.action->getOption('log_record')|escape}{else}{$row.action_id}{/if}</strong>
+
+                                            {if $row.text}
+                                                <p{if $row.action_id == 'message' || $row.action_id == 'comment' || $row.action_id == 'pay' || $row.action_id == 'ship'} class="s-order-timeline-message{if $row.action_id == 'message'} blue{elseif $row.action_id == 'ship'} yellow{/if}"{/if}>{$row.text|regex_replace:'@\<br\s*/?\>\r?(\n)@':'$1'|nl2br}</p>
+                                            {/if}
+                                        {else}
+                                            {if $row.text}
+                                                {$row.text|regex_replace:'@\<br\s*/?\>\r?(\n)@':'$1'|nl2br}
+                                            {/if}
+                                        {/if}
+                                    </div>
+                                    {if !empty($row.params.refund_items) && is_array($row.params.refund_items)}
+                                        <div class="value refund-items-caption">
+                                            [`Items removed from the order:`]
+                                        </div>
+                                        <div class="value refund-items-list">
+                                            {strip}
+                                            <ul class="menu">
+                                                {foreach $row.params.refund_items as $_product}
+                                                    {$_is_service = $_product.type === "service"}
+                                                    <li class="{if $_is_service}s-service gray{else}s-product{/if}">
+                                                        <span class="s-name">{if $_is_service}+ {/if}{$_product.name|escape}</span>
+                                                        {if !empty($_product.sku_code)}
+                                                            <span class="s-divider">, </span>
+                                                            <span class="s-sku-code gray">{$_product.sku_code}</span>
+                                                        {/if}
+                                                        <span class="s-divider">, </span>
+                                                        <span class="s-price">{wa_currency_html($_product.price, ifset($_product.currency, $order.currency))}</span>
+                                                        <span class="s-divider"> x </span>
+                                                        <span class="s-quantity">{$_product.quantity|floatval} [`items`]</span>
+                                                    </li>
+                                                {/foreach}
+                                            </ul>
+                                            {/strip}
+                                        </div>
+                                    {/if}
+                                    {if !empty($row.params.is_delivery_cost_removed)}
+                                        <div class="value delivery-cost-removed-caption">
+                                            [`Shipping cost will be deleted.`]
+                                        </div>
+                                    {/if}
+                                    {if !empty($row.params.return_stock)}
+                                    <div class="value">
+                                        {ifset($row.params.return_stock_name,$row.params.return_stock)|string_format:"[`Items were returned to stock “%s”.`]"|escape}
+                                    </div>
+                                    {/if}
+                                </div>
+                            {/foreach}
+                        </div>
+                    </div>
+                </div>
+                <div class="sidebar right s-order-aux width-adaptive mobile-friendly">
+                    <div class="s-order-aux-header">
+                        <div class="align-right">
+                            <a href="javascript:void(0);" class="js-close-aux-sidebar text-light-gray large" title="[`Close`]"><i class="fas fa-times-circle"></i></a>
+                        </div>
+                    </div>
+                    <div class="box s-printable-print-button align-center">
+                        <input type="button" class="button white" value="[`Print`]" onClick="window.print();">
+                    </div>
+
+                    <!-- order action links -->
+                    <ul class="menu workflow-actions">
+                        <li>
+                            <a href="{$wa_app_url}?module=order&id={$order.id}&printable=true" class="js-show-print-page">
+                                <i class="fas fa-print custom-mr-4"></i>
+                                <span>[`Printable version`]</span>
+                            </a>
+                            <script>
+                                ( function($) {
+                                    $(".workflow-actions .js-show-print-page").on("click", function(event) {
+                                        event.preventDefault();
+                                        showWindow($(this).attr('href'));
+                                    });
+
+                                    function showWindow(href) {
+                                        var $window = $(window),
+                                            window_w = $window.width(),
+                                            window_h = $window.height();
+
+                                        var params_array = [
+                                            ["top", parseInt(window_h * .025)],
+                                            ["left", parseInt(window_w * .025)],
+                                            ["height", parseInt(window_h * .95)],
+                                            ["width", parseInt(window_w * .95)]
+                                        ];
+
+                                        var params = [];
+
+                                        $.each(params_array, function(index, item) {
+                                            var param_string = item[0] + "=" + item[1];
+                                            params.push(param_string);
+                                        });
+
+                                        window.open(href, "wa-shop-order-print", params.join(","));
+                                    }
+
+                                })(jQuery);
+                            </script>
+                        </li>
+                        {foreach $top_buttons as $b}
+                            <li>{$b}</li>
+                        {/foreach}
+
+                        <!-- plugin hook: 'backend_order.action_link' -->
+                        {* @event backend_order.%plugin_id%.action_link *}
+                        {if !empty($backend_order)}{foreach $backend_order as $_}{if (!empty($_.action_link))}<li>{$_.action_link}</li>{/if}{/foreach}{/if}
+
+                    </ul>
+                    <div class="workflow-content"></div>
+
+                    <!-- printable docs -->
+                    {if count($printable_docs)}
+                        <div class="box custom-py-0"><hr></div>
+                        <ul class="menu js-printable-docs">
+                            {foreach $printable_docs as $plugin_id => $printable_doc}
+                                <li>
+                                    <label class="item">
+                                        <span class="wa-checkbox">
+                                            <input type="checkbox" checked value="{$printable_doc.url|escape}" data-name="{$plugin_id}" data-target="_printform_{$plugin_id}_{$order.id}">
+                                            <span>
+                                                <span class="icon">
+                                                    <i class="fas fa-check"></i>
+                                                </span>
+                                            </span>
+                                            <span class="custom-ml-4">{$printable_doc.name|escape}</span>
+                                        </span>
+                                        {if !empty($printable_doc.mail_url)}
+                                            <a href="#" class="action custom-ml-8 js-printable-docs-send" data-order-id="{$order.id}" data-url="{$printable_doc.mail_url|escape}" title="[`Email this form to customer`]">
+                                                <i class="fas fa-envelope on-hover-only"></i>
+                                            </a>
+                                        {/if}
+                                    </label>
+                                </li>
+                            {/foreach}
+                        </ul>
+                        <div class="box custom-pt-0">
+                            <input type="button" value="[`Print`]" class="button smaller light-gray js-printable-docs">
+                        </div>
+                        <div class="box"><hr></div>
+                    {/if}
+
+                    {if $shipping_address}
+                        <!-- order shipping & billing addresses -->
+                        <div class="box">{$map}</div>
+                    {/if}
+
+                    <!-- order aux info -->
+                    <div class="box smaller">
+                        <p class="gray">
+                            [`Order created`]: <strong>{$order.create_datetime|wa_datetime:"humandatetime"}</strong><br>
+                            {if !empty($order.params.referer)}[`Referrer`]: <strong><a href="{$order.params.referer}" target="_blank" style="color: #03c;">{$order.params.referer|truncate:42|escape}</a></strong><br>{/if}
+                            {if !empty($order.params.utm_campaign)}[`UTM campaign`]: <strong>{$order.params.utm_campaign|escape}</strong><br>{/if}
+                            {if !empty($sales_channel)}[`Sales channel`]: <strong title="{$order.params.sales_channel|default:'?'|escape}">{$sales_channel|escape}</strong><br>{/if}
+                            {if !empty($order.params.fiscalization_datetime)}
+                                <span title="{ifset($order.params, 'fiscalization_plugin_id', '')|escape} ({ifset($order.params, 'fiscalization_plugin_type', '')|escape}) {$order.params.fiscalization_datetime|wa_datetime|escape}">
+                                    [`Fiscalization`]: <strong>{$order.params.fiscalization_datetime|wa_date|escape}</strong><br>
+                                </span>
+                            {/if}
+                            {if !empty($order.params.storefront)}[`Storefront`]: <strong>{$order.params.storefront_decoded|default:$order.params.storefront}</strong><br>{/if}
+                            {if !empty($order.params.keyword)}[`Keyword`]: <strong>{$order.params.keyword|escape}</strong><br>{/if}
+                            {if !empty($order.params.ip)}[`IP`]: <strong>{$order.params.ip}</strong><br>{/if}
+
+                            <!-- plugin hook: 'backend_order.aux_info' -->
+                            {* @event backend_order.%plugin_id%.aux_info *}
+                            {if !empty($backend_order)}{foreach $backend_order as $_}{if (!empty($_.aux_info))}{$_.aux_info}<br>{/if}{/foreach}{/if}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        </div>
+        </div>
+
+    </div>
+
+    <script>
+        ( function($) {
+            var sources = [{
+                id: "wa-shop-backend-order-css",
+                type: "css",
+                uri: "{$wa_app_static_url}css/backend/orders/order.css?v={$wa->version()}"
+            }, {
+                id: "wa-shop-backend-order-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/order/order.js?v{$wa->version()}"
+            }];
+
+            $.shop.loadSources(sources).then(init);
+
+            function init() {
+                var $wrapper = $("#s-order-block");
+
+                var view = "{$wa->get('view')}";
+                var count_new = {if !empty($count_new)}{$count_new}{else}0{/if};
+                var options = {
+                    $wrapper: $wrapper,
+                    order: {json_encode($order)},
+                    currency: '{$currency}',
+                    view: view,
+                    offset: {json_encode($offset)}
+                };
+
+                // title has to be overridden in this cases
+                if (view === 'table' || view === 'kanban') {
+                    options.title = '{$wa->shop->orderId($order.id)|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+                    if (count_new) {
+                        options.title = '(' + count_new + ') ' + options.title;
+                    }
+                }
+
+                if (!$.order_list || view === 'table' || view === 'kanban') {
+                    if ($.order_list) {
+                        $.order_list.finit();   // destructor
+                    }
+                    options.dependencies = options.dependencies || { };
+                    options.dependencies.order_list = {
+                        view: view,
+                        update_process: {
+                            timeout: {$timeout}
+                        },
+                        count_new: {$count_new},
+                        title_suffix: " — {$wa->accountName(false)|escape:javascript}",
+                        filter_params: {json_encode($filter_params)},
+                        filter_params_str: '{$filter_params_str}'
+                    };
+                }
+
+                options.templates = {
+                };
+
+                options.urls = {
+                    "marking_dialog": "todo:"
+                };
+
+                $.order.init(options);
+
+                if ($.order_list) {
+                    $.order_list.updateTotalProcessing({$total_processing|json_encode});
+                }
+            }
+        })(jQuery);
+    </script>
+{/if}

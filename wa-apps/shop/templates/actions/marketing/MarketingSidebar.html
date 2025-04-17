@@ -1,0 +1,106 @@
+{strip}
+<div id="js-marketing-sidebar">
+    <div class="flexbox wrap-mobile space-16">
+
+        {strip}
+        <div class="dropdown js-marketing-storefronts-dropdown custom-mr-4 custom-mt-2">
+            {$_active_storefront = waIdna::dec($active_storefront|default:''|escape)}
+            {if empty($_active_storefront)}
+                {$_active_storefront = _w('All storefronts')}
+            {elseif $_active_storefront === '_unattached_'}
+                {$_active_storefront = _w('No storefronts')}
+            {/if}
+            <button class="dropdown-toggle small light-gray nowrap">{$_active_storefront}</button>
+
+            <div class="dropdown-body">
+                <ul class="menu">
+                    {if !empty($marketing_url)}
+                        <li class="{if empty($active_storefront) && empty($unattached_active)}selected{/if}">
+                            <a href="{$marketing_url}{if $status}?status={$status}{/if}" title="[`All storefronts`]">[`All storefronts`]</a>
+                        </li>
+                    {/if}
+
+                    {if !empty($show_unatt_storefronts) || !empty($unattached_active)}
+                        <li class="{if !empty($unattached_active)}selected{/if}">
+                            <a href="{$marketing_url}?storefront=_unattached_{if $status}&status={$status}{/if}" title="[`No storefronts`]">[`No storefronts`]</a>
+                        </li>
+                    {/if}
+
+                    {if !empty($storefronts)}
+                        {foreach $storefronts as $_storefront}
+                            {$_is_active = false}
+                            {if !empty($active_storefront) && $active_storefront === $_storefront}
+                                {$_is_active = true}
+                            {/if}
+
+                            <li class="{if !empty($_is_active)}selected{/if}">
+                                <a href="{$marketing_url}?storefront={$_storefront|urlencode}{if $status}&status={$status}{/if}" title="{$_storefront|escape}">{waIdna::dec($_storefront)}</a>
+                            </li>
+                        {/foreach}
+                    {/if}
+                </ul>
+            </div>
+        </div>
+        {/strip}
+
+        <div class="wide">
+            <div class="flexbox wrap space-24">
+                <ul class="chips small rounded transparent custom-pl-0 custom-my-0">
+                    <li>
+                        <a href="{$wa_app_url}marketing/">
+                            <span class="s-name">[`All promos`]</span>
+                            <span class="count custom-ml-4 js-counter">{$counts.total|escape}</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{$wa_app_url}marketing/?status=active">
+                            <span class="s-name">[`Active promos`]</span>
+                            <span class="count custom-ml-4 js-counter">{$counts.active|escape}</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{$wa_app_url}marketing/?status=planned">
+                            <span class="s-name">[`Scheduled promos`]</span>
+                            <span class="count custom-ml-4 js-counter">{$counts.planned|escape}</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{$wa_app_url}marketing/?status=completed">
+                            <span class="s-name">[`Finished promos`]</span>
+                            <span class="count custom-ml-4 js-counter">{$counts.finished|escape}</span>
+                        </a>
+                    </li>
+
+                    {foreach $additional_items.promos_li as $li}{$li}{/foreach}
+
+                    {foreach $additional_items.tools_li as $li}{$li}{/foreach}
+                </ul>
+
+            </div>
+        </div>
+
+    </div>
+
+    {if !empty($additional_items.custom_html)}
+    <div class="custom-my-12">
+        {foreach $additional_items.custom_html as $block}{$block}{/foreach}
+    </div>
+    {/if}
+
+    <script>
+        ( function($) {
+            $.shop.marketing.initSidebar({
+                $wrapper: $("#js-marketing-sidebar"),
+                urls: {
+                    app_url: "{$wa_app_url}",
+                    reload: "{$wa_app_url}?module=marketingSidebar"
+                }
+            });
+        })(jQuery);
+    </script>
+</div>
+
+{/strip}

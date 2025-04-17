@@ -1,0 +1,42 @@
+{literal}
+    {%
+        const states = o.states;
+        const orders = o.orders;
+        const state_icons = o.state_icons;
+        const state_counters = o.state_counters;
+    %}
+
+    {% for (state in states) { %}
+
+        {%
+            const state_icon = state_icons[state] || '';
+            const state_counter = state_counters[state] || '0';
+            const state_color = states[state]['options']['style']['color'] || '#fff';
+            const state_fontWeight = states[state]['options']['style']['font-weight'] || 'normal';
+            const state_name = states[state]['name'];
+        %}
+        <div class="s-kanban__list">
+            <div class="flexbox middle custom-p-12">
+                <div class="wide text-ellipsis" style="color:{%=state_color%};font-weight:{%=state_fontWeight%}" data-wa-tooltip-content="{%=states[state]['name']%}">
+                    <span class="s-status-wrapper nowrap">
+                        <i class="{%=state_icon%}"></i> {%=states[state]['name']%}
+                    </span>
+                </div>
+                <div>
+                    <span class="s-kanban__list__count gray bold" data-status-id="{%#state%}">{%=state_counter%}</span>
+                </div>
+            </div>
+            <div data-kanban-list-status-id="{%#state%}" data-kanban-list-total="{%#state_counter%}" class="s-kanban__list__body hide-scrollbar custom-px-12">
+                {% for (order of orders) { %}
+                    {% if (order.state_id == state) { %}
+                        {% include('template-order-list-kanban-card', { state_name, state, order, state_color });  %}
+                    {% } %}
+                {% } %}
+                <div class="s-kanban__list__body__footer">
+                    <div class="spinner custom-p-8 js-kanban-spinner" style="display: none;"></div>
+                </div>
+            </div>
+            <div class="s-kanban__list__fade"></div>
+        </div>
+    {% } %}
+{/literal}

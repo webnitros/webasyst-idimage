@@ -1,0 +1,202 @@
+{include "./sales_sidebar.html" inline}
+
+<div class="content">
+    <h1>
+        [`Cohorts`]
+    </h1>
+    <div>
+        <div class="graph-wrapper">
+            <div class="cohort-wrapper"></div>
+            <div class="hint-wrapper"></div>
+            {if $all_zeroes}
+                <div class="empty-graph">[`Not enough sales data to build cohort chart for the selected period.`]</div>
+            {/if}
+        </div>
+
+        {* Too easy to shoot yourself in the foot *}
+        <div class="hidden block">
+            [`Group by`]:
+            {$group_by_options = [
+                'weeks' => "[`week`]",
+                'months' => "[`month`]",
+                'quarters' => "[`quarters`]"
+            ]}
+            <div class="wa-select">
+                <select id="s-cohorts-group-by-selector">
+                    {foreach $group_by_options as $value => $name}
+                        <option value="{$value|escape}"{if $group_by == $value} selected{/if}>{$name|escape}</option>
+                    {/foreach}
+                </select>
+            </div>
+        </div>
+
+        <div class="flexbox middle full-width">
+            <div class="wa-select smaller custom-mr-16">
+                <select id="s-cohorts-source-selector">
+                    <option value="">[`All sources`]</option>
+                    {foreach $sources as $s}
+                        <option value="{$s.name|escape}"{if ifset($request_options.source) == $s.name} selected{/if}>{$s.name|escape}</option>
+                    {/foreach}
+                </select>
+            </div>
+            <ul class="chips small" id="s-cohorts-type-selector">
+                {$cohort_types = [
+                    'sales' => "[`Sales`]",
+                    'profit' => "[`Profit`]",
+                    'order_count' => "[`Number of orders`]",
+                    'clv' => "[`LTV`]",
+                    'roi' => "[`ROI`]"
+                ]}
+                {foreach $cohort_types as $type_id => $type_name}
+                    <li class="transparent rounded custom-mr-4{if ifset($request_options.type) == $type_id} accented{/if}" data-type="{$type_id|escape}">
+                        <a href="javascript:void(0)">{$type_name|escape}</a>
+                    </li>
+                {/foreach}
+            </ul>
+            <div class="wa-select smaller custom-ml-auto">
+                <select id="change-cohort-type" class="not-styled">
+                    <option value="center">[`Stream graph`]</option>
+                    <option value="bottom">[`Stacked graph`]</option>
+                </select>
+            </div>
+        </div>
+
+        {if $table_data}
+
+        <div class="table-scrollable-x" style="max-width: calc(100vw - var(--main-sidebar-width) - var(--padding-container-width));">
+            <table id="s-report-cohorts-table" class="bigdata">
+                <thead>
+                    <tr>{strip}
+                        <th></th>
+                        {if $group_by == 'quarters'}
+                            {$header_str = "[`Quarter %s`]"}
+                        {elseif $group_by == 'months'}
+                            {$header_str = "[`Month %s`]"}
+                        {elseif $group_by == 'weeks'}
+                            {$header_str = "[`Week %s`]"}
+                        {else}
+                            {$header_str = "[`Day %s`]"}
+                        {/if}
+                        {foreach $table_data as $row}
+                            <th class="nowrap">{sprintf($header_str, $row@index + 1)}</th>
+                        {/foreach}
+
+                        <th class="nowrap">[`Total`]</th>
+                    {/strip}</tr>
+                </thead>
+                <tbody>
+                    {$index = 0}
+                    {foreach $table_data as $reg_date => $row}
+                        {$index = $index + 1}
+                        <tr class="column-{$index}" data-layer-id="{$index-1}">
+                            <th class="date nowrap">{$table_headers[$reg_date]}</th>
+                            {foreach array_keys($table_data) as $col_date}{strip}
+                                {if empty($row[$col_date@index])}
+                                    <td></td>
+                                {else}
+                                    {$stats = $row[$col_date@index]}
+                                    {$percent = 100-$stats.percent_of_max}
+
+                                    {$_bg_style = "linear-gradient(to bottom, transparent 0%, transparent {number_format($percent,2)}%, {$stats.color} {number_format($percent,2)}%, {$stats.color} 100%)"}
+
+                                    {if !empty($request_options.type) && $request_options.type == "roi" && (round($stats.metric) <= 100)}
+                                        {$_image_url = "{$wa_url}wa-apps/shop/img/patterns/white-pattern.png"}
+                                        {$_bg_style = "background: repeating-linear-gradient(-45deg, var(--background-color-blank), var(--background-color-blank) 12px, var(--border-color-input-outlined) 12px, var(--border-color-input-outlined) 15px);"}
+                                    {else}
+                                        {$_bg_style = "background: {$_bg_style};"}
+                                    {/if}
+
+                                    <td data-default-color="{$stats.color}" class="td-with-data nowrap" style="{$_bg_style}">
+                                        {if in_array(ifset($request_options.type), ['sales', 'profit', 'clv'])}
+                                            {wa_currency_html($stats.metric, $def_cur)}
+                                        {elseif ifset($request_options.type) == 'roi'}
+                                            {round($stats.metric)}%
+                                        {else}
+                                            {round($stats.metric, 2)}
+                                        {/if}
+                                    </td>
+                                {/if}
+                            {/strip}{/foreach}
+                            <th class="total nowrap">{strip}
+                                {if in_array(ifset($request_options.type), ['sales', 'profit', 'clv'])}
+                                    {wa_currency_html($table_totals[$reg_date], $def_cur)}
+                                {elseif ifset($request_options.type) == 'roi'}
+                                    {round($table_totals[$reg_date])}%
+                                {else}
+                                    {round($table_totals[$reg_date], 2)}
+                                {/if}
+                            {/strip}</th>
+                        </tr>
+
+                    {/foreach}
+                </tbody>
+            </table>
+        </div>
+        {/if}
+    </div>
+</div>
+
+<script>(function() { "use strict";
+
+    document.title = "[`Cohorts`] — {$wa->accountName(false)|escape:javascript}";
+    var all_zeroes = {if $all_zeroes}true{else}false{/if};
+    var data = {json_encode($chart_data)};
+    var request_params = {json_encode($request_options)};
+    var action_url = '?module=reports&action=cohorts';
+
+    // Filter by source selector
+    var $source_selector = $('#s-cohorts-source-selector');
+    $source_selector.change(function() {
+        $source_selector.after('<i class="icon16 loading"></i>');
+        $.post(action_url, $.extend({ }, request_params, { source: $source_selector.val() }), function(r) {
+            $.reports.replaceContent(r);
+        });
+    });
+
+    // Group by period
+    var $group_by_selector = $('#s-cohorts-group-by-selector');
+    $group_by_selector.change(function() {
+        $group_by_selector.after('<i class="icon16 loading"></i>');
+        $.post(action_url, $.extend({ }, request_params, { group_period: $group_by_selector.val() }), function(r) {
+            $.reports.replaceContent(r);
+        });
+    });
+
+    // Metric type selector
+    var $metric_selector_ul = $('#s-cohorts-type-selector');
+    $metric_selector_ul.on('click', 'li[data-type]:not(.selected)', function() {
+        var $li = $(this);
+        var type_id = $li.data('type');
+        $li.find('a').append('<i class="icon16 loading"></i>');
+        $.post(action_url, $.extend({ }, request_params, { type: type_id }), function(r) {
+            $.reports.replaceContent(r);
+        });
+    });
+
+    // Load resources for cohorts graph and show it
+    !all_zeroes && (function() {
+        if (typeof showCohortGraph == 'undefined') {
+            return $.ajax({
+                dataType: "script",
+                url: "{$wa_url}wa-apps/shop/js/charts/d3chart-cohort.js?{$wa->version()}",
+                cache: true
+            });
+        } else {
+            return $.Deferred(function(d) {
+                d.resolve();
+            });
+        }
+    })().done(function() {
+        showCohortGraph(data, {
+            interpolate: "basis", // basis, linear
+            stack_type: "silhouette" // zero, silhouette
+        });
+    });
+
+    // Highlight chart serie when user clicks on a table row
+    $('#s-report-cohorts-table').on("click", "tr[data-layer-id]", function() {
+        $(".cohort-wrapper .layers .layer").eq($(this).data("layer-id")).click();
+        return false;
+    });
+
+})();</script>

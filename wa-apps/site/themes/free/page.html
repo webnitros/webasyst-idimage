@@ -1,0 +1,33 @@
+{strip}
+{if $wa->get('popup')}<div id='page-popup'>{/if}
+    <h1 itemprop="name">{$page.name}</h1>
+
+    <div role="main" itemprop="description">
+        {$page.content}
+        {function eachPages pages = [] findId = 0}
+            {foreach $pages as $page}
+                {if $findId == $page.id}
+                    {if $page.childs}
+                        <div class="page-child__title">[`Subsections`]</div>
+                        <div class="page-child__list">
+                            {foreach $page.childs as $pageChild}
+                                <div class="page-child__item">
+                                    <a class="page-child__link" href="{$pageChild.url}">
+                                        {$pageChild.name}
+                                    </a>
+                                </div>
+                            {/foreach}
+                        </div>
+                    {/if}
+                    {break}
+                {else}
+                    {if $page.childs}
+                        {call eachPages pages=$page.childs findId = $findId}
+                    {/if}
+                {/if}
+            {/foreach}
+        {/function}
+        {call eachPages pages=$wa->shop->pages() findId = $page.id}
+    </div>
+    {if $wa->get('popup')}</div> {* close #page-popup *} {/if}
+{/strip}

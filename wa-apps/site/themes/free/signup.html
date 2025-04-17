@@ -1,0 +1,70 @@
+<div class="Login">
+    {if !empty($confirmed_email)}
+        <div class="Login__Box">
+            <h1 class="Title__Main -With-Border">[s`Thank you!`]</h1>
+            <div class="Login__Figure">
+                <i class="Login__Icon--Ok icon-ok"></i>
+            </div>
+            <div class="Login__Text">[s`You have successfully confirmed your email.`]</div>
+            {if $wa->shop}
+                <div class="Login__Buttons--Shop">
+                    <a href="{$wa->getUrl('shop/frontend')}" class="Login__Link--Home">[`Back to home page`]</a>
+                </div>
+            {/if}
+        </div>
+    {elseif not empty($contact)}
+        <div class="Login__Box">
+            <h1 class="Title__Main -With-Border">[s`Thank you!`]</h1>
+            <div class="Login__Figure">
+                <i class="Login__Icon--Ok icon-ok"></i>
+            </div>
+            <div class="Login__Text">
+                <p>[s`You have successfully signed up.`]</p>
+                {if !empty($email_confirmation_hash)}
+                    <p>[s`A confirmation link has been sent to you by email. Please click this link to confirm your signup and to sign in.`]</p>
+                {/if}
+            </div>
+            {if $wa->shop}
+                <div class="Login__Buttons--Shop">
+                    <a href="{$wa->getUrl('shop/frontend')}" class="Login__Link--Home">[`Back to home page`]</a>
+                </div>
+            {/if}
+        </div>
+    {else}
+        <div class="Login__Box">
+            <h1 class="Title__Main -With-Border">[`Sign up`]</h1>
+            {$wa->signupForm($errors, [
+            'show_title'          => false,
+            'show_sub_title'      => true,
+            'show_oauth_adapters' => true
+            ])}
+        </div>
+    {/if}
+</div>
+
+<style>
+    #themeOverride .wa-captcha p:first-of-type strong {
+        display: none;
+    }
+
+    #themeOverride .wa-captcha p + p {
+        font-size: .9em;
+        margin-top: .8rem;
+    }
+
+    #themeOverride .wa-value input[type="checkbox"],
+    #themeOverride .wa-field-terms-accepted input[type="checkbox"],
+    #themeOverride .wa-field-remember-me input[type="checkbox"]{
+        display: initial;
+        -webkit-appearance: checkbox;
+        -moz-appearance: checkbox;
+        appearance: checkbox;
+    }
+</style>
+
+<script>
+    window.addEventListener('load', function () {
+        var wa_field = $('.wa-captcha').closest('.wa-field');
+        wa_field.prepend('<div class="wa-name" style="min-height: 1px"></div>');
+    });
+</script>

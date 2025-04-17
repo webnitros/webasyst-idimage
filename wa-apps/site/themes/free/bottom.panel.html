@@ -1,0 +1,523 @@
+{strip}
+    <div class="MobileMenu">
+        {$_links = []}
+        {if $theme_settings.links_information_pages == 'site-pages'}
+            {if $wa->site}{$_links = $wa->site->pages()}{/if}
+        {elseif $theme_settings.links_information_pages == 'shop-pages'}
+            {if $wa->shop}{$_links = $wa->shop->pages()}{/if}
+        {elseif $theme_settings.links_information_pages == 'app-menu'}
+            {if $wa->menu && !empty($theme_settings.id_app_header_top_menu) && (int)$theme_settings.id_app_header_top_menu > 0}{$_links = $wa->menu->get($theme_settings.id_app_header_top_menu)}{/if}
+        {elseif $theme_settings.links_information_pages != 'none'}
+            {$_links = $wa->apps()}
+        {/if}
+        {$showSearchMobileMenu = $wa->isMobile() && $wa->shop && $theme_settings.show_search_burger}
+        <nav id="header_menu-nav-mobile" class="MobileMenu_nav-m{if $showSearchMobileMenu} MobileMenu_nav-m--pt{/if}">
+            <div class="MobileMenu_nav-header--absolute">
+                <div class="menu-close"><i class="fi-rr-cross-small"></i></div>
+            </div>
+            {if $wa->shop}
+                {if $showSearchMobileMenu}
+                    <div class="Nav-search juniq-header-search">
+                        <form method="get" action="{$wa->getUrl('shop/frontend/search')}"
+                              class="Nav-search_form">
+                            <div class="inp-search">
+                                <input class="Nav-inp-search js-ajax-search" autocomplete="off" type="text" name="query" value="{$wa->get('query')|escape}" placeholder="[`Search in catalog`]">
+                                <i class="fi-rr-search js-submit-form"></i>
+                            </div>
+
+                            <div class="inp-search--wrap"></div>
+                        </form>
+                    </div>
+                {/if}
+                {if $theme_settings.hide_cat_burger}
+                    {$hideCatList = true}
+                {else}
+                    {$hideCatList = false}
+                {/if}
+                {if $hideCatList}
+                    <div class="MobileMenu_nav__catalog-title js-show-cat -hide">Перейти в каталог →</div>
+                {else}
+                    <div class="MobileMenu_nav__catalog-title">Каталог</div>
+                {/if}
+                {if $theme_settings.get_menu_from == 'app-menu'}
+                    {$categories = $wa->menu->get($theme_settings.id_app_menu_cat)}
+                {else}
+                    {$categories = $wa->shop->categories(0, null, true, true)}
+                {/if}
+                {$cat_result = $categories}
+
+                <div class="category-menu js-category-menu-wrap {if $hideCatList}-hideList{/if}">
+                    {if $hideCatList}
+                        <div class="MobileMenu_nav-header">
+                            <div class="btn-back js-btn-hide-fullcatlist"><i class="fi-rr-angle-small-left"></i></div>
+                            <div class="cat-title">Каталог</div>
+                            <div class="menu-close"><i class="fi-rr-cross-small"></i></div>
+                        </div>
+                    {/if}
+                    {if $theme_settings.show_brands_menu}
+                        {$fullListBrands = shopBrandViewHelper::getAllBrands()}
+                        {$cat_result['brands'] = ['id' => 'brands','name' => 'Бренды', 'url' => $wa->getUrl('shop/frontend/brands')]}
+                        {foreach $fullListBrands as $b}
+                            {$cat_result['brands']['childs'][] = ['name' => $b.name, 'url' => {$b->getFrontendUrl()}]}
+                        {/foreach}
+                    {/if}
+                    {foreach $cat_result as $cat}
+                        {$view_subcat = "one_column"}
+                        {$_subcat = 0}
+
+                        {if $cat.id == 'else' || $cat.id == 'brands'}
+                            {$_subcat = 1}
+                        {elseif count($cat.childs) && $theme_settings.depth_subcategories > 1}
+                            {foreach $cat.childs as $child}
+                                {$_subcat = 1}
+                            {/foreach}
+                        {/if}
+
+                        <div class="menu-element {if $_subcat}js-cat-subs-{if $view_subcat == "one_column"}dropdown{else}disclosed{/if} has-subs{/if} cat-menu__item{if $theme_settings.position_drop_down_categories == "parent"} pos-rel {/if}">
+                            {if $theme_settings.get_menu_from == 'app-menu' && $theme_settings.id_image_app_menu}
+                                {$cat.params.menuIcon = $cat[$theme_settings.id_image_app_menu]}
+                            {else}
+                                {if class_exists('shopWmimageincatPlugin') && $theme_settings.get_menu_from != 'app-menu'}
+                                    {$Wmimages = shopWmimageincatPlugin::getCategoryImageObj()}
+                                {/if}
+                                {if isset($Wmimages[$cat.id].icon)}
+                                    {$cat.params.menuIcon = $Wmimages[$cat.id].icon}
+                                {/if}
+                            {/if}
+
+
+                            {if !empty($cat.params.menuIcon)}
+                                <span class="cat-menu__item--icon">
+                                    <img src="{$cat.params.menuIcon}" alt="">
+                                </span>
+                            {/if}
+
+                            {if $_subcat}
+                                <i class="js-cat-item-caret fi-rr-angle-small-right"></i>
+                            {/if}
+
+                            {if $cat.id == 'else'}
+                                <div class="cat-menu__item-link">
+                                    <span class="cat-menu__item-title cat-menu__item-title--else maincolor">
+                                        [`Else categories`]
+                                    </span>
+                                </div>
+                            {else}
+                                <div class="cat-menu__item-link">
+                                    <div class="cat-menu__item-title">
+                                        <a href="{$cat.url}">
+                                            {$cat.name}
+                                        </a>
+                                        {if $theme_settings.plugin_cic != 'none' && ($theme_settings.plugin_cic == 'menu' || $theme_settings.plugin_cic == 'menu_sb')}
+                                            {if !empty($cat.params.cic_category_items)}
+                                                <span class="menu-product-count menu-product-count--phone-menu">
+                                                    {$cat.params.cic_category_items}
+                                                </span>
+                                            {/if}
+                                            {if !empty($cat.params.cic_category_has_discount_items)}
+                                                <div class="cat-badge cat-badge--discount cat-badge--phone-menu">
+                                                    %
+                                                </div>
+                                            {/if}
+                                            {if !empty($cat.params.cic_category_has_new_items)}
+                                                <div class="cat-badge cat-badge--new cat-badge--phone-menu">
+                                                    new
+                                                </div>
+                                            {/if}
+                                            {if !empty($cat.params.cic_category_hot)}
+                                                <div class="cat-badge cat-badge--hot cat-badge--phone-menu">
+                                                    hot
+                                                </div>
+                                            {/if}
+                                        {/if}
+                                    </div>
+                                </div>
+                            {/if}
+                            {if $_subcat}
+                                {$subcatFile = "{$wa_theme_url}nav.one_column.scat.html"}
+    {*                            {include file=$subcatFile linkFullCatalog=true}*}
+                                <div class="menu-subcategory js-subcategory-menu">
+                                    <div class="MobileMenu_nav-header">
+                                        <div class="btn-back js-btn-close-submenu"><i class="fi-rr-angle-small-left"></i></div>
+                                        <div class="cat-title">{$cat.name}</div>
+                                        <div class="menu-close"><i class="fi-rr-cross-small"></i></div>
+                                    </div>
+                                    <div class="subcat-menu__item subcat-menu__item__full-products">
+                                        <a href="{$cat.url}">Все товары категории</a>
+                                    </div>
+                                    {foreach $cat.childs as $keyCatChild => $catChild_2}
+                                        {if !isset($catChild_2.params.menu_hide)}
+                                            {$_subcat_lvl2 = false}
+                                            {if $cat.id == 'brands'}
+                                                {$_subcat_lvl2 = false}
+                                            {elseif count($catChild_2.childs) && $theme_settings.depth_subcategories > 2}
+                                                {foreach $catChild_2.childs as $catChild_3}
+                                                    {if !isset($catChild_3.params.menu_hide)}
+                                                        {$_subcat_lvl2 = true}
+                                                    {/if}
+                                                {/foreach}
+                                            {/if}
+                                            <div class="{if $_subcat_lvl2}js-subcatmenu-el has-subs{/if} subcat-menu__item{if $theme_settings.position_drop_down_categories == "parent"} pos-rel {/if}">
+                                                {if $_subcat_lvl2}
+                                                    <i class="js-cat-item-caret fi-rr-angle-small-right"></i>
+                                                {/if}
+
+                                                <a href="{$catChild_2.url}">
+                                                    {$catChild_2.name}
+                                                </a>
+                                                {if $theme_settings.plugin_cic == 'menu' || $theme_settings.plugin_cic == 'menu_sb'}
+                                                    {if !empty($catChild_2.params.cic_category_items)}
+                                                        <span class="menu-product-count menu-product-count--phone-menu">
+                                                            {$catChild_2.params.cic_category_items}
+                                                        </span>
+                                                    {/if}
+                                                    {if !empty($catChild_2.params.cic_category_has_discount_items)}
+                                                        <div class="cat-badge cat-badge--discount cat-badge--phone-menu">
+                                                            %
+                                                        </div>
+                                                    {/if}
+                                                    {if !empty($catChild_2.params.cic_category_has_new_items)}
+                                                        <div class="cat-badge cat-badge--new cat-badge--phone-menu">
+                                                            new
+                                                        </div>
+                                                    {/if}
+                                                    {if !empty($catChild_2.params.cic_category_hot)}
+                                                        <div class="cat-badge cat-badge--hot cat-badge--phone-menu">
+                                                            hot
+                                                        </div>
+                                                    {/if}
+                                                {/if}
+                                                {if $_subcat_lvl2}
+                                                    <div class="menu-subcategory js-subcategory-menu">
+
+                                                        <div class="MobileMenu_nav-header">
+                                                            <div class="btn-back js-btn-close-submenu"><i class="fi-rr-angle-small-left"></i></div>
+                                                            <div class="cat-title">
+                                                                {$catChild_2.name}
+                                                            </div>
+                                                            <div class="menu-close"><i class="fi-rr-cross-small"></i></div>
+                                                        </div>
+
+                                                        <div class="subcat-menu__item subcat-menu__item__full-products">
+                                                            <a href="{$catChild_2.url}">Все товары категории</a>
+                                                        </div>
+                                                        {foreach $catChild_2.childs as $catChild_3}
+                                                            {if !isset($catChild_3.params.menu_hide)}
+                                                                <div class="subcat-menu__item">
+                                                                    <a href="{$catChild_3.url}">
+                                                                        {$catChild_3.name}
+                                                                    </a>
+                                                                    {if $theme_settings.plugin_cic == 'menu' || $theme_settings.plugin_cic == 'menu_sb'}
+                                                                        {if !empty($catChild_3.params.cic_category_items)}
+                                                                            <span class="menu-product-count menu-product-count--phone-menu">
+                                                                                    {$catChild_3.params.cic_category_items}
+                                                                                </span>
+                                                                        {/if}
+                                                                        {if !empty($catChild_3.params.cic_category_has_discount_items)}
+                                                                            <div class="cat-badge cat-badge--discount cat-badge--phone-menu">
+                                                                                %
+                                                                            </div>
+                                                                        {/if}
+                                                                        {if !empty($catChild_3.params.cic_category_has_new_items)}
+                                                                            <div class="cat-badge cat-badge--new cat-badge--phone-menu">
+                                                                                new
+                                                                            </div>
+                                                                        {/if}
+                                                                        {if !empty($catChild_3.params.cic_category_hot)}
+                                                                            <div class="cat-badge cat-badge--hot cat-badge--phone-menu">
+                                                                                hot
+                                                                            </div>
+                                                                        {/if}
+                                                                    {/if}
+                                                                </div>
+                                                            {/if}
+                                                        {/foreach}
+                                                    </div>
+                                                {/if}
+                                            </div>
+                                        {/if}
+                                    {/foreach}
+                                </div>
+                            {/if}
+                        </div>
+                    {/foreach}
+                </div>
+            {/if}
+            <div class="MobileMenu_nav__other">
+                {if count($_links) > 0}
+                    <div class="MobileMenu_nav__info">
+                        <ul>
+                            {foreach $_links as $link}
+                                {if !($link.url == $wa_url && $link.name == $wa->accountName()) && !isset($link.top_menu_hide)}
+                                    {$is_select = strlen($link.url)>1 && $wa->currentUrl() == $link.url}
+                                    {$is_open = $link.url==$wa_app_url && !$wa->globals('isMyAccount') || strlen($link.url)>1 && $wa->currentUrl()|strstr:$link.url}
+                                    <li class="menu-element juniq-header-top-nav-el">
+                                        <a{if isset($link.target)} target="{$link.target}"{/if}{if $is_select} class="selected"{/if} href="{$link.url}">
+                                            {$link.name}
+                                        </a>
+                                        {if isset($link.childs) && $link.childs && count($link.childs)}
+                                            <i class="js-top-nav-caret nav-caret icon"></i>
+                                            <div class="MobileMenu_nav-m-sub">
+                                                <ul class="top-border-color">
+                                                    {foreach $link.childs as $child}
+                                                        {if !isset($child.top_menu_hide)}
+                                                            <li>
+                                                                <a{if isset($child.target)} target="{$child.target}"{/if} {if strlen($child.url)>1 && $wa->currentUrl() == $child.url} class="selected"{/if} href="{$child.url}">
+                                                                    {$child.name}
+                                                                </a>
+                                                            </li>
+                                                        {/if}
+                                                    {/foreach}
+                                                </ul>
+                                            </div>
+                                        {/if}
+                                    </li>
+                                {/if}
+                            {/foreach}
+                        </ul>
+                    </div>
+                {/if}
+                {if $wa->isAuthEnabled()}
+                    <div class="MobileMenu_nav__lk">
+                        <a href="/my/"><div class="MobileMenu_nav__info__title">Личный кабинет</div></a>
+                        <div class="mob-menu-lk">
+                            <a class="menu-element" href="{$wa->myUrl()}">
+                                {if $wa->user()->isAuth()}
+                                    {$wa->user('firstname')|default:'[`My account`]'}
+                                {else}
+                                    <span>Войти</span>
+                                {/if}
+                            </a>
+                            {if shopAffiliate::isEnabled()}<a class="menu-element" href="{$wa->myUrl()}affiliate/">Партнерская программа</a>{/if}
+                        </div>
+                    </div>
+                {/if}
+                {if $wa_app == 'shop' && $theme_settings.currency_selector}
+                    <div class="MobileMenu_nav__currency">
+                        {$currencies = $wa->shop->currencies()}
+                        {$currency = $wa->shop->currency()}
+                        {if count($currencies) > 1}
+                            <div class="header_currency js-dd-outer">
+                                {if count($currencies) > 1}
+                                    [`Currency`]:
+                                    <span data-id="currency-list-mobile-menu" class="js-btnDrop-down currency_item fi-rr-caret-down">
+                                        <b>{$currency}</b>
+                                    </span>
+                                    <div id="currency-list-mobile-menu" class="js-dd-wrap currency_list">
+                                        <div class="dd-wrap br-top-sdСolor">
+                                            {foreach $currencies as $c_code => $c}
+                                                <span data-value="{$c_code}" class="js-currency currency_item{if $c_code == $currency} maincolor{/if}">
+                                                    {$c_code}
+                                                </span>
+                                            {/foreach}
+                                        </div>
+                                    </div>
+                                    <script>
+                                        $(".js-currency").click(function () {
+                                            var url = location.href;
+                                            if (url.indexOf('?') == -1) {
+                                                url += '?';
+                                            } else {
+                                                url += '&';
+                                            }
+                                            location.href = url + 'currency=' + $(this).data("value");
+                                        });
+                                    </script>
+                                {/if}
+                            </div>
+                        {/if}
+                    </div>
+                {/if}
+
+                {if $wa_app == 'shop' && $theme_settings.language_selector}
+                    <div class="header_lang">
+                        <span class="header_lang-ttl">[`Language`]:</span>
+                        {foreach waLocale::getAll('name') as $language => $lang_name}
+                            {$language_text = $language|regex_replace:"/[a-z_]/":""}
+                            {if $wa->locale() == $language}
+                                <span class="header_lang-el">{$language_text}</span>
+                            {else}
+                                <a class="js-language header_lang-el" data-value="{$language}" href="{$language}">{$language_text}</a>
+                            {/if}
+                        {/foreach}
+                    </div>
+                {/if}
+                {$headButtonCitySelectPlugin = ($wa->shop && $theme_settings.region_plugin && class_exists('shopCityselectPlugin'))}
+                {if $headButtonCitySelectPlugin}
+                    <div class="mobile-region"><span class="mobile-region__title">Ваш город: </span>{shopCityselectPlugin::showCity('0')}</div>
+                {/if}
+            </div>
+        </nav>
+    </div>
+    <div class="fixed-panel top-border-color js-fixed-panel">
+        {if $theme_settings.fixed_panel_array}
+            {$btns = ","|explode:$theme_settings.fixed_panel_array}
+            {foreach $btns as $btn}
+                {if $btn == 'burger'}
+                    <div class="product-custom js-nav-button" data-id="header_menu-nav-mobile">
+                        <div class="product-custom_icon maincolor">
+                            <div class="nav-cat-btn__action__wrap icon MobileMenu-btn">
+                                <div class="nav-cat-btn__action nav-cat-btn__action--top"></div>
+                                <div class="nav-cat-btn__action nav-cat-btn__action--middle"></div>
+                                <div class="nav-cat-btn__action nav-cat-btn__action--bottom"></div>
+                            </div>
+                            <span class="product-custom_icon__name">
+                                [`Menu`]
+                            </span>
+                        </div>
+                    </div>
+                {/if}
+                {if $btn == 'order' && $wa->isAuthEnabled() && $wa->user()->isAuth()}
+                    <div class="product-custom js-nav-button" data-id="header_menu-nav-mobile">
+                        <a class="product-custom_icon maincolor" href="{$wa->myUrl()}">
+                            <i>
+                                <svg class="order-box-icon" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" height="25px" width="25px">
+                                    <rect fill="none" height="256" width="256"/>
+                                    <path d="M224,177.3V78.7a8.1,8.1,0,0,0-4.1-7l-88-49.5a7.8,7.8,0,0,0-7.8,0l-88,49.5a8.1,8.1,0,0,0-4.1,7v98.6a8.1,8.1,0,0,0,4.1,7l88,49.5a7.8,7.8,0,0,0,7.8,0l88-49.5A8.1,8.1,0,0,0,224,177.3Z" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+                                    <polyline fill="none" points="177 152.5 177 100.5 80 47" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+                                    <polyline fill="none" points="222.9 74.6 128.9 128 33.1 74.6" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+                                    <line fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" x1="128.9" x2="128" y1="128" y2="234.8"/>
+                                </svg>
+                            </i>
+                            {if $wa->cookie('freeOrderCount')}
+                                <span class="js-order-count product-custom_short-count bg-sdСolor">{$wa->cookie('freeOrderCount')}</span>
+                            {/if}
+                            <span class="product-custom_icon__name">
+                                Заказы
+                            </span>
+                        </a>
+                    </div>
+                {/if}
+                {if $btn == 'favorite' && $wa->shop}
+                    {if $theme_settings.favorites}
+                        {$count_favorites = 0}
+                        {$product_favor_arr = $wa->cookie('product_favor_arr')}
+                        {if $product_favor_arr && $product_favor_arr != 'null'}
+                            {$count_favorites = count(","|explode:$product_favor_arr)}
+                        {/if}
+                        <a class="js-favorites-preview product-custom" href="{$wa->getUrl('shop/frontend/search')}?list=favorites">
+                            <div class="js-products-link">
+                                <div class="product-custom_icon maincolor">
+                                    <i class="fi-rr-heart icon"></i>
+                                    <span class="js-products-count product-custom_short-count bg-sdСolor">{$count_favorites}</span>
+                                    <span class="product-custom_icon__name">
+                                        [`Favorites`]
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="product-msg-added-wrap js-product-added-msg">
+                                <div class="product-added-msg br-top-sdСolor shadow">
+                                    [`The product has been added to favorites`]
+                                </div>
+                            </div>
+                        </a>
+                    {/if}
+                {/if}
+                {if $btn == 'compare' && $wa->shop}
+                    {if $theme_settings.compare}
+                        {$in_comparison = $wa->shop->inComparison()}
+                        {$url = $wa->getUrl('shop/frontend/compare', ['id' => implode(',', $in_comparison)])}
+
+                        {if $wa->cookie('shop_compare') == 'null' || !count($in_comparison)}
+                            {$in_comparison = []}
+                            {$url = $wa->getUrl('shop/frontend/compare')}
+                        {/if}
+                        <a class="js-preview-compare product-custom" href="{$url}">
+                            <div class="js-products-link">
+                                <div class="product-custom_icon maincolor">
+                                    <i class="fi-rr-compare icon"></i>
+                                    <span class="js-products-count product-custom_short-count bg-sdСolor">{count($in_comparison)}</span>
+                                    <span class="product-custom_icon__name">
+                                        [`Compare`]
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="product-msg-added-wrap js-product-added-msg">
+                                <div class="product-added-msg br-top-sdСolor shadow">
+                                    [`Product is added to compare`]
+                                </div>
+                            </div>
+                        </a>
+                    {/if}
+                {/if}
+                {if $btn == 'cart' && $wa->shop}
+                    {if method_exists($wa->shop, 'checkout')}
+                        {$cartUrl = $wa->shop->checkout()->cartUrl()}
+                    {else}
+                        {$cartUrl = $wa->getUrl('shop/frontend/cart')}
+                    {/if}
+                    <a class="juniq-header-preview-cart preview-cart product-custom" data-url="{$cartUrl}" href="{$cartUrl}">
+                        <div>
+                            {$cart_count = $wa->shop->cart->count()}
+                            <div class="product-custom_icon maincolor">
+                                <i class="fi-rr-shopping-cart icon"></i>
+                                <span class="product-custom_short-count bg-sdСolor js-cart-preview-count">{$cart_count}</span>
+                                <span class="product-custom_icon__name">
+                                    [`Cart`]
+                                </span>
+                            </div>
+                        </div>
+                        <div class="product-msg-added-wrap product-msg-added-wrap--cart js-product-added-msg">
+                            <div class="product-added-msg br-top-sdСolor shadow">
+                                [`Product added to cart!`]
+                            </div>
+                        </div>
+                    </a>
+                {/if}
+                {if $btn == 'filter' && $wa->param('action') == 'category' && !empty($filters)}
+                    <div class="js-filter-fixed-btn product-custom">
+                        <div class="product-custom_icon maincolor">
+                            <i class="fi-rr-filter icon"></i>
+                            <span class="product-custom_icon__name">
+                                [`Filter`]
+                            </span>
+                        </div>
+                    </div>
+                {/if}
+                {if $btn == 'phone' && $theme_settings.header_company_phone}
+                    <a class="product-custom" href="tel:{$theme_settings.header_company_phone|trim|escape|replace:' ':''}">
+                        <div class="product-custom_icon maincolor">
+                            <i class="fi-rr-phone"></i>
+                            <span class="product-custom_icon__name">
+                                [`Phone`]
+                            </span>
+                        </div>
+                    </a>
+                {/if}
+                {if $btn == 'profile' && $wa->isAuthEnabled()}
+                    <a class="product-custom" href="{$wa->myUrl()}">
+                        <div class="product-custom_icon maincolor">
+                            <i class="fi-rr-user"></i>
+                            <span class="product-custom_icon__name">
+                                [`Profile`]
+                            </span>
+                        </div>
+                    </a>
+                {/if}
+            {/foreach}
+        {else}
+            <div class="product-custom js-nav-button" data-id="header_menu-nav-mobile">
+                <div class="product-custom_icon maincolor">
+                    <div class="nav-cat-btn__action__wrap icon MobileMenu-btn">
+                        <div class="nav-cat-btn__action nav-cat-btn__action--top"></div>
+                        <div class="nav-cat-btn__action nav-cat-btn__action--middle"></div>
+                        <div class="nav-cat-btn__action nav-cat-btn__action--bottom"></div>
+                    </div>
+                    <span class="product-custom_icon__name">
+                                [`Menu`]
+                            </span>
+                </div>
+            </div>
+            {if $wa->param('action') == 'category' && !empty($filters)}
+                <div class="js-filter-fixed-btn product-custom">
+                    <div class="product-custom_icon maincolor">
+                        <i class="fi-rr-filter icon"></i>
+                        <span class="product-custom_icon__name">
+                            [`Filter`]
+                        </span>
+                    </div>
+                </div>
+            {/if}
+        {/if}
+    </div>
+{/strip}

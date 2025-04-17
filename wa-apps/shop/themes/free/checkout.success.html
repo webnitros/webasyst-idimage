@@ -1,0 +1,62 @@
+{strip}
+<style>
+    .checkout .checkout-result { margin: 50px 0; text-align: center; }
+    .checkout .checkout-result a { text-decoration: none; }
+    .checkout .checkout-result .uniq-header { margin: 0; font-size: 36px; line-height: 1.472222222222222em; font-weight: bold; color: #000; }
+    .checkout .checkout-result .description--uniq { margin: 20px 0 0; }
+    .checkout .checkout-result .plugin-wrap { margin: 30px 0 0; }
+    .checkout .checkout-result .payment-success { margin: 30px 0 0; }
+    .checkout .checkout-result .btn-actions-wrapper { margin: 30px 0 0; color: #006bd8; }
+</style>
+
+<div class="content-box checkout-result success">
+
+    <h1 class="uniq-header">
+        {if !empty($thankyou_header)}
+            {$thankyou_header}
+        {else}
+            [`Thank you!`]
+        {/if}
+    </h1>
+
+    <div class="description--uniq">
+        {if !empty($thankyou_content)}
+            {$thankyou_content|replace:'$order_id':"<a href=\"`$my_order_url`\" class=\"s-order-number\">`$order.id`</a>"}
+        {else}
+            [`We successfully accepted your order, and will contact you asap.`] [`Your order number is `] <a href="{$wa->getUrl('shop/frontend/myOrder', ['id' => $order._id])}">{$order.id}</a>.
+        {/if}
+    </div>
+
+    {if !empty($payment)}
+        <div class="plugin-wrap">{$payment}</div>
+    {/if}
+
+    {if !empty($payment_success)}
+        <div class="payment-success"><span class="box-hlighted">[`Your payment has been successfully accepted. We will process your order and contact you shortly.`]</span></div>
+    {/if}
+
+    <p class="btn-actions-wrapper">
+        <a class="button" href="{$wa_app_url}">[`Go to home page`]</a>
+    </p>
+
+    {if !empty($frontend_checkout)}
+        {* @event frontend_checkout.%plugin_id% *}
+        {foreach $frontend_checkout as $_}{$_}{/foreach}
+    {/if}
+
+</div>
+{/strip}
+{if $wa->isAuthEnabled() && $wa->user()->isAuth()}
+    <script>
+        $(document).on('ready',function () {
+            const urlOrdersPage = "{$wa->domainUrl()}{$wa->getUrl('/frontend/myOrders')}?checkoutsuccess=true";
+
+            $.ajax({
+                url: urlOrdersPage,
+                success: function (data) {
+                    $.cookie('freeOrderCount', data.replace(/\s+/g, ''), { expires: 365 * 10, path: '/' });
+                }
+            })
+        })
+    </script>
+{/if}

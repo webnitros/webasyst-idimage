@@ -1,0 +1,98 @@
+<div class="flexbox wrap middle space-8 custom-mb-16">
+    {if !empty($menu_types)}
+        <div class="custom-mt-8">
+            <div class="dropdown js-reports-source-dropdown">
+                <button class="dropdown-toggle light-gray">[`Source`]</button>
+
+                <div class="dropdown-body">
+                    <ul class="menu">
+                        {foreach $menu_types as $type_id => $t}
+                        <li data-type-id="{$type_id}">
+                            <a href="#/sales/type={$type_id}">{$t.menu_name|escape}</a>
+                        </li>
+                        {/foreach}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    {/if}
+
+    <div class="custom-mt-8 js-custom-timeframe" style="display: none;">
+        [`from`] <input type="text" name="from" class="small s-datepicker" autocomplete="off">
+        [`to`] <input type="text" name="to" class="small s-datepicker" autocomplete="off">
+        <div class="wa-select small">
+            <select name="groupby">
+                <option value="days">[`by day`]</option>
+                <option value="months">[`by month`]</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="custom-mt-8 js-reports-timeframe">
+        <div class="dropdown js-reports-timeframe-dropdown">
+            <button class="dropdown-toggle light-gray">{_w('Last %d day', 'Last %d days', 30)}</button>
+
+            <div class="dropdown-body">
+                <ul class="menu">
+                    <li data-timeframe="30" data-groupby="days">
+                        <a href="#">{_w('Last %d day', 'Last %d days', 30)}</a>
+                    </li>
+
+                    <li data-timeframe="90" data-groupby="days" data-default-choice="1">
+                        <a href="#">{_w('Last %d day', 'Last %d days', 90)}</a>
+                    </li>
+
+                    <li data-timeframe="365" data-groupby="months">
+                        <a href="#">{_w('Last %d day', 'Last %d days', 365)}</a>
+                    </li>
+
+                    <li data-timeframe="all" data-groupby="months">
+                        <a href="#">[`All time`]</a>
+                    </li>
+
+                    <li data-timeframe="custom">
+                        <a href="#">[`Select dates...`]</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="custom-mt-8">
+        <div id="s-reports-custom-controls"></div>
+        {if !empty($sales_channels)}
+            <div class="dropdown js-reports-channel-dropdown">
+                <button class="dropdown-toggle light-gray">[`All channels`]</button>
+
+                <div class="dropdown-body">
+                    <ul class="menu">
+                        <li{if !ifset($request_options.sales_channel) && !in_array($request_options.sales_channel, array_keys($sales_channels))} class="selected"{/if}>
+                            <a href="javascript:void(0);">[`All channels`]</a>
+                        </li>
+
+                        {foreach $sales_channels as $id => $name}
+                            <li data-value="{$id|escape}"{if ifset($request_options.sales_channel) == $id} class="selected"{/if}>
+                                <a href="javascript:void(0);">{$name|escape}</a>
+                            </li>
+                        {/foreach}
+                    </ul>
+                </div>
+            </div>
+        {/if}
+    </div>
+    {if $has_stacked_chart|default:false}
+        <div class="custom-mt-8">
+            <label>
+                <span class="wa-checkbox">
+                    <input type="checkbox" class="s-sales-details" id="s-sales-details" {if !isset($filter.name) && !empty($is_details)}checked="checked"{/if} {if isset($filter.name)}disabled="disabled"{/if}>
+                    <span>
+                        <span class="icon">
+                            <i class="fas fa-check"></i>
+                        </span>
+                    </span>
+                </span>
+                [`Stacked chart`]
+            </label>
+        </div>
+    {/if}
+</div>

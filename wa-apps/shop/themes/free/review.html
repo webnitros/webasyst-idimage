@@ -1,0 +1,111 @@
+
+{strip}
+    {if !empty($ajax_append)}<li data-id={$review.id} data-parent-id="{$review.parent_id}">{/if}
+    <div class="reviews-wrap comment__content" data-id="{$review.id|escape}">
+        <div class="comment__details">
+            {if !$review.parent_id}
+                <div class="comment__av">{$review.author.name|escape|mb_substr:0:1}</div>
+            {/if}
+            {if empty($review.site)}
+                <span class="comment__author" itemprop="author">{$review.author.name|escape}</span>
+            {else}
+                <a href="{$review.site}" class="comment__author" target="_blank" itemprop="author">{$review.author.name|escape}</a>
+            {/if}
+            {if ifempty($review.author.is_user) > 0}
+                <div class="comment__label">{$wa->shop->settings('name')}</div>
+            {/if}
+            <meta itemprop="itemReviewed" content="{$product.name|escape}">
+            <meta itemprop="datePublished" content="{$review.datetime|date_format:'Y-m-d'}">
+            {if !$review.parent_id && !empty($review.rate)}
+                {$rate = round($review.rate)}
+                <div class="comment__rating">
+                    <div class="stars stars_m">
+                        <div class="stars__list">
+                            {for $i=1 to 5}
+                                <div class="star {if $i > $rate}star-empty{/if}">
+                                </div>
+                            {/for}
+                        </div>
+                        <div class="stars__count">({$rate} [`of`] 5)</div>
+                    </div>
+                </div>
+                <span itemprop="reviewRating" itemscope itemtype="http://schema.org/Rating">
+					<meta itemprop="worstRating" content = "1">
+					<meta itemprop="ratingValue" content="{$rate}">
+					<meta itemprop="bestRating" content = "5">
+				</span>
+            {/if}
+            <div class="comment__date">{$review.datetime|wa_datetime:"humandatetime"}</div>
+        </div>
+        <div class="comment__title" itemprop="name">{if $review.title}{$review.title}{/if}</div>
+        {if $review.text}
+            <div class="comment__text" itemprop="description">{$review.text}</div>
+        {/if}
+
+        {if !empty($review.images)}
+            <div class="review_images_list js-review_images_list owl-carousel">
+                {foreach $review.images as $_image}
+                    <a class="review_image-wrap js-show-image" href="{$_image.url_0|escape}" title="{$_image.description|escape}" target="_blank">
+                        <img class="review-image" src="{$_image.url_2|escape}" alt="{$_image.description|escape}">
+                    </a>
+                {/foreach}
+            </div>
+        {/if}
+        {if !empty($reply_allowed)}
+            <div class="actions">
+                <a href="{if isset($reply_link)}{$reply_link}{else}#{/if}" class="comment__btn review-reply">[`reply`]</a>
+            </div>
+        {/if}
+    </div>
+    {if !empty($ajax_append)}<ul class="reviews-list"></ul></li>{/if}
+{/strip}
+
+<script>
+    ( function($) {
+        var $document = $(document),
+            $review = $(".reviews-wrap[data-id=\"" + {$review.id|escape} + "\"]");
+
+        $review.on("click", ".js-show-image", function(event) {
+            event.preventDefault();
+
+            var $image = $(this),
+                images = [];
+
+            $review.find(".js-show-image").each(function () {
+                var $_image = $(this);
+                images.push({
+                    href: $_image.attr("href"),
+                    title: escape($_image.attr("title"))
+                });
+            });
+
+            var k = $image.prevAll('.js-show-image').length;
+            if (k) {
+                images = images.slice(k).concat(images.slice(0, k));
+            }
+
+            $.swipebox(images, {
+                useSVG : false,
+                hideBarsDelay: false,
+                afterOpen: function() {
+                    $('#swipebox-overlay').addClass('opacity-black');
+                    $('#swipebox-bottom-bar').addClass("swipebox-bottom-bar--pos-center");
+                    $('#swipebox-arrows').addClass("swipebox-arrows--pos-center");
+
+                    $document.on("scroll", closeSwipe);
+                    function closeSwipe() {
+                        var $closeButton = $("#swipebox-close");
+                        if ($closeButton.length) {
+                            $closeButton.trigger("click");
+                        }
+                        $document.off("scroll", closeSwipe);
+                    }
+                }
+            });
+
+            function escape(string) {
+                return $("<div />").text(string).html();
+            }
+        });
+    })(jQuery);
+</script>

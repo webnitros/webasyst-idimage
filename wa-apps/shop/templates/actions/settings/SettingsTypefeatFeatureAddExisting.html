@@ -1,0 +1,87 @@
+<div class="dialog s-settings-feature-add-existing-dialog" id="js-settings-feature-add-existing-dialog">
+    <div class="dialog-background"></div>
+    <div class="wa-dialog-body dialog-body">
+        <form action="" method="post">
+            {* HEADER *}
+            <header class="dialog-header">
+                <h1 class="s-title">{sprintf("[`Adding of features from other product types to “%s” type`]", $type.name|escape)}</h1>
+                <div class="s-header-description">
+                    <p class="gray">[`Start typing the name or identifier of a feature which you need to add to the selected product type.`]</p>
+                </div>
+
+                <div class="s-search-section">
+                    <div class="flexbox state-with-inner-icon left">
+                        <input class="js-feature-autocomplete-input full-width" type="text" placeholder="{_w('feature search')|escape}">
+                        <span class="icon"><i class="fas fa-search text-light-gray"></i></span>
+                    </div>
+                </div>
+            </header>
+
+            {* CONTENT *}
+            <div class="dialog-content">
+                <div class="s-features-wrapper">
+                    <ul class="chips s-features-list js-features-list"></ul>
+                </div>
+            </div>
+
+            {* FOOTER *}
+            <footer class="dialog-footer">
+                <div class="js-errors-place"></div>
+                <button class="s-button button green js-submit-button" type="submit">[`Add`]</button>
+                <a href="javascript:void(0);" class="js-close-dialog button light-gray">[`Cancel`]</a>
+            </footer>
+
+            <input type="hidden" name="type_id" value="{$type.id|escape}">
+            {$wa->csrf()}
+        </form>
+    </div>
+
+    {strip}
+    {capture assign="_feature_item"}
+        <li class="s-feature-wrapper" data-feature-id="%feature_id%">
+            <label class="chip s-feature-label">
+                <span class="wa-checkbox">
+                    <input class="s-checkbox" type="checkbox" name="features[]" value="%feature_id%" checked>
+                    <span>
+                        <span class="icon">
+                            <i class="fas fa-check"></i>
+                        </span>
+                    </span>
+                    <span class="s-name">%feature_name%</span>
+                    <span class="s-code">%feature_code%</span>
+                </span>
+            </label>
+        </li>
+    {/capture}
+    {/strip}
+
+    {strip}
+    {capture assign="_empty_search"}
+        <div class="s-search-message">[`Nothing found`]</div>
+    {/capture}
+    {/strip}
+
+    <script>
+        ( function($) { "use strict";
+            var $wrapper = $("#js-settings-feature-add-existing-dialog").removeAttr("id"),
+                dialog = $wrapper.data("dialog");
+
+            dialog.options.scope.initExistingFeatureAddDialog({
+                $wrapper: $wrapper,
+                features: {$features|json_encode},
+                locales: {
+                    "already_exist": {_w("Already added")|json_encode},
+                    "already_added": {_w("Already found")|json_encode}
+                },
+                urls: {
+                    "submit": {$wa_app_url|json_encode} + "?module=settingsTypefeat&action=typeAddFeatures"
+                },
+                templates: {
+                    "feature_item": {$_feature_item|json_encode},
+                    "empty_search": {$_empty_search|json_encode}
+                },
+                dialog: dialog
+            });
+        })(jQuery);
+    </script>
+</div>

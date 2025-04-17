@@ -1,0 +1,40 @@
+{$sku = $product.skus[$product.sku_id]}
+{$product_available = $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
+
+{if $product.services}
+  <div class="Product__Box--Services">
+    <div class="Single__List--Service services">
+      {foreach $product.services as $s}
+        <div class="Single__Item--Service service-{$s.id}">
+          <label class="Single__Label--Service">
+            <input
+                data-price="{shop_currency($s.price, $s.currency, null, 0)}"
+                {if !$product_available}disabled="disabled"{/if}
+                type="checkbox"
+                class="Single__Input--Checkbox"
+                name="services[]"
+                value="{$s.id}">
+            <span></span>
+            <span class="Single__Name--Service">{$s.name|escape}</span>
+            {if $s.price && !isset($s.variants)}
+              <span class="Single__Price--Service service-price">(+{shop_currency_html($s.price, $s.currency)})</span>
+            {/if}
+          </label>
+          {if isset($s.variants)}
+            <select data-variant-id="{$s.variant_id}" class="Single__Select--Service service-variants" name="service_variant[{$s.id}]" disabled>
+              {foreach $s.variants as $v}
+                <option {if $s.variant_id == $v.id}selected{/if}
+                        data-price="{shop_currency($v.price, $s.currency, null, 0)}"
+                        value="{$v.id}">
+                  {$v.name|escape} (+{shop_currency($v.price, $s.currency)})
+                </option>
+              {/foreach}
+            </select>
+          {else}
+            <input type="hidden" name="service_variant[{$s.id}]" value="{$s.variant_id}">
+          {/if}
+        </div>
+      {/foreach}
+    </div>
+  </div>
+{/if}

@@ -1,0 +1,108 @@
+{strip}
+{$nameCurrentPage = ""}
+
+{if $action == 'page' && isset($page)}{$nameCurrentPage = $page.name}{/if}
+{if $action == 'category' && isset($category)}{$nameCurrentPage = $category.name}{/if}
+
+{if  $action == 'brandPage' && $theme_settings.use_plugin_brands == 'brands_pro' && class_exists('shopBrandViewHelper')}
+    {if !isset($breadcrumbs)}{$breadcrumbs = []}{/if}
+    {$breadcrumbs[] = ['name' => '[`Brands`]', 'url' => $wa->getUrl('shop/frontend/brands')]}
+    {if isset($brand)}{$nameCurrentPage = $brand.name}{/if}
+{else if $action == 'brand' && $theme_settings.use_plugin_brands == 'brands' && class_exists('shopProductbrandsPlugin')}
+    {if !isset($breadcrumbs)}{$breadcrumbs = []}{/if}
+    {$breadcrumbs[] = ['name' => '[`Brands`]', 'url' => $wa->getUrl('shop/frontend/brands')]}
+    {if isset($brand)}{$nameCurrentPage = $brand.name}{/if}
+{/if}
+{$position = 1}
+{if !empty($product)}
+    {if count($product.categories) > 1 && $theme_settings.product_show_all_cat}
+        {$showCatList = true}
+    {else}
+        {$showCatList = false}
+    {/if}
+{/if}
+
+{$nameCrumbsArray = []}
+
+{function parentCrumbs category=Array}
+    {if $category.parent_id}
+        {$c = $wa->shop->category($category.parent_id)}
+        <li>
+            <a href="{$wa->getUrl('/frontend/category', ['category_url' => $c.full_url])}"><span>{$c.name|escape}</span></a> {if !$c@last}<span class="rarr">&rarr;</span>{/if}
+        </li>
+        {parentCrumbs category=$wa->shop->category($c.id)}
+    {else}
+        {if $theme_settings.home_crumbs}
+            <li>
+                <a href="{$wa_url}"><span >[`Home`]</span></a>
+                {if (isset($breadcrumbs) && !empty($breadcrumbs)) || !empty($nameCurrentPage)} <span class="rarr">&rarr;</span> {/if}
+            </li>
+        {/if}
+    {/if}
+{/function}
+{function otherCrumbs categories = Array nameCrumbsArray = Array}
+    {foreach $categories as $c}
+        {if in_array($c.name, $nameCrumbsArray)}
+            {continue}
+        {/if}
+        <ul class="breadcrumbs breadcrumbs--double">
+            {$nameCrumbsArray[] = $c.name|escape}
+            {if !empty($product) && $c.id != $product.category_id}
+                <li>
+                    <a href="{$wa->getUrl('/frontend/category', ['category_url' => $c.full_url])}"><span>{$c.name|escape}</span></a> {if !$c@last}<span class="rarr">&rarr;</span>{/if}
+                </li>
+            {/if}
+            {parentCrumbs category=$wa->shop->category($c.id)}
+        </ul>
+    {/foreach}
+{/function}
+    {if $theme_settings.plugin_breadcrumbs}
+        {shopBreadcrumbsViewHelper::getBreadcrumbs()}
+    {else}
+        <div class="breadcrumbs--box">
+            {if $wa->currentUrl(false, true) != $wa_app_url}
+                <ul class="breadcrumbs" itemscope itemtype="http://schema.org/BreadcrumbList">
+                    {if $theme_settings.home_crumbs}
+                        <li itemscope itemprop="itemListElement" itemtype="http://schema.org/ListItem">
+                            <a itemprop="item" href="{$wa_url}"><span itemprop="name">[`Home`]</span></a>
+                            {if (isset($breadcrumbs) && !empty($breadcrumbs)) || !empty($nameCurrentPage)} <span class="rarr">&rarr;</span> {/if}
+                            <meta itemprop="position" content="{$position}">
+                        </li>
+                    {/if}
+                    {if (isset($breadcrumbs) && $breadcrumbs)}
+                        {foreach $breadcrumbs as $breadcrumb}
+                            {$nameCrumbsArray[] = $breadcrumb.name|escape}
+                            {if $breadcrumb}
+                                {$position = $position + 1}
+                                <li itemscope itemprop="itemListElement" itemtype="http://schema.org/ListItem">
+                                    <a itemprop="item" href="{$breadcrumb.url}"><span itemprop="name">{$breadcrumb.name|escape}</span></a> {if !$breadcrumb@last}<span class="rarr">&rarr;</span>{/if}
+                                    <meta itemprop="position" content="{$position}">
+                                </li>
+                            {/if}
+                        {/foreach}
+                    {/if}
+                    {if !empty($nameCurrentPage)}
+                        {if (isset($breadcrumbs) && !empty($breadcrumbs))} <span class="rarr">&rarr;</span> {/if}
+                        <li>{$nameCurrentPage|escape}</li>
+                    {/if}
+                </ul>
+
+                {if !empty($product) && $theme_settings.product_show_all_cat}
+                    {otherCrumbs categories=$product.categories nameCrumbsArray=$nameCrumbsArray}
+                {/if}
+            {/if}
+        </div>
+    {/if}
+{/strip}
+
+<script>
+    (function() {
+        'use strict';
+        if ($("ul.breadcrumbs").length > 0) {
+            var crumbsList = $("ul.breadcrumbs");
+            crumbsList.animate({
+                scrollLeft: 1000
+            }, 500);
+        }
+    })()
+</script>

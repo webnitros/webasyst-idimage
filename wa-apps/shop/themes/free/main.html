@@ -1,0 +1,60 @@
+{strip}
+    {$class = ''}
+    {if $action == 'onestep'}
+        {$class = ' custom-onestep'}
+    {/if}
+    {if $action == 'checkoutone'}
+        {$class = ' custom-cartonestep'}
+    {/if}
+    {if $action == 'brands'}
+        {$class = ' brand-list'}
+    {/if}
+
+    {if $action != 'search' && $action != 'order' && $action != 'compare' && $action != 'my' && $action != 'default' && $action != 'cart' && $action != 'checkout'}
+        {if $action == 'category'}
+            {if $theme_settings.cat_show_crumbs}
+                {include file="`$wa_active_theme_path`/breadcrumbs.html"}
+            {/if}
+        {else}
+            {include file="`$wa_active_theme_path`/breadcrumbs.html"}
+        {/if}
+    {/if}
+
+    {if $wa->globals('isMyAccount')}
+        {$wa->myNav('pages')}
+    {/if}
+
+    <!-- plugin hook: 'frontend_header' -->
+    {* @event frontend_header.%plugin_id% *}
+    {if count($frontend_header) > 0}
+        {foreach $frontend_header as $_}{$_}{/foreach}
+    {/if}
+
+    {if ($action == 'page' || $action == 'tag') && !$wa->globals('isSearchPage')}
+        {if $action == 'page'}
+            <h1 class="info-page__title">{$page.name}</h1>
+        {/if}
+        <div class="{if $action == 'page'}info-page{else}{$action}-page{/if}">
+            {if $action == 'page'}
+                {if $theme_settings.other_page_leftsb}
+                    <div class="out_sidebars {if !$wa->isMobile()}-mr{/if}">
+                        {include file="`$wa_active_theme_path`/sidebar.html"}
+                    </div>
+                {/if}
+            {else}
+                <div class="out_sidebars {if !$wa->isMobile()}-mr{/if}">
+                    {include file="`$wa_active_theme_path`/sidebar.html"}
+                </div>
+            {/if}
+            {$is_search_products_template = $wa->globals('isSearchPage') && ($action == 'search' || $action == 'brand' || $action == 'tag')}
+            <div class="content{if !$is_search_products_template} content-box{/if} {if $sb_left} with-sidebar{/if} {$class}">
+                {$content}
+            </div>
+        </div>
+    {else}
+        <div class="{$action}-page">
+            {$content}
+        </div>
+    {/if}
+{/strip}
+

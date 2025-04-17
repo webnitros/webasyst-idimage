@@ -1,0 +1,147 @@
+{strip}
+{$category_selected=null}
+{$categories_open = []}
+{if isset($category)}
+    {$category_selected=$category.id}
+{elseif isset($product)}
+    {$category_selected=$product.category_id}
+{/if}
+
+{if $category_selected}
+    {$categories_open[] = $root_category_id}
+    {if isset($category) && $category.parent_id > 0 &&  $category.parent_id != $root_category_id}
+        {$categories_open[] = $category.parent_id}
+    {/if}
+{/if}
+
+{$categories = []}
+{if $theme_settings.sb_cat_content == 'app-menu' && $wa->menu && (int)$theme_settings.sb_cat_app_menu_id > 0}
+    {$id_menu = $theme_settings.sb_cat_app_menu_id}
+    {$categories = $wa->menu->get($id_menu)}
+{else if $theme_settings.sb_cat_content == 'catalog'}
+    {$categories = $wa->shop->categories(0, null, true, true)}
+
+    {if class_exists('shopWmimageincatPlugin')}
+        {$Wmimages = shopWmimageincatPlugin::getCategoryImageObj()}
+    {/if}
+{/if}
+
+{function name=getSubcategories subcategories=[] parent=[]}
+    {if count($subcategories) > 0}
+        <ul class="sidebar-subcategories{if $category_selected != $parent.id && !in_array($parent.id, $categories_open) && !isset($parent.params.sidebar_open)} hide{/if} js-subcat">
+            {foreach $subcategories as $key => $subcat}
+                {if !isset($subcat.params.menu_hide)}
+                    {$_has_childs = false}
+                    {if !empty($subcat.childs)}
+                        {foreach $subcat.childs as $child}
+                            {if !isset($child.params.menu_hide)}
+                                {$_has_childs = true}
+                            {/if}
+                        {/foreach}
+                    {/if}
+                    <li class="sidebar-subcategories_el{if $category_selected == $subcat.id} selected{/if}"{if $category_selected == $subcat.id} data-is-open="1"{/if}>
+                        <a class="subcategories_el__link" href="{$subcat.url}">
+                            {if !empty($subcat.params.subcaticon)}
+                                <span class="subcategories_el__image">
+                                    <img src="{$subcat.params.subcaticon}" alt="{$subcat.name}">
+                                </span>
+                            {/if}
+                            <span class="subcategories_el__name">
+                                {$subcat.name}
+                            </span>
+                        </a>
+
+                        {if $theme_settings.plugin_cic != 'none' && ($theme_settings.plugin_cic == 'sb' || $theme_settings.plugin_cic == 'menu_sb')}
+                            {if !empty($subcat.params.cic_category_items)}
+                                <span class="menu-product-count menu-product-count--sb-menu">
+                                    {$subcat.params.cic_category_items}
+                                </span>
+                            {/if}
+                            {if !empty($subcat.params.cic_category_has_discount_items)}
+                                <div class="cat-badge cat-badge--discount cat-badge--sb-menu">
+                                    %
+                                </div>
+                            {/if}
+                            {if !empty($subcat.params.cic_category_has_new_items)}
+                                <div class="cat-badge cat-badge--new cat-badge--sb-menu">
+                                    new
+                                </div>
+                            {/if}
+                            {if !empty($subcat.params.cic_category_hot)}
+                                <div class="cat-badge cat-badge--hot cat-badge--sb-menu">
+                                    hot
+                                </div>
+                            {/if}
+                        {/if}
+                        {if $_has_childs}{getSubcategories subcategories=$subcat.childs parent=$subcat}{/if}
+                    </li>
+                {/if}
+            {/foreach}
+        </ul>
+    {/if}
+{/function}
+
+{$rootCategory = $category}
+{for $index=1 to 5}
+    {if $rootCategory.parent_id}
+        {$rootCategory = $wa->shop->category($rootCategory.parent_id)}
+    {else}
+        {$rootCategoryId = $rootCategory.id}
+    {/if}
+{/for}
+
+{if !empty($categories)}
+    <div class="sb-wrap sidebar-categories">
+        <ul class="js-sidebar-cats sidebar-cats">
+            {foreach $categories as $category}
+                {if !$theme_settings.sb_list_categories && $rootCategoryId != $category.id}
+                    {continue}
+                {/if}
+                {$_has_childs = false}
+                {if !empty($category.childs)}
+                    {foreach $category.childs as $child}
+                        {if !isset($child.params.menu_hide)}
+                            {$_has_childs = true}
+                        {/if}
+                    {/foreach}
+                {/if}
+                {if !isset($category.params.menu_hide)}
+                    <li class="sidebar-cats_el">
+                        <div class="sidebar-cats__link-badge--box">
+                            <a class="sidebar-cats_link{if $category_selected == $category.id  || isset($category.params.sidebar_open)} selected{/if}" href="{$category.url}">
+                                <span class="sidebar-cats_title">
+                                    {$category.name}
+                                </span>
+                            </a>
+                            {if $theme_settings.plugin_cic == 'sb' || $theme_settings.plugin_cic == 'menu_sb'}
+                                {if !empty($category.params.cic_category_items)}
+                                    <span class="menu-product-count menu-product-count--sb-menu">
+                                    {$category.params.cic_category_items}
+                                </span>
+                                {/if}
+                                {if !empty($category.params.cic_category_has_discount_items)}
+                                    <div class="cat-badge cat-badge--discount cat-badge--sb-menu">
+                                        %
+                                    </div>
+                                {/if}
+                                {if !empty($category.params.cic_category_has_new_items)}
+                                    <div class="cat-badge cat-badge--new cat-badge--sb-menu">
+                                        new
+                                    </div>
+                                {/if}
+                                {if !empty($category.params.cic_category_hot)}
+                                    <div class="cat-badge cat-badge--hot cat-badge--sb-menu">
+                                        hot
+                                    </div>
+                                {/if}
+                            {/if}
+                        </div>
+                        {if $_has_childs}<i class="sidebar-cats_el-open fi-rr-angle-small-down sdColor js-subcat-open{if $category_selected == $category.id  || isset($category.params.sidebar_open)} selected{/if}"></i>{/if}
+                        {if $_has_childs}{getSubcategories subcategories=$category.childs parent=$category}{/if}
+                    </li>
+                {/if}
+            {/foreach}
+        </ul>
+    </div>
+{/if}
+{/strip}

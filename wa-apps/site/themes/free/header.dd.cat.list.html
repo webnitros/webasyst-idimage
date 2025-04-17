@@ -1,0 +1,147 @@
+{strip}
+
+{$categories = []}
+{if $theme_settings.get_menu_from == 'app-menu' && $wa->menu && (int)$theme_settings.id_app_menu_cat > 0}
+    {$id_menu = $theme_settings.id_app_menu_cat}
+    {$categories = $wa->menu->get($id_menu)}
+{else if $theme_settings.get_menu_from == 'catalog'}
+    {$categories = $wa->shop->categories(0, null, true, true)}
+    {if class_exists('shopWmimageincatPlugin') && $theme_settings.get_menu_from != 'app-menu'}
+        {$Wmimages = shopWmimageincatPlugin::getCategoryImageObj()}
+    {/if}
+{/if}
+
+{$cat_result = []}
+
+{if isset($category)}
+    {$category_selected=$category.id}
+{else}
+    {$category_selected=null}
+{/if}
+
+{$max_count_categories = 0}
+
+{if $theme_settings.cat_before_more}
+    {$max_count_categories = $theme_settings.cat_before_more}
+{/if}
+{$firstCatOpen = false}
+{$else_categories = []}
+{if !empty($max_count_categories) && !$wa->isMobile()}
+    {$index = 0}
+    {foreach $categories as $cat}
+        {$index = $index + 1}
+        {if $index <= $max_count_categories}
+            {$cat_result[] = $cat}
+        {else}
+            {$else_categories[] = $cat}
+        {/if}
+    {/foreach}
+    {if !empty($else_categories)}
+        {$cat_result[] = ['name' => 'Else', 'id' => 'else', 'url' => '#', 'childs' => $else_categories]}
+    {/if}
+{else}
+    {$cat_result = $categories}
+{/if}
+<div id="nav-cat" class="nav-cat_wrap js-dd-wrap" data-lazy="1" data-delay="2000">
+    <div class="js-bg cat-nav-bg mfp-bg mfp-ready"></div>
+    <div class="dd-wrap">
+        {if $fullWidthDdMenu}<div class="container">{/if}
+            <div class="category-menu js-category-menu-wrap">
+                {if $theme_settings.show_brands_menu}
+                    {$fullListBrands = shopBrandViewHelper::getAllBrands()}
+                    {$cat_result['brands'] = ['id' => 'brands','name' => 'Бренды', 'url' => $wa->getUrl('shop/frontend/brands')]}
+                    {foreach $fullListBrands as $b}
+                        {$cat_result['brands']['childs'][] = ['name' => $b.name, 'url' => {$b->getFrontendUrl()}]}
+                    {/foreach}
+                {/if}
+                {foreach $cat_result as $cat}
+                    {if $theme_settings.break_categories_columns}
+                        {$view_subcat = $theme_settings.break_categories_columns}
+                    {/if}
+                    {if (!isset($view_subcat) || ($view_subcat != "columns")) && !$cat.params['columns']}
+                        {$view_subcat = "one_column"}
+                    {/if}
+
+
+                    {$_subcat = 0}
+                    {if count($cat.childs) && $theme_settings.depth_subcategories > 1}
+                        {foreach $cat.childs as $child}
+                            {$_subcat = 1}
+                        {/foreach}
+                    {/if}
+                    {if $cat.id == 'else'}
+                        {$_subcat = 1}
+                    {/if}
+                    <div class="{if $_subcat}js-cat-subs-{if $view_subcat == "one_column"}dropdown{else}disclosed{/if} has-subs{if !$firstCatOpen} active{/if}{/if} cat-menu__item{if $theme_settings.position_drop_down_categories == "parent"} pos-rel {/if}">
+                        {if $cat.id == 'else'}
+                            <div class="cat-menu__item-link">
+                                <span class="cat-menu__item-title cat-menu__item-title--else maincolor">
+                                    [`Else categories`]
+                                </span>
+                            </div>
+                        {else}
+                            <div class="cat-menu__item-link">
+                                {if $theme_settings.get_menu_from == 'app-menu' && $theme_settings.id_image_app_menu}
+                                    {$cat.params.menuIcon = $cat[$theme_settings.id_image_app_menu]}
+                                {else}
+                                    {if isset($Wmimages[$cat.id].icon)}
+                                        {$cat.params.menuIcon = $Wmimages[$cat.id].icon}
+                                    {/if}
+                                {/if}
+                                <div class="cat-menu__item-title{if !empty($cat.params.menuIcon)} cat-menu__item-title--has-image{/if}">
+                                    {if !empty($cat.params.menuIcon)}
+                                        <span class="cat-menu__item--icon">
+                                            <img src="{$cat.params.menuIcon}" alt="">
+                                        </span>
+                                    {/if}
+                                    <a href="{$cat.url}">{$cat.name}</a>
+                                    {if $theme_settings.plugin_cic != 'none' && ($theme_settings.plugin_cic == 'menu' || $theme_settings.plugin_cic == 'menu_sb')}
+                                        {if !empty($cat.params.cic_category_items)}
+                                            <span class="menu-product-count">
+                                                {$cat.params.cic_category_items}
+                                            </span>
+                                        {/if}
+                                        {if !empty($cat.params.cic_category_has_discount_items)}
+                                            <div class="cat-badge cat-badge--discount">
+                                                %
+                                            </div>
+                                        {/if}
+                                        {if !empty($cat.params.cic_category_has_new_items)}
+                                            <div class="cat-badge cat-badge--new">
+                                                new
+                                            </div>
+                                        {/if}
+                                        {if !empty($cat.params.cic_category_hot)}
+                                            <div class="cat-badge cat-badge--hot">
+                                                hot
+                                            </div>
+                                        {/if}
+                                    {/if}
+                                </div>
+                            </div>
+                        {/if}
+                        {if $_subcat}
+                            <i class="js-cat-item-caret fi-rr-angle-small-right"></i>
+                        {/if}
+                        {if $_subcat}
+                            {if isset($wa_parent_theme_path)}
+                                {$subcatFile = "`$wa_parent_theme_path`/nav.`$view_subcat`.scat.html"}
+                            {else}
+                                {$subcatFile = "nav.`$view_subcat`.scat.html"}
+                            {/if}
+                            {if $theme_settings.show_brands_menu && $cat.id == 'brands'}
+                                {include file="nav.columns.scat.html" isBrand=true}
+                            {else}
+                                {include file=$subcatFile isBrand=false openCat=!$firstCatOpen && $_subcat}
+                                {if !$firstCatOpen && $_subcat}
+                                    {$firstCatOpen = true}
+                                {/if}
+                            {/if}
+                        {/if}
+                    </div>
+                {/foreach}
+            </div>
+        {if $fullWidthDdMenu}</div>{/if}
+    </div>
+</div>
+{/strip}

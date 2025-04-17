@@ -1,0 +1,37 @@
+{strip}
+
+{if class_exists('shopTageditorPlugin')}
+    {$tagrepository = shopTageditorPlugin::tags($wa->shop->tags())}
+{else}
+    {$tagrepository = $wa->shop->tags()}
+{/if}
+
+{if $tagrepository}
+    <div class="js-tags tags tags--sidebar cloud">
+        <div class="sb-wrap_head maincolor">
+            {if $theme_settings.tags_title_text}
+                {$theme_settings.tags_title_text}
+            {else}
+                [`Tags`]:
+            {/if}
+        </div>
+        {$exist_hide_tags = false}
+        {$index = 0}
+        {foreach $tagrepository as $key => $tag}
+            {if !$tag.name}
+                {break}
+            {/if}
+            {if (int)$theme_settings.max_tags_sidebar > 0 && $index >= (int)$theme_settings.max_tags_sidebar}
+                {$exist_hide_tags = true}
+            {/if}
+
+            <a class="maincolor {if $exist_hide_tags}js-tag hide{/if}" href="{$wa_app_url}tag/{$tag.uri_name}/">{$tag.name|escape}</a>
+            {$index = $index+1}
+        {/foreach}
+        {if $exist_hide_tags}
+            <div class="js-open-tags tags_all sdColor"><span class="link-half link-half--act">Развернуть</span></div>
+        {/if}
+    </div>
+{/if}
+{/strip}
+

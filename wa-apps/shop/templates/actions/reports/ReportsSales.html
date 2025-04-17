@@ -1,0 +1,429 @@
+{include "./sales_sidebar.html" has_stacked_chart=true inline}
+
+<div class="content s-report-sales">
+        <div class="flexbox middle full-width custom-mb-12 wrap-mobile space-8">
+            <h1 class="custom-mb-0 h2-mobile">
+                {if $filter}
+                    <a href="javascript:void(0)" class="back s-reset-filter" id="s-reset-filter">&larr; <span class="s-back-title"></span></a>
+                    <span class="s-header-title">{$filter_title|default:''|escape}</span>
+                {else}
+                    <span class="s-header-title">
+                    {if !empty($request_options.type) && !empty($menu_types[$request_options.type])}
+                        {$menu_types[$request_options.type].header_name|escape}
+                    {else}
+                        [`Sales report`]
+                    {/if}
+                </span>
+                {/if}
+
+                <span class="hint" id="period-description">[`Custom range`]</span>
+            </h1>
+
+            {if $abtests}
+                <div class="flexbox middle space-16">
+                    <div>
+                        <span class="icon text-gray">
+                            <i class="fas fa-columns"></i>
+                        </span>
+                        <span class="highlighted" style="padding: 0 5px 3px;margin-left: 0.4rem">[`A/B tests results available`]</span>
+                    </div>
+                    <div class="wa-select smaller">
+                        <select id="s-sales-abtest-selector">
+                            <option value="">[`Select test`]</option>
+                            {foreach $abtests as $id => $name}
+                                <option value="{$id}"{if ifset($request_options.abtest) == $id} selected{/if}>{$name|escape}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                </div>
+            {/if}
+            <a href="?module=reports&action=exportsales&{http_build_query($request_options)}" class="button light-gray small nowrap s-report-sales-csv-download"><i class="fas fa-file-csv text-blue"></i> [`Download chart data in CSV`]</a>
+        </div>
+
+        {if $details_graph_data}
+            <div class="extended-sales-graph-wrapper">
+                <div class="extended-sales-graph" id="extended-sales-graph"></div>
+                <div class="extended-sales-hint" id="extended-sales-hint"></div>
+                <div class="extended-sales-divider" id="extended-sales-divider"></div>
+                <script>
+                    ( function($) {
+                        if (typeof ExtendedSalesGraph === "function") {
+                            initGraph();
+                        } else {
+                            $.getScript("{$wa_url}wa-apps/shop/js/charts/d3chart-sales.extended.js?v={$wa->version()}", initGraph);
+                        }
+                        function initGraph() {
+                            new ExtendedSalesGraph({
+                                data: {$details_graph_data.data|default:[]|json_encode},
+                                currency: {wa_currency_html(0, $def_cur)|replace:'0':':value:'|json_encode},
+                                chart_names: {$details_graph_data.names|default:[]|json_encode},
+                                $wrapper: $("#extended-sales-graph"),
+                                $tooltip: $("#extended-sales-hint"),
+                                $divider: $("#extended-sales-divider")
+                            });
+                        }
+                    })(jQuery);
+                </script>
+            </div>
+        {else}
+            <div class="graph-wrapper">
+                <script>
+                    (function() {
+                        if (typeof showSalesGraph == 'undefined') {
+                            return $.ajax({
+                                  dataType: "script",
+                                  url: "{$wa_url}wa-apps/shop/js/charts/d3chart-sales.js?{$wa->version()}",
+                                  cache: true
+                            });
+                        } else {
+                            return $.Deferred(function(d) {
+                                d.resolve();
+                            });
+                        }
+                    })().done(function() {
+                        showSalesGraph({json_encode($graph_data)}, {wa_currency_html(0, $def_cur)|replace:'0':'%s'|json_encode});
+                    });
+                </script>
+                <!-- CHART WRAPPERS -->
+                <div class="sales-wrapper"></div>
+                <div class="hint-wrapper" id="hint-wrapper"></div>
+            </div>
+        {/if}
+
+        <div class="table-scrollable-x" style="max-width: calc(100vw - var(--main-sidebar-width) - var(--padding-container-width));">
+        <table class="s-reports-sales-table s-reports-table-sort zebra bigdata" id="sales-report-table">
+            <thead>
+                <tr class="white s-header-row">
+                    <th>&nbsp;</th>
+                    <th><a href="javascript:void(0)" data-col="order_count" data-wa-tooltip-content="[`Only paid orders are counted`]">[`Orders`]</a></th>
+                    <th><a href="javascript:void(0)" data-col="sales" data-wa-tooltip-content="[`Overall amount of all paid orders`]">
+                        <div class="wide flexbox middle space-4">
+                            <span class="icon size-12 custom-ml-auto"><i class="fas fa-circle" style="color: #80DFAF;"></i> </span>
+                            <span>[`Sales volume`]</span>
+                        </div>
+                    </a></th>
+                    <th><a href="javascript:void(0)" data-col="average_order" data-wa-tooltip-content="[`Average paid order amount`]">[`Average order`]</a></th>
+                    <th><a href="javascript:void(0)" data-col="profit" class="inline" data-wa-tooltip-content="[`Profit = Order amount &minus; Shipping &minus; Tax &minus; Product purchase price`]">
+                        <div class="wide flexbox middle space-4">
+                            <span class="icon size-12 custom-ml-auto"><i class="fas fa-circle" style="color: #00BF60;"></i> </span>
+                            <span>[`Profit`]</span>
+                        </div>
+                    </a></th>
+
+                    {if $roi_enabled}
+                        <th><a href="javascript:void(0)" data-col="cost" data-wa-tooltip-content="[`Marketing costs`]">[`Cost`]</a></th>
+                        <th><a href="javascript:void(0)" data-col="roi" data-wa-tooltip-content="[`Return On Investment for the selected period = Profit / Marketing costs`]">[`ROI`]</a></th>
+                        <th class="align-right" data-wa-tooltip-content="[`Overall ROI calculated for the entire data. This is where your current ROI value might converge to.`]">[`All time ROI`]</th>
+                    {/if}
+                </tr>
+                <tr class="s-summary-row">
+                    <td class="wrap">[`Total`]</td>
+                    <td class="align-right nowrap">{strip}
+                        {$totals.order_count}
+                        {foreach $abtest_variants as $v}
+                            <br><span class="hint">{$v.name|escape}: {ifempty($v.totals.order_count, 0)}</span>
+                        {/foreach}
+                    {/strip}</td>
+                    <td class="s-sales-cell align-right nowrap">{strip}
+                        {$totals.sales_formatted}
+                        {foreach $abtest_variants as $v}
+                            <br><span class="hint">{$v.name|escape}: {$v.totals.sales_formatted}</span>
+                        {/foreach}
+                    {/strip}</td>
+                    <td class="align-right nowrap">{strip}
+                        {$totals.avg_order_formatted}
+                        {foreach $abtest_variants as $v}
+                            <br><span class="hint">{$v.name|escape}: {$v.totals.avg_order_formatted}</span>
+                        {/foreach}
+                    {/strip}</td>
+                    <td class="s-profit-cell align-right nowrap">{strip}
+                        {$totals.profit_formatted}
+                        {foreach $abtest_variants as $v}
+                            <br><span class="hint">{$v.name|escape}: {$v.totals.profit_formatted}</span>
+                        {/foreach}
+                    {/strip}</td>
+
+                    {if $roi_enabled}
+                        <td class="align-right nowrap">
+                            {$totals.cost_formatted}
+                        </td>
+                        <td class="align-right nowrap"><strong class="s-roi {if $totals.roi >= 130}s-positive{elseif $totals.roi >= 100}s-questionable{elseif $totals.cost}s-negative{/if}">
+                            {if $totals.cost}
+                                {round($totals.roi)}%</strong>
+                            {else}
+                                <span class="gray">&mdash;</span>
+                            {/if}
+                        </td>
+                        <td class="align-right nowrap">
+                            {if $totals.cost}
+                                {$totals.lifetime_roi}%
+                            {else}
+                                <span class="gray">&mdash;</span>
+                            {/if}
+                        </td>
+                    {/if}
+                </tr>
+            </thead>
+
+            <tbody>
+                {include "./sales_report_rows.html" inline}
+            </tbody>
+
+        </table>
+        </div>
+        <!-- BEGIN DETAILS BLOCK -->
+
+        {$order_list_html = $order_list_html|default:''}
+        {$order_items_list_html = $order_items_list_html|default:''}
+
+        <div id="s-details-item-list-container" {if !$order_list_html && !$order_items_list_html}style="display: none;"{/if}>
+            <ul class="tabs s-details-item-list-tabs" id="js-details-item-list-tabs">
+                <li class="s-details-item selected" data-tab="orders">
+                    <a href="javascript:void(0)" class="s-details-item-link bold" data-tab="orders">[`Orders`]</a>
+                </li>
+                <li class="s-details-item" data-tab="order-items">
+                    <a href="javascript:void(0)" class="s-details-item-link bold" data-tab="order-items">[`Ordered products`]</a>
+                </li>
+            </ul>
+            <div class="box" id="js-details-item-list-content">
+                <div class="s-details-items-list-tab-content" data-tab="orders">
+                    {$order_list_html}
+                </div>
+                <div class="s-details-items-list-tab-content" data-tab="order-items" style="display: none;">
+                    {$order_items_list_html}
+                </div>
+            </div>
+
+        </div>
+
+        <!-- END DETAILS BLOCK -->
+
+        <p id="load-more-rows">
+            <a href="javascript:void" class="inline-link"><b>[`Load more...`]</b></a>
+        </p>
+</div>
+
+<script>(function() {
+    document.title = "[`Sales`] — {$wa->accountName(false)|escape:javascript}";
+    $.wa.locale = $.extend($.wa.locale, {
+        'Sales': "[`Sales`]",
+        'Profit': "[`Profit`]",
+        'Custom range': "[`Custom range`]"
+    });
+
+    var current_sort = {json_encode(trim($request_options.sort, '!'))}; // sales, profit, etc.
+    var current_order = {if substr($request_options.sort, 0, 1) == '!'}'desc'{else}'asc'{/if};
+    var single_page_table = {if $more_rows_exist}false{else}true{/if};
+    var request_params = {json_encode($request_options)};
+    var action_url = '?module=reports&action=sales';
+
+    // Highlight active item in sidebar
+    request_params.type && $('#s-sidebar a[href="#/sales/type='+request_params.type+'"]').closest('li').addClass('selected').siblings().removeClass('selected');
+
+    // drilldown, backlink text
+    $('#reportscontent .s-back-title').text($('#grouping-type-selector .selected').text());
+
+    // Reload page when user changes value in A/B test selector
+    $('#s-sales-abtest-selector').on('change', function() {
+        $(this).parent().append('<i class="fas fa-spinner fa-spin text-gray"></i>');
+        $.post(action_url, $.extend({ }, request_params, { abtest: $(this).val() }), function(r) {
+            $.reports.replaceContent(r);
+        });
+    });
+
+    (function() {
+        $("[data-wa-tooltip-content]").waTooltip({ delay: 500 });
+    })();
+
+    // Table sorting logic
+    (function() { "use strict";
+
+        var $table = $('#sales-report-table');
+        var $load_more_link = $('#load-more-rows');
+        if (single_page_table) {
+            $load_more_link.remove();
+        }
+
+        highlightSortingColumn();
+
+        // Reorder the table when user clicks on a column header
+        var in_progress_sort = false;
+        $table.on('click', 'thead a', function() {
+            if (in_progress_sort) return false;
+
+            var $a = $(this);
+            var col = $a.data('col');
+            if (col == current_sort) {
+                if (current_order == 'desc') {
+                    current_order = 'asc';
+                } else {
+                    current_order = 'desc';
+                }
+            } else {
+                current_sort = col;
+                current_order = 'desc';
+            }
+
+            $a.find('.sorting-indicator').remove();
+            request_params['sort'] = (current_order == 'desc' ?'!':'')+current_sort;
+            $a.append('<i class="fas fa-spinner wa-animation-spin loading"></i>');
+            var rnd_protect = $.reports.rnd_protect = Math.random();
+
+            in_progress_sort = true;
+            $.post(action_url, $.extend({ }, request_params/*, { table_only: 1 }*/), function(r) {
+                in_progress_sort = false;
+                if (rnd_protect != $.reports.rnd_protect) {
+                    return; // too late, user clicked something else
+                }
+
+                $.reports.replaceContent(r);
+            });
+        });
+
+        // Link to load more rows
+        $load_more_link.on('click', function() {
+            if ($load_more_link.children('.loading').length) {
+                return;
+            }
+
+            $load_more_link.append('<i class="fas fa-spinner wa-animation-spin loading"></i>');
+            var rnd_protect = $.reports.rnd_protect = Math.random();
+            var current_count = $('#sales-report-table>tbody>tr').length;
+            $.post(action_url, $.extend({ }, request_params, { table_only: 1, start: current_count }), function(r) {
+                $load_more_link.children('.loading').remove();
+                if (rnd_protect != $.reports.rnd_protect) {
+                    return; // too late, user clicked something else
+                }
+                r = $.trim(r)
+                var trs = r ? $.parseHTML(r) : [];
+                if (trs.length) {
+                    $table.children('tbody').append(trs);
+                } else {
+                    $load_more_link.hide();
+                }
+                highlightSortingColumn();
+            });
+        });
+
+        // Helper to update visual indication when sorting changes
+        function highlightSortingColumn() {
+            var $tds = $table.find('td');
+            $tds.filter('.column-'+current_sort).addClass('bold');
+            $tds.filter(':not(.column-'+current_sort+')').removeClass('bold');
+
+            var $thead = $table.children('thead');
+            $thead.find('.sorting-indicator').remove();
+            $thead.find('a[data-col="'+current_sort+'"]').append('<span class="sorting-indicator"><i class="fas fa-caret-'+(current_order == 'desc' ? 'down' : 'up')+'"></i></span>')
+                .closest('th').addClass('bold').siblings().removeClass('bold');
+        }
+    })();
+
+    var getParamsFromHash = function () {
+        var hash = $.reports.hash || 'sales/type=sources';
+        var prefix = 'sales/';
+        var prefix_len = prefix.length;
+        var hash_slice = hash.slice(0, prefix_len);
+        if (hash_slice === prefix || hash === prefix.slice(0, -1)) {
+            var hash_params = hash.slice(prefix.length) || '';
+            hash_params = hash_params.slice(-1) !== '/' ? hash_params : hash_params.slice(0, -1);
+            return hash_params;
+        }
+        return '';
+    };
+
+    // drilldown logic
+    (function () { "use strict";
+        var $table = $('#sales-report-table');
+
+        var applyNameFilterToHash = function (name) {
+            name = name !== null ? name : undefined;
+            var params = getParamsFromHash();
+            var map = $.reports.parseParams(params);
+            var key = 'filter[name]';
+            if (map[key] !== name) {
+                map[key] = name;
+            }
+            if (map[key] === undefined) {
+                delete map[key];
+            } else {
+                delete map.details; // details in drill-down graph is prohibited
+            }
+            params = $.reports.unparseParams(map);
+
+            return 'sales/' + params;
+        };
+
+        $table.on('click', '.s-reports-drilldown-link', function() {
+            var link = $(this),
+                name = link.data('name').replace(/\//g, '%2F');
+            var hash = applyNameFilterToHash(name);
+            if (hash !== $.reports.hash) {
+                $.wa.setHash('/' + hash);
+            }
+            $('#s-sales-details').attr('disabled', true);
+        });
+
+        $('#s-reset-filter').on('click', function () {
+            var hash = applyNameFilterToHash(null);
+            if (hash !== $.reports.hash) {
+                if (hash) {
+                    $.wa.setHash('/' + hash);
+                } else {
+                    $.wa.setHash('');
+                }
+            }
+            $('#s-sales-details').attr('disabled', false);
+        });
+
+    })();
+
+    // details logic
+    $('#s-sales-details').on('click', function () {
+        var $this = $(this);
+        var params = getParamsFromHash();
+        var map = $.reports.parseParams(params);
+        var details = $this.is(':checked') ? '1' : undefined;
+        if (details) {
+            $.storage.set('shop/reports/sales-details', '1')
+        } else {
+            $.storage.del('shop/reports/sales-details')
+        }
+        if (map.details !== details) {
+            map.details = details;
+        }
+        if (map.details === undefined) {
+            delete map.details;
+        }
+        params = $.reports.unparseParams(map);
+        var hash = 'sales/' + params;
+        hash !== $.reports.hash && $.wa.setHash(hash);
+    });
+
+    // details tab blocks
+    (function (container) {
+        container.find('.s-details-item-link').on('click', function () {
+            var $link = $(this);
+            var tab = $link.data('tab');
+            var $tabs = $('.s-details-item');
+            var $tab_blocks = $('.s-details-items-list-tab-content', container);
+
+            $tabs.removeClass('selected').filter('[data-tab="' + tab + '"]').addClass('selected');
+            $tab_blocks.hide().filter('[data-tab="' + tab + '"]').show();
+        });
+    })($('#s-details-item-list-container'));
+
+    $('#js-details-item-list-tabs').on('click', 'li', function() {
+        var $li = $(this);
+        var prev_tab = $li.prev().data('tab');
+        var current_tab = $li.data('tab');
+        var $container = $('#js-details-item-list-content');
+
+        $('[data-tab="'+prev_tab+'"]', $container).children().lazyLoad('stop');
+        $('[data-tab="'+current_tab+'"]', $container).children().lazyLoad('reload');
+    });
+
+})();
+</script>
+{if $wa->installer && method_exists($wa->installer, 'reviewWidget')}
+    {$wa->installer->reviewWidget('app/shop')}
+{/if}

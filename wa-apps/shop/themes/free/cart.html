@@ -1,0 +1,407 @@
+{literal}
+    <script>
+        $(function () {
+            $(".js-cart-delete").click(function () {
+                var row = $(this).closest('div.row');
+                $.post('delete/', {html: 1, id: row.data('id')}, function (response) {
+                    if (response.data.count == 0) {
+                        location.reload();
+                    }
+                    row.remove();
+                    upCart(response.data);
+                }, "json");
+                return false;
+            });
+
+            $(".js-cart-ajax input.qty").change(function () {
+                var quantityInput = $(this),
+                    productWrap = quantityInput.closest('.js-cart-product');
+
+                changeQty(productWrap, quantityInput, $('.js-fixed-cart-outer').data("cart-url") + 'save/');
+            });
+
+            $("div.addtocart input:button").click(function () {
+                var f = $(this).closest('div.addtocart');
+                if (f.data('url')) {
+                    var d = $('#dialog');
+                    var c = d.find('.cart');
+                    c.load(f.data('url'), function () {
+                        c.prepend('<a href="#" class="dialog-close">&times;</a>');
+                        c.find('form').data('cart', 1);
+                        d.show();
+                        if ((c.height() > c.find('form').height())) {
+                            c.css('bottom', 'auto');
+                        } else {
+                            c.css('bottom', '15%');
+                        }
+                    });
+                    return false;
+                }
+                $.post($(this).data('url'), {html: 1, product_id: $(this).data('product_id')}, function (response) {
+                    if (response.status == 'ok') {
+                        var cart_total = $(".cart-price-total");
+                        $("#page-content").load(location.href, function () {
+                            cart_total.closest('#cart').removeClass('empty');
+                            cart_total.html(response.data.total);
+                            $('#cart').addClass('fixed');
+                            $('#cart-content').append($('<div class="cart-just-added"></div>').html(f.find('span.added2cart').text()));
+                            $('.cart-to-checkout').slideDown(200);
+                        });
+                    }
+                }, 'json');
+                return false;
+            });
+
+            $(".js-preview-cart-delete").on("click", function(){
+                var row = $(this).closest('.js-cart-product'),
+                    cartWrap = $(this).closest('.js-cart-ajax'),
+                    url = cartWrap.data("url");
+
+                $.post(url+'delete/', {html: 1, id: row.data('id')}, function (response) {
+                    if (response.data.count == 0) {
+                        $('.js-header_cart-preview-empty').show();
+                        $('.js-header_cart-preview-full').hide();
+                    }
+                    row.hide();
+                    upCart(response.data);
+                    $('.js-cart-preview-count').html(response.data.count);
+                    $('.js-cart-price-total-price').html(response.data.total);
+                }, "json");
+            });
+
+            $(".cart input.qty").change(function () {
+                var quantityInput = $(this),
+                    productWrap = quantityInput.closest('div.row');
+
+                changeQty(productWrap, quantityInput, 'save/');
+            });
+
+            $("#coupon-in-stock").click(function () {
+                $('#discount-row:hidden').slideToggle(200);
+                $('#use-coupon-code:hidden').show();
+                $('#use-coupon-code input[type="text"]').focus();
+                return false;
+            });
+
+            function upCart(data)
+            {
+                $(".cart-price-total, .js-cart-price-total").html(data.total);
+                if (data.discount_numeric) {
+                    $(".cart-discount").closest('div.row').show();
+                }
+                $(".cart-discount").html('&minus; ' + data.discount);
+
+                if (data.add_affiliate_bonus) {
+                    $(".affiliate").show().html(data.add_affiliate_bonus);
+                } else {
+                    $(".affiliate").hide();
+                }
+
+                if (data.affiliate_discount) {
+                    $('.affiliate-discount-available').html(data.affiliate_discount);
+                    if ($('.affiliate-discount').data('use')) {
+                        $('.affiliate-discount').html('&minus; ' + data.affiliate_discount);
+                    }
+                }
+            }
+
+
+
+            function changeQty(productWrap, quantityInput, url){
+                var quantityInputValue = quantityInput.val();
+                if (quantityInputValue > 0) {
+                    $.post(url, {html: 1, id: productWrap.data('id'), quantity: quantityInputValue}, function (response) {
+                        if(response.data.item_total.charAt(0) == '0' && row.find('.item-total').data('zero-text') != ""){
+                            productWrap.find('.js-item-total').html(productWrap.find('.js-item-total').data('zero-text'));
+                        }else{
+                            productWrap.find('.js-item-total').html(response.data.item_total);
+                        }
+
+                        if (response.data.q) {
+                            quantityInput.val(response.data.q);
+                        }
+                        if (response.data.error) {
+                            alert(response.data.error);
+                        } else {
+                            quantityInput.removeClass('error');
+                        }
+                        upCart(response.data);
+                    }, "json");
+                } else {
+                    quantityInput.val(1);
+                }
+            }
+
+            var onInputChange = function ($input, onChange) {
+                var prev_input_val = $input.val() || '';
+                var timer_id, timeout = 500;
+                $input.keydown(function () {
+                    if (timer_id) {
+                        clearTimeout(timer_id);
+                    }
+                    timer_id = setTimeout(function () {
+                        if (prev_input_val !== $input.val()) {
+                            onChange.apply($input, arguments);
+                        }
+                        prev_input_val = $input.val();
+                    }, timeout);
+                }).change(onChange);
+            };
+
+            $("#cancel-affiliate").click(function () {
+                $(this).closest('form').append('<input type="hidden" name="use_affiliate" value="0">').submit();
+                return false;
+            });
+
+            $('.js-checkout-button-cart').click(function (event){
+                var PluginBuy1step = $('.buy1step-page__checkout-box');
+
+                if(PluginBuy1step.length){
+                    event.preventDefault();
+
+                    var top = PluginBuy1step.offset().top - 20;
+
+                    $('html,body').animate({
+                        scrollTop: top
+                    }, 500);
+                }
+            });
+
+            $(".js-cart-services input:checkbox").change(function () {
+                var obj = $('select[name="service-option[' + $(this).closest('div.row').data('id') + '][' + $(this).val() + ']"]');
+                if (obj.length) {
+                    if ($(this).is(':checked')) {
+                        obj.removeAttr('disabled');
+                    } else {
+                        obj.attr('disabled', 'disabled');
+                    }
+                }
+
+                var div = $(this).closest('.js-cart-service');
+                var row = $(this).closest('div.row');
+                if ($(this).is(':checked')) {
+                    var parent_id = row.data('id')
+                    var data = {html: 1, parent_id: parent_id, service_id: $(this).val()};
+                    var $variants = $('[name="service-option[' + parent_id + '][' + $(this).val() + ']"]');
+                    if ($variants.length) {
+                        data['service-option_id'] = $variants.val();
+                    }
+                    $.post('add/', data, function(response) {
+                        div.data('id', response.data.id);
+                        row.find('.js-item-total').html(response.data.item_total);
+                        upCart(response.data);
+                    }, "json");
+                } else {
+                    $.post('delete/', {html: 1, id: div.data('id')}, function (response) {
+                        div.data('id', null);
+                        row.find('.js-item-total').html(response.data.item_total);
+                        upCart(response.data);
+                    }, "json");
+                }
+            });
+
+
+            $("#use-affiliate").click(function () {
+                $(this).closest('form').append('<input type="hidden" name="use_affiliate" value="1">').submit();
+                return false;
+            })
+
+
+            onInputChange($('#use-coupon-code input[type="text"]'), function () {
+                $('#use-coupon-code .errormsg').hide();
+            });
+
+
+            $(".js-cart-services select").change(function () {
+                var row = $(this).closest('div.row');
+                $.post('save/', {html: 1, id: $(this).closest('div').data('id'), 'service-option_id': $(this).val()}, function (response) {
+                    row.find('.js-item-total').html(response.data.item_total);
+                    upCart(response.data);
+                }, "json");
+            });
+
+        });
+    </script>
+{/literal}
+{strip}
+        <div class="cols-1">
+            <div class="content ">
+                <div class="content-box">
+                    {if !$cart.count}
+                        <div class="cart">
+                            <h1>[`Shopping cart`]</h1>
+                            <p>[`Your shopping cart is empty.`]</p>
+                        </div>
+                    {else}
+                        {$dummy96 = "{$wa_theme_url}img/dummy96.png"}
+                        <form method="post">
+                            <h1>[`Shopping cart`]</h1>
+                            <div class="cart cart-page">
+                                {foreach $cart.items as $item}
+                                    <div class="row" data-id="{$item.id}">
+                                        <div class="col cart-el_image">
+                                            <a href="{$wa->shop->productUrl($item.product)}"
+                                               title="{$item.product.name|escape}">
+                                                {$wa->shop->productImgHtml($item.product, '48x48', ['default' => $dummy96])}
+                                            </a>&nbsp;
+                                        </div>
+                                        <div class="col cart-el_info">
+                                            <a href="{$wa->shop->productUrl($item.product)}">{$item.product.name|escape}</a>
+                                            {if isset($item.sku_name) && strlen($item.sku_name) && $item.sku_name != $item.product.name}
+                                                <span class="cart-el_code bg-maincolor">{$item.sku_name|escape}</span>
+                                            {/if}
+
+                                            {if !empty($item.services)}
+                                                <div class="col cart-el_services js-cart-services">
+                                                    {foreach $item.services as $service_id => $s}
+                                                        <div class="js-cart-service"
+                                                             {if !empty($s.id)}data-id="{$s.id}"{/if}>
+                                                            <label>
+                                                                <span class="js-style-check style-check fi-rr-check">
+                                                                    <input class="js-style-check-input" {if !empty($s.id)}checked{/if} type="checkbox"name="services[{$item.id}][]" value="{$service_id}">
+                                                                </span>
+                                                                {if $s.price && !isset($s.variants)}
+                                                                    (<span>+{shop_currency_html($s.price, $s.currency)}</span>)
+                                                                {/if}
+                                                                {$s.name|escape}
+                                                            </label>
+                                                            {if isset($s.variants)}
+                                                                <select name="service-option[{$item.id}][{$service_id}]" {if empty($s.id)}disabled{/if}>
+                                                                    {foreach $s.variants as $variant_id => $v}
+                                                                        <option {if $s.variant_id == $variant_id}selected{/if} value="{$variant_id}">{$v.name|escape}
+                                                                            (+{shop_currency($v.price, $s.currency)})
+                                                                        </option>
+                                                                    {/foreach}
+                                                                </select>
+                                                            {else}
+                                                                <input type="hidden" name="service-option[{$item.id}][{$service_id}]" value="{$s.variant_id}">
+                                                            {/if}
+                                                        </div>
+                                                    {/foreach}
+                                                </div>
+                                            {/if}
+                                        </div>
+
+                                        <div class="col cart-el_right">
+                                            <div class="col nowrap cart-el_qty">
+                                            <span class="js-qty Cart__Qty align-center nowrap">
+                                                <span data-type="-" class="js-qty-button Cart__Qty_act sdColor"><span>–</span></span>
+                                                <input type="text" name="quantity[{$item.id}]" value="{$item.quantity}"
+                                                       class="js-number qty{if !empty($item.error)} error{/if}">
+                                                <span data-type="+" class="js-qty-button Cart__Qty_act sdColor"><span>+</span></span>
+                                            </span>
+                                            </div>
+
+                                            <div data-zero-text="{$theme_settings.text_zero_price}"
+                                                 class="col js-item-total cart-el_price nowrap">
+                                                {if empty($item.full_price) && !empty($theme_settings.text_zero_price)}
+                                                    {$theme_settings.text_zero_price}
+                                                {else}
+                                                    {shop_currency_html($item.full_price, true)}
+                                                {/if}
+                                            </div>
+
+                                            <div class="col cart-el_remove">
+                                                <i class="fi-rr-cross-small icon js-cart-delete"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {if !empty($item.error)}
+                                    <script>alert({json_encode($item.error)});</script>
+                                {/if}
+                                {/foreach}
+
+                                <!-- discount -->
+                                <div class="row cart-el_discount"
+                                     {if !shopDiscounts::isEnabled('coupons') && !$discount}style="display:none"{/if}
+                                     id="discount-row">
+                                    <div class="col cart-el_coupon">
+                                        {if shopDiscounts::isEnabled('coupons')}
+                                            <div class="coupon-form" id="use-coupon-code">
+                                                <p>[`Coupon code`]</p>
+                                                <input type="text" name="coupon_code" value="{$coupon_code|escape}">
+                                                <span class="cart-coupon-add-button button js-submit-form sdColor{if $coupon_discount} cart-coupon-add-button_active{/if}"> [`Применить`]</span>
+                                                {if $coupon_code && empty($coupon_discount) && empty($coupon_free_shipping)}
+                                                    <div class="errormsg">[`Invalid coupon code`]</div>
+                                                {/if}
+                                                {if $coupon_discount}
+                                                    <div class="cart-coupon__remove-btn"><i class="fi-rr-cross-small"></i></div>
+                                                {/if}
+                                            </div>
+                                        {/if}
+                                    </div>
+                                    <div class="col cart-el_right">
+                                        <div class="col cart-el_qty">[`Discount`]</div>
+                                        <div class="col cart-discount nowrap cart-el_price">
+                                            &minus; {shop_currency_html($discount, true)}</div>
+                                    </div>
+
+                                </div>
+
+                                {if shopAffiliate::isEnabled() && $affiliate_bonus > 0}
+                                    <div class="row">
+                                        <div class="col cart-el_coupon">
+{*                                            {sprintf('[`Your current affiliate bonus of %s points allows you to get an additonal discount of up to %s`]', $affiliate_bonus, "<span class=\"affiliate-discount-available\">{shop_currency_html($affiliate_discount)}</span>")}*}
+
+                                            {sprintf(
+                                            _w('You have %s bonus point! You can use it to get an additional discount of up to %s.', 'You have %s bonus points! You can use some of them to get an additional discount of up to %s.', $affiliate_bonus, false),
+                                            "<strong>{$affiliate_bonus}</strong>",
+                                            "<strong id=\"wa-affiliate-order-discount\">{shop_currency_html(shopAffiliate::convertBonus($affiliate_bonus), true)}</strong>"
+                                            )}
+                                            {if $use_affiliate}
+                                                <span class="link-style" id="cancel-affiliate">[`Don’t use bonus discount`]</span>
+                                            {else}
+                                                <span class="link-style" id="use-affiliate">[`Use bonus`]</span>
+                                            {/if}
+                                        </div>
+                                        <div class="col cart-el_right">
+                                            <div class="col cart-el_qty"></div>
+                                            <div class="col cart-el_price 1 affiliate-discount"{if $use_affiliate} data-use="1"{/if}>
+                                                &minus; {if $use_affiliate}{shop_currency_html(shopAffiliate::convertBonus($used_affiliate_bonus))}{else}0 <span class="ruble">₽</span>{/if}</div>
+                                        </div>
+                                    </div>
+                                {/if}
+
+
+                                <div class="cart-price-total-box box-hlighted">
+                                    <span class="cart-price-total-text">[`Total`]</span>
+                                    <span class="cart-price-total nowrap price">{shop_currency_html($cart.total, true)}</span>
+                                    <div class="cart-price-total-btn">
+                                        <!-- plugin hook: 'frontend_cart' -->
+                                        {* @event frontend_cart.%plugin_id% *}
+                                        {foreach $frontend_cart as $_}{$_}{/foreach}
+
+                                        <input name="checkout" type="submit" value="[`Proceed to checkout`]"
+                                               class="button js-checkout-button-cart">
+                                    </div>
+                                </div>
+
+                                {if shopAffiliate::isEnabled() && !empty($add_affiliate_bonus)}
+                                    <div class="row border-none">
+                                        <p class="affiliate">
+                                            <i class="fi-rr-thumbs-up icon" aria-hidden="true"></i>
+                                            {sprintf("[`This order will add <strong>+%s bonuses</strong> to  your account, which you will be able to spend on getting additional discounts later.`]", $add_affiliate_bonus)}
+                                        </p>
+                                    </div>
+                                {/if}
+                            </div>
+                        </form>
+                    {/if}
+                </div>
+
+                {$related = $wa->shop->crossSelling($cart.items, 'product_id')}
+
+            </div>
+        </div>
+{/strip}
+<script>
+    $('.inner-wrap').addClass('bg-gray')
+</script>
+<script>
+    $(document).on('ready', function () {
+        $('.cart-coupon__remove-btn').on('click', function () {
+            $(this).siblings('input').val('');
+            $(this).siblings('.cart-coupon-add-button').click();
+        })
+    })
+</script>

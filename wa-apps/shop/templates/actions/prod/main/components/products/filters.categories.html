@@ -1,0 +1,157 @@
+{capture assign="_component_table_filters_categories_sets_types_toggler"}
+<div class="s-pane-item" @click="toggle">
+    <div class="s-dropbox-toggle">
+        <div class="flexbox space-12">
+            <div>
+                <span class="s-icon icon shift-0"><i class="fas fa-folder"></i></span>
+                <span class="s-name is-adaptive">[`Category`]</span>
+            </div>
+            <div>
+                <span class="s-icon icon shift-0"><svg><use xlink:href="{$_sprite_url}#list"></use></svg></span>
+                <span class="s-name is-adaptive">[`Set`]</span>
+            </div>
+            <div>
+                <span class="s-icon icon shift-0"><i class="fas fa-cube"></i></span>
+                <span class="s-name is-adaptive">[`Product type`]</span>
+            </div>
+        </div>
+    </div>
+</div>
+{/capture}
+{$_components["component-table-filters-categories-sets-types-toggler"] = $_component_table_filters_categories_sets_types_toggler|strip}
+
+{capture assign="_component_table_filters_categories"}
+<div class="s-section-content">
+    <div class="s-search-wrapper">
+        <component-table-filters-search
+            v-if="categories.length"
+            class="s-search-form"
+            v-model="search_string"
+            v-bind:placeholder="'{_w("Find a category")|escape}'"></component-table-filters-search>
+        <div v-else class="s-empty-wrapper">[`You have no categories.`]</div>
+    </div>
+    <div v-if="categories.length" class="s-content-list-wrapper">
+        <ul v-if="items.length" class="menu">
+            <component-tree-menu
+                v-for="item of items"
+                :menu-id="'categories'"
+                :item="item"
+                :children-prop="'categories'"
+                :search-string="search_string"
+            >
+                <template #icon="{ item }">
+                    <template v-if="item.type === '1'">
+                        <div class="s-icon icon size-18" v-bind:key="'fa-folder'"><svg class="size-20 text-blue"><use xlink:href="{$_sprite_url}#folder-dynamic"></use></svg></div>
+                    </template>
+                    <template v-else>
+                        <span class="s-icon icon" v-bind:key="'fa-folder'"><i class="fas fa-folder text-blue"></i></span>
+                    </template>
+                </template>
+            </component-tree-menu>
+        </ul>
+        <div v-else class="s-empty-wrapper">[`Categories not found.`]</div>
+    </div>
+</div>
+{/capture}
+{$_components["component-table-filters-categories"] = $_component_table_filters_categories|strip}
+
+{capture assign="_component_table_filters_sets"}
+<div class="s-section-content">
+    <div class="s-search-wrapper">
+        <component-table-filters-search
+            v-if="sets.length"
+            class="s-search-form"
+            v-model="search_string"
+            v-bind:placeholder="'{_w("Find a set")|escape}'"
+        ></component-table-filters-search>
+        <div v-else class="s-empty-wrapper">[`You have no sets.`]</div>
+    </div>
+    <div
+        v-if="sets.length"
+        class="s-content-list-wrapper"
+    >
+        <ul v-if="items.length" class="menu">
+            <component-tree-menu
+                v-for="item of items"
+                :menu-id="'sets'"
+                :item="item"
+                :children-prop="'sets'"
+                :search-string="search_string">
+            >
+                <template #icon="{ item, toggleChildren }">
+                    <template v-if="item.is_group">
+                        <span class="s-icon icon cursor-pointer" v-on:click="toggleChildren" v-bind:key="'fa-folder'"><i class="far fa-folder text-red"></i></span>
+                    </template>
+                    <template v-else-if="item.type === '1'">
+                        <div class="s-icon icon shift-0" v-bind:key="'fa-list-auto'"><svg class="text-red"><use xlink:href="{$_sprite_url}#list-auto"></use></svg></div>
+                    </template>
+                    <template v-else>
+                        <span class="s-icon icon shift-0" v-bind:key="'fa-list'"><svg class="text-red"><use xlink:href="{$_sprite_url}#list"></use></svg></span>
+                    </template>
+                </template>
+            </component-tree-menu>
+        </ul>
+        <div v-else class="s-empty-wrapper">[`Sets not found.`]</div>
+    </div>
+</div>
+{/capture}
+{$_components["component-table-filters-sets"] = $_component_table_filters_sets|strip}
+
+{capture assign="_component_table_filters_types"}
+<div class="s-section-content">
+    <div class="s-search-wrapper">
+        <component-table-filters-search
+            v-if="types.length"
+            class="s-search-form"
+            v-model="search_string"
+            v-bind:placeholder="'{_w("Find a product type")|escape}'"></component-table-filters-search>
+        <div v-else class="s-empty-wrapper">[`You have no product types.`]</div>
+    </div>
+    <div v-if="types.length" class="s-content-list-wrapper">
+        <ul v-if="items.length" class="menu">
+            <component-tree-menu
+                v-for="item of items"
+                :menu-id="'type'"
+                :item="item"
+                :search-string="search_string"
+            >
+                <template #icon>
+                    <span v-if="item.icon" class="s-icon icon" v-html="item.icon"></span>
+                    <span v-else class="s-icon icon"><i class="fas fa-cube"></i></span>
+                </template>
+            </component-tree-menu>
+        </ul>
+        <div v-else class="s-empty-wrapper">[`Product types not found.`]</div>
+    </div>
+</div>
+{/capture}
+{$_components["component-table-filters-types"] = $_component_table_filters_types|strip}
+
+{capture assign="_component_table_filters_categories_sets_types"}
+<div class="s-filter-categories-section s-section-body">
+    <component-sidebar-section
+        :expanded="filters_expanded.categories?.is_expanded"
+        label="[`Categories`]"
+        @expand="setFilterType('categories', $event)"
+    >
+        <component-table-filters-categories @success="success"></component-table-filters-categories>
+    </component-sidebar-section>
+
+    <component-sidebar-section
+        :expanded="filters_expanded.sets?.is_expanded"
+        label="[`Sets`]"
+        @expand="setFilterType('sets', $event)"
+    >
+        <component-table-filters-sets @success="success"></component-table-filters-sets>
+    </component-sidebar-section>
+
+    <component-sidebar-section
+        :expanded="filters_expanded.types?.is_expanded"
+        label="[`Product types`]"
+        @expand="setFilterType('types', $event)"
+    >
+        <component-table-filters-types @success="success"></component-table-filters-types>
+    </component-sidebar-section>
+</div>
+{/capture}
+{$_components["component-table-filters-categories-sets-types"] = $_component_table_filters_categories_sets_types|strip}

@@ -1,0 +1,57 @@
+{strip}
+
+{$headButtonCitySelectPlugin = (!$wa->isMobile() && $wa->shop && $theme_settings.region_plugin && class_exists('shopCityselectPlugin'))}
+{if $headButtonCitySelectPlugin}
+    <div class="header-top_region">{shopCityselectPlugin::showCity('0')}</div>
+{/if}
+
+<div class="header-top_menu">
+    <div data-id="header_menu-nav" class="header-top_menu-btn js-nav-button"></div>
+    {$_links = []}
+    {if $theme_settings.links_information_pages == 'site-pages'}
+        {if $wa->site}{$_links = $wa->site->pages()}{/if}
+    {elseif $theme_settings.links_information_pages == 'shop-pages'}
+        {if $wa->shop}{$_links = $wa->shop->pages()}{/if}
+    {elseif $theme_settings.links_information_pages == 'app-menu'}
+        {if $wa->menu && !empty($theme_settings.id_app_header_top_menu) && (int)$theme_settings.id_app_header_top_menu > 0}{$_links = $wa->menu->get($theme_settings.id_app_header_top_menu)}{/if}
+    {elseif $theme_settings.links_information_pages == 'id-page'}
+        {$arrIdPages = ","|explode:$theme_settings.header_id_pages}
+    {elseif $theme_settings.links_information_pages != 'none'}
+        {$_links = $wa->apps()}
+    {/if}
+
+    {if count($_links) > 0}
+        <nav id="header_menu-nav" class="header-top_nav">
+            <ul class="js-resp-nav-top">
+                {foreach $_links as $link}
+                    {if !($link.url == $wa_url && $link.name == $wa->accountName()) && !isset($link.top_menu_hide)}
+                        {$is_select = strlen($link.url)>1 && $wa->currentUrl() == $link.url}
+                        {$is_open = $link.url==$wa_app_url && !$wa->globals('isMyAccount') || strlen($link.url)>1 && $wa->currentUrl()|strstr:$link.url}
+                        <li class="js-resp-nav-top-el juniq-header-top-nav-el">
+                            <a{if isset($link.target)} target="{$link.target}"{/if}{if $is_select} class="selected"{/if} href="{$link.url}">
+                                {$link.name}
+                            </a>
+                            {if isset($link.childs) && $link.childs && count($link.childs)}
+                                <i class="js-top-nav-caret nav-caret fi-rr-caret-down"></i>
+                                <div class="juniq-header_menu-nav-sub header-top_nav-sub">
+                                    <ul class="top-border-color">
+                                        {foreach $link.childs as $child}
+                                            {if !isset($child.top_menu_hide)}
+                                                <li><a{if isset($child.target)} target="{$child.target}"{/if} {if strlen($child.url)>1 && $wa->currentUrl() == $child.url} class="selected"{/if} href="{$child.url}">{$child.name}</a></li>
+                                            {/if}
+                                        {/foreach}
+                                    </ul>
+                                </div>
+                            {/if}
+                        </li>
+                    {/if}
+                {/foreach}
+                <li class="js-resp-nav-top-else juniq-header-top-nav-el header-top_nav-else hide">
+                    <span class="link">[`Else`]</span> <i class=""></i>
+                    <div class="header-top_nav-sub juniq-header_menu-nav-sub"><ul class="js-resp-subnav-else top-border-color"></ul></div>
+                </li>
+            </ul>
+        </nav>
+    {/if}
+</div>
+{/strip}

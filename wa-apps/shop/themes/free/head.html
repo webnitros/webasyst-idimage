@@ -1,0 +1,12 @@
+{strip}
+
+<link href="{$wa_active_theme_url}shop.css?v{$wa_theme_version}" rel="stylesheet">
+
+{if !empty($nofollow)}
+    <!-- "nofollow" for pages not to be indexed, e.g. customer account -->
+    <meta name="robots" content="noindex,nofollow">
+{/if}
+
+{foreach $frontend_head as $_}{$_}{/foreach}
+
+{/strip}

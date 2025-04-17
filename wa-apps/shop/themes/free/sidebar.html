@@ -1,0 +1,73 @@
+{strip}
+    <aside class="left-sidebar">
+        {if $wa->param('action') == 'page'}
+            {strip}
+                {function name=menu_tree pages=[] class="" }
+                    {if count($pages)}
+                        <ul {if $id}id="{$id}"{/if} {if $class}class="{$class}"{/if}>
+                            {foreach $pages as $p}
+                                {$selected = strlen($p.url)>1 && $wa->currentUrl() == $p.url}
+                                {if isset($p.childs) && $p.childs && count($p.childs)}
+                                    {$hasChild = true}
+                                {else}
+                                    {$hasChild = false}
+                                {/if}
+                                {if !isset($p.sidebar_menu_hide)}
+                                    <li class="menu-v__item{if $selected} selected{/if}">
+                                        <a class="menu-v__link{if $selected} selected{/if}" href="{$p.url}">
+                                            <span>{$p.name}</span>
+                                        </a>
+                                        {if $hasChild}
+                                            <i class="fi-rr-angle-small-down"></i>
+                                            {menu_tree pages=$p.childs }
+                                        {/if}
+                                    </li>
+                                {/if}
+                            {/foreach}
+                        </ul>
+                    {/if}
+                {/function}
+
+                {$pages = $wa->shop->pages()}
+                {if count($pages)}
+                    <nav class="sb-wrap sb-wrap--pages">
+                        {menu_tree pages=$pages id="sidebar-nav" class="menu-v"}
+                    </nav>
+                {/if}
+            {/strip}
+        {else}
+            {if !empty($filters)}
+                <div class="sidear-mobile">
+                    {if !isset($filters)}{$filters = []}{/if}
+                    {include file="`$wa_active_theme_path`/sb.filter.html" filter=$filters}
+                </div>
+            {/if}
+
+            {include file="`$wa_active_theme_path`/sidebar.cat.html"}
+
+            {if $theme_settings.show_tags_sb}
+                {include file="`$wa_active_theme_path`/sb.tags.html"}
+            {/if}
+        {/if}
+    </aside>
+{/strip}
+<script>
+    $(document).ready(function () {
+        $('.menu-v__item i').each(function () {
+            const icon = $(this);
+            const parent = icon.parent('.menu-v__item');
+            const menuItem = icon.siblings('#sidebar-nav').find('.menu-v__item');
+
+            if (parent.find('.selected').length > 0) {
+                icon.addClass('opened');
+            } else {
+                menuItem.toggleClass('hide');
+            }
+
+            icon.on('click', function () {
+                icon.toggleClass('opened');
+                menuItem.toggleClass('hide');
+            })
+        })
+    })
+</script>

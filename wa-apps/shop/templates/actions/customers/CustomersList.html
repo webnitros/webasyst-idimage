@@ -1,0 +1,312 @@
+{$query = $query|default:''}
+{$category_id = $category_id|default:null}
+{$filter_id = $filter_id|default:null}
+{capture assign="customers_list"}
+    {foreach $customers as $c}
+        <tr class="s-customer custom-mb-32-mobile" data-customer-id="{$c.id}">
+            <td class="min-width valign-top s-userpic">
+                <a href="#/id/{$c.id}"><img src="{$c.photo|escape}" class="userpic"></a>
+            </td>
+            <td class="align-left s-name">
+                <h3 class="large name custom-mb-4">
+                    <a href="#/id/{$c.id}">
+                        <span>{$c.name|default:'[`(no name)`]'|escape}</span>
+                        {foreach $c.categories as $cc}
+                            {if $cc.icon && !($cc.system_id == 'shop')}
+                                {* no need for 100500 similar shop-script icons here *}
+                                <span class="icon text-gray custom-ml-4" title="{$cc.name|escape}">{$wa->shop->getIcon($cc.icon)}</span>
+                            {/if}
+                        {/foreach}
+                        {if $c.is_user}
+                            <i class="icon webasyst-magic-wand smaller custom-ml-4" title="[`Can access Webasyst backend`]"></i>
+                        {/if}
+                    </a>
+                </h3>
+
+                {include file="./include.top_fields.html"
+                    top=$c['top']|default:[]
+                    similar_contacts=$c['similar_contacts']|default:[]
+                    need_other_values=false
+                inline}
+
+                <p>
+                    {if !empty($c.address.country)}
+                        <i class="fas fa-globe text-gray"></i>&nbsp;
+                    {/if}
+                    {ifset($c.address.city, '')|escape}{if !empty($c.address.city) && !empty($c.address.region)},{/if}
+                    {ifset($c.address.region_formatted, ifset($c.address.region, ''))|escape}
+                    <span class="hint">{ifset($c.address.zip, '')|escape} {ifset($c.address.street, '')|escape}</span>
+                </p>
+            </td>
+            <td aria-label="{$cols['total_spent']}"><strong class="nowrap">{waCurrency::format('%0{h}', $c.total_spent, $wa->shop->currency())}</strong></td>
+            <td aria-label="{$cols['affiliate_bonus']}">{if $c.affiliate_bonus>=0}+{/if}{$c.affiliate_bonus}</td>
+            <td aria-label="{$cols['number_of_orders']}">{$c.number_of_orders|default:'<span class="hint">&mdash;</span>'}</td>
+            <td aria-label="{$cols['last_order']}">
+                {if $c.last_order_id}
+                    <a href="?action=orders#/order/{$c.last_order_id}/">{$wa->shop->orderId($c.last_order_id)}</a>
+                    <div class="hint">{$c.last_order_datetime|wa_datetime:"humandate"}</div>
+                {else}
+                    <span class="hint">&mdash;</span>
+                {/if}
+            </td>
+            <td aria-label="{$cols['registered']}">{$c.create_datetime|wa_date}</td>
+        </tr>
+    {/foreach}
+{/capture}
+
+
+{capture assign="lazy_load_block"}
+    <div class="box small">
+        <br>
+        <div class="lazyloading-progress-string text-gray">{_w('%d contact','%d contacts', min($offset + $count, $total_count))}&nbsp;{sprintf(_w('of %d'), $total_count)}</div><br>
+        <a href="javascript:void(0);" class="lazyloading-link" {if $count >= $total_count}style="display:none;"{/if}>[`Show more customers`]</a>
+        <span class="lazyloading-progress" style="display:none">
+            <i class="fas fa-spinner fa-spin text-gray"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d contact','%d contacts', min($total_count - $offset - $count, $count))}...</span>
+        </span>
+    </div>
+{/capture}
+
+{if $in_lazy_process}
+
+    <div class="box" id="customers-list-wrapper">
+        <table class="s-customers small">
+            <tbody>{$customers_list}</tbody>
+        </table>
+        {$lazy_load_block}
+    </div>
+
+{else}
+    <div id="customers-list-wrapper">
+        <div class="flexbox space-12 middle full-width custom-mb-16 js-customers-header s-customers-header wrap">
+
+            <div class="flexbox space-12 middle full-width wrap-mobile wide">
+                <h1 class="s-header custom-mb-0 h3-mobile custom-mb-0-mobile">
+                    <span class="s-title">{$title|escape}</span>
+                </h1>
+
+                {if $hash_start === "#/all/" || $hash_start === "#/shop/"}
+                <a href="#/add/" class="button circle small custom-mr-auto custom-mt-8" title="[`New customer`]">
+                    <i class="fas fa-plus"></i>
+                </a>
+                {else}
+                <div class="js-customers-header-buttons s-customers-header-buttons nowrap custom-mt-8">
+                    {if $category_id}
+                        <a href="#/editcategory/{$category_id}" class="button rounded light-gray small s-customers-edit"><i class="fas fa-edit text-blue"></i><span> [`Edit`]</span></a>
+                        <a href="javascript:void(0)" class="button light-gray circle small" id="delete-category" title="[`Delete`]"><i class="fas fa-trash-alt text-red"></i></a>
+                    {/if}
+
+                    {if $query}
+                        <a href="javascript:void(0);" id="s-customers-add-filter" class="button green rounded small">[`Save this search`]</a>
+                        <a href="#/searchform/{$query|escape}/" class="button rounded small">[`Change search conditions`]</a>
+                    {elseif $filter_id}
+                        <a href="javascript:void(0);" id="s-customers-edit-filter" class="button rounded light-gray small s-customers-edit"><i class="fas fa-edit text-blue"></i><span> [`Edit`]</span></a>
+                    {/if}
+                </div>
+                {/if}
+            </div>
+
+            <div class="js-customers-list-menu custom-mt-12-mobile" style="flex: 100%;">
+                <!-- plugin hook: 'backend_customers_list.top_li' -->
+                {* @event backend_customers_list.%plugin_id%.top_li *}
+                {if !empty($backend_customers_list)}{foreach $backend_customers_list as $_}{if (!empty($_.top_li))}{$_.top_li}{/if}{/foreach}{/if}
+            </div>
+        </div>
+
+        <div class="flexbox space-16 wrap-mobile js-customers-content">
+            <div class="content">
+
+                {if $query || $filter_id}
+                    {include file="./include.filterSettings.html"}
+                {/if}
+
+                {if $hash_start === "#/shop/"}
+                    <p class="small gray">[`Everyone who’ve ever placed an order or signed up on your storefront.`]</p>
+                {elseif $hash_start === "#/all/"}
+                    <p class="small gray">[`All contacts and backend users gathered across all Webasyst apps.`]</p>
+                {/if}
+
+                {if !empty($customers)}
+                    <div class="table-scrollable-x s-customers-table-scrollable-x">
+                        <table class="s-customers small">
+                            <thead>
+                                <tr>
+                                    <th class="min-width"></th>
+                                    {foreach $cols as $col_id => $col_name}
+                                        <th {if $col_id == 'name'}class="align-left"{/if}>
+                                            <a href="javascript:void(0)" class="sort-link" rel="{$col_id}">{$col_name}</a>
+                                        </th>
+                                    {/foreach}
+                                </tr>
+                            </thead>
+                            <tbody>{$customers_list}</tbody>
+                        </table>
+                    </div>
+                {else}
+                    {* Fake table. A need to take a certain width so that the interface does not swell when there is no table *}
+
+                    <div class="table-scrollable-x s-customers-table-scrollable-x" style="overflow: hidden;">
+                        <table class="s-customers custom-mb-32-mobile" style="visibility: hidden;">
+                            <thead>
+                                <tr>
+                                    <th class="min-width"></th>
+                                    {foreach $cols as $col_id => $col_name}
+                                        <th {if $col_id == 'name'}class="align-left"{/if}>
+                                            <a href="javascript:void(0)" class="sort-link">{$col_name}</a>
+                                        </th>
+                                    {/foreach}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="s-customer ui-draggable" style="visibility: hidden;">
+                                    <td class="min-width valign-top s-userpic"><div style="width: 50px;height: 50px;"></div> </td>
+                                    <td class="align-left s-name">
+                                        <h3 class="large name custom-mb-4"></h3>
+                                        <div class="s-customer-fields-section small break-words"></div>
+                                    </td>
+                                    <td><strong class="nowrap"></strong></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                {/if}
+
+                {$lazy_load_block}
+
+            </div>
+        </div>
+    </div>
+
+    <script>(function() { "use strict";
+
+        $(document).off("wa_loaded.sidebar");
+
+        // Set up breadcrumbs
+        $.customers.lastView = {
+            title: "{$title|escape}",
+            hash: $.customers.getHash()
+        };
+        $.storage.set('shop/customers/lastview', $.customers.lastView);
+
+        // Sort links
+        (function() {
+            let a = $('.sort-link[rel="{trim($order, "!")|escape}"]');
+            if (!a.length) {
+                a = $('.sort-link[rel="name"]');
+            }
+            if ('{$order|escape}' === '!'+a.attr('rel')) {
+                a.append('<i class="fas fa-sort-down sort-icon"></i>');
+            } else {
+                a.append('<i class="fas fa-sort-up sort-icon sort-icon"></i>');
+            }
+            $('.sort-link').on('click', function() {
+                let order = $(this).attr('rel');
+                if (order == 'name') {
+                    // First click sorts in ascending order
+                    if (order == '{$order|escape}') {
+                        order = '!'+order;
+                    }
+                } else {
+                    // First click sorts in descending order
+                    if ('!'+order != '{$order|escape}') {
+                        order = '!'+order;
+                    }
+                }
+                $.storage.set('shop/customers/sort_order', order);
+                window.location.hash = '{$hash_start}'+order;
+            });
+        })();
+
+        // Drag-and-drop customers into categories
+        const draggable_params = {
+            distance: 5,
+            opacity: 0.75,
+            handle: '.s-userpic img, .name',
+            helper: function(event) {
+                const cloned_tr = $(event.target).closest('tr').clone();
+                cloned_tr.children().each(function() { $(this).width($(this).width()); });
+                cloned_tr.children().slice(2).remove();
+                return $('<div><table></table></div>').find('table').append(cloned_tr).end();
+            }
+        };
+
+        $('#customers-list-wrapper table.s-customers tbody tr.s-customer').draggable(draggable_params);
+
+        {if $category_id}
+            // Update list count in sidebar
+            $('#s-sidebar li[data-category-id="{$category_id}"] .count').html('{$total_count}');
+
+            // Delete category link
+            $('#delete-category').on('click', function() {
+                $.waDialog.confirm({
+                    title: "[`This will delete the entire customer category (customers will not be deleted). Are you sure?`]",
+                    success_button_title: $_('Delete'),
+                    success_button_class: 'danger',
+                    cancel_button_title: $_('Cancel'),
+                    cancel_button_class: 'light-gray',
+                    onSuccess: function() {
+                        $('#s-sidebar li[data-category-id="{$category_id}"]').remove();
+                        $.post('?module=customers&action=categoryEditor', { id: '{$category_id}', 'delete': 1 });
+                        $('#s-content').html('<div class="box">'+"[`The category has been deleted.`]"+'</div>');
+                    }
+                });
+            });
+        {/if}
+
+        {if $query || $filter_id}
+            $('#s-customers-add-filter, #s-customers-edit-filter').on('click', function() {
+                const header = $('.js-customers-header .s-header').css("max-width", "100%");
+                const buttons = $('.js-customers-header-buttons').hide();
+                const menu = $('.js-customers-list-menu').hide();
+                const hide = function() {
+                    fs_block.slideUp(function() {
+                        header.show();
+                        buttons.show();
+                        menu.show();
+                    });
+                };
+                const fs_block = $("#s-filter-settings");
+                fs_block.slideDown(function() {
+                    fs_block
+                        .trigger('init')
+                        .find('.cancel').on('click', function() {
+                            hide();
+                            return false;
+                        }).end().on('afterSubmit', function(e, r) {
+                            hide();
+                            if (r.status === 'ok') {
+                                header.find('.s-title').text(r.data.filter.name);
+                                if (!r.data.filter_id) {
+                                    $.wa.setHash('#/filter/' + r.data.filter.id + '/');
+                                } else {
+                                    $.customers.reloadSidebar();
+                                    $.customers.redispatch();
+                                }
+                            }
+                            return false;
+                        });
+
+                    // fix system region select !!feature!!
+                    const region_select = fs_block.find('[name="contact_info.address[region]"]');
+                    const val = region_select.data('val');
+                    if (val) {
+                        region_select.find('option[value="' + val + '"]').attr('selected', true);
+                    }
+                });
+            });
+        {/if}
+
+        $.customers.initLazyLoad({
+            url: '{$lazy_loading_url|default:''}',
+            container: '#customers-list-wrapper',
+            total_count: {$total_count},
+            count: {$count},
+            auto: true
+        });
+
+    })();</script>
+
+{/if}

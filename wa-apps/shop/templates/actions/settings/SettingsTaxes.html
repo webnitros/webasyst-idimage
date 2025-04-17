@@ -1,0 +1,276 @@
+<div class="alert-fixed-box">
+    <div class="alert info js-alert-deleted" style="display: none;">
+        [`Tax has been deleted.`]
+    </div>
+</div>
+<form id="s-tax-form" action="?module=settings&action=taxes">{* Submitted via XHR *}
+    <h1>[`Taxes`]</h1>
+
+    <ul class="tabs">
+        {foreach $taxes as $t}
+        <li class="{if $t.id == $tax.id}selected{/if}">
+            <a href="#/taxes/{$t.id}">
+                {$t.name|escape}
+            </a>
+        </li>
+        {/foreach}
+        <li{if !$tax.id} class="selected"{/if}>
+            <a href="#/taxes/new" class="light-gray">
+                <i class="fas fa-plus-circle text-green"></i>
+                [`New tax rule`]
+            </a>
+        </li>
+    </ul>
+
+    <div class="fields custom-mt-16">
+        <div class="fields-group">
+            <div class="field">
+                <div class="name for-input">
+                    [`Tax name`]
+                </div>
+
+                <div class="value">
+                    <input type="text" class="bold" name="tax[name]" value="{$tax.name|escape}">
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="name">
+                    [`Tax type`]
+                </div>
+
+                <div class="value">
+                    <label>
+                        <span class="wa-radio">
+                            <input type="radio" name="tax[included]" value=""{if !$tax.included} checked{/if}>
+                            <span></span>
+                        </span>
+                        [`Tax is not included in product prices`]
+                    </label>
+
+                    <div class="hint custom-mt-4">[`Mostly used for sales tax. Tax will be added to the cart subtotal after customer entered destination address during the checkout.`]</div>
+
+                    <div class="custom-mt-12">
+                        <label>
+                            <span class="wa-radio">
+                                <input type="radio" name="tax[included]" value="1"{if $tax.included} checked{/if}>
+                                <span></span>
+                            </span>
+                            [`Tax is included in my product prices`]
+                        </label>
+
+                        <div class="hint custom-mt-4">[`Mostly used for VAT. Tax will not be added to the cart subtotal, but will be calculated to be shown in the invoice.`]</div>
+                    </div>
+
+                    <div class="hint">[`Individual tax values are first calculated per order item and and their sum is obtained as the final result. Such a sum may differ from a common tax value if calculated for the total order amount, and you can correct that in printable documents, if necessary.`]</div>
+                </div>
+            </div>
+        </div>
+        <div class="fields-group">
+            <div class="field">
+                <div class="name">
+                    [`Address`]
+                </div>
+
+                <div class="value">
+                    [`Calculate taxes based on customer’s`]
+                    <div class="wa-select small">
+                        <select name="tax[address_type]">
+                            <option value="shipping" {if $tax.address_type=='shipping' } selected{/if}>[`Shipping address`]</option>
+                            <option value="billing" {if $tax.address_type=='billing' } selected{/if}>[`Billing address`]</option>
+                        </select>
+                    </div>
+
+                    {if !$billing_address_required}
+                    <div class="custom-mt-12 billing-address-warning" {if $tax.address_type !='billing' }style="display: none;"
+                        {/if}>
+                        <div class="small state-error">[`Billing address is configured not to be prompted during checkout, which means that tax by billing will not be calculated for most orders.`]</div>
+                    </div>
+                    {/if}
+                </div>
+            </div>
+        </div>
+        <div class="fields-group">
+            <div class="field">
+                <div class="name">
+                    [`Tax rates`]
+                </div>
+
+                <div class="value">
+                    <table id="s-tax-regions-table" class="bigdata">
+                        <thead>
+                            <tr>
+                                <th colspan="2" class="nowrap">[`Destination`]</th>
+                                <th>[`Rate`]</th>
+                                <th class="min-width"></th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {foreach $tax_countries as $c}
+                            {include file="templates/actions/settings/SettingsTaxesCountry.html"}
+                            {/foreach}
+
+                            <tr class="empty-row{if $tax_countries} hidden{/if}">
+                                <td colspan="4">
+                                    <em class="gray">[`Define tax rates by countries and regions.`]</em>
+                                </td>
+                            </tr>
+
+                            <tr class="white">
+                                <td colspan="4" style="border-bottom: none;"></td>
+                            </tr>
+
+                            <tr>
+                                <td colspan="4" class="nowrap"style="border-bottom: none;">
+                                    <div class="wa-select small">
+                                        <select id="s-add-new-tax-country">
+                                            <option selected value="">[`Add country`]</option>
+                                            <option disabled>--</option>
+                                            <option value="%AL"{if !empty($tax_countries)} disabled{/if}>[`All countries`]</option>
+                                            <option value="%EU"{if !empty($tax_countries["%EU"])} disabled{/if}>[`All European countries`]</option>
+                                            <option value="%RW"{if !empty($tax_countries["%RW"])} disabled{/if}>[`Rest of world`]</option>
+                                            <option disabled>--</option>
+                                            {foreach $countries as $c}
+                                                <option value="{$c.iso3letter}"{if !empty($tax_countries[$c.iso3letter])} disabled{/if}>{$c.name}</option>
+                                            {/foreach}
+                                        </select>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <p class="hint custom-ml-12">
+                        {$wa_backend_url|cat:'webasyst/settings/regions/'|string_format:'[`Edit the list of countries and regions in the <a href="%s">Settings</a> app.`]'}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="fields-group">
+            <div class="field">
+                <div class="name">
+                    [`County taxes`]
+                </div>
+
+                <div class="value">
+                    <p class="small">[`If your jurisdiction require you to charge additional county taxes, define taxing rules by ZIP (postal) code. Use asterisk (*) for wildcard. For example, mask 12* is applicable for all ZIP codes with 12 as first two symbols, e.g. 12365, 12963, 12AB7, 12 QN93 and so on (wildcard is OK for both letters and numbers). ZIP code rules are processed one by one in the given order. Applied is the first rule matching the user ZIP code (only one matching rule is applied at a time). County tax rules are of a higher priority than state tax rules (if matched, county tax rate replaces the state tax rule when calculated during the checkout), which means that combined county rates must be provided.`]</p>
+
+                    <table id="s-tax-zip-codes-table" class="zebra">
+                        <thead>
+                            <tr>
+                                <th colspan="2" class="nowrap">[`ZIP code mask`]</th>
+                                <th>[`Rate`]</th>
+                                <th class="min-width"></th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr class="empty-row{if $tax_zip_codes} hidden{/if}">
+                                <td colspan="4">
+                                    <em class="gray small">[`No county taxes are defined.`]</em>
+                                </td>
+                            </tr>
+
+                            {foreach $tax_zip_codes as $t}
+                                <tr class="zip-row">
+                                    <td class="min-width"><i class="fas fa-grip-vertical sort cursor-pointer"></i></td>
+                                    <td><input type="text" class="small code-input" name="tax_zip_codes[]" value="{$t.zip_expr|escape}"></td>
+                                    <td>
+                                        <span class="rate-input"><input type="number" class="small shortest numerical" min="0" name="tax_zip_rates[]" value="{$t.tax_value|escape}">%</span>
+                                        <em class="small commit-delete-message">[`Click “Save” button below to commit the delete.`]</em>
+                                    </td>
+                                    <td class="min-width"><a href="#" class="delete"><i class="fas fa-trash-alt text-red"></i></a></td>
+                                </tr>
+                            {/foreach}
+
+                            {* Template row to add new regions. 'template' class will be replaced with 'zip-row' *}
+                            <tr class="just-added hidden highlighted template">
+                                <td class="min-width"><i class="fas fa-grip-vertical sort"></i></td>
+                                <td><input type="text" class="small" name="tax_zip_codes[]" value="" placeholder="[`ZIP code mask`]"></td>
+                                <td>
+                                    <input type="number" name="tax_zip_rates[]" min="0" class="small shortest numerical" value="" placeholder="0">%
+                                </td>
+                                <td class="min-width"><a href="#" class="delete"><i class="fas fa-trash-alt text-red"></i></a></td>
+                            </tr>
+
+                            <tr class="buttons">
+                                <td colspan="4">
+                                    <button type="button" class="button smaller light-gray rounded js-add-zip-code-link">
+                                        <i class="fas fa-plus-circle text-green"></i>
+                                        [`Add ZIP`]
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottombar sticky s-settings-fixed-bottombar">
+        <div class="flexbox space-12">
+            <div class="wide">
+                <button type="submit" class="button green js-form-submit">[`Save`]</button>
+            </div>
+
+            <div>
+                {if $tax.id}
+                <button type="button" class="button small red outlined js-delete-tax-link" title="[`Delete rule`]"><i class="fas fa-trash-alt"></i> [`Delete rule`]</a>
+                <input type="hidden" name="id" value="{$tax.id|escape}">
+                {else}
+                <input type="hidden" name="id" value="new">
+                {/if}
+            </div>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript" src="{$wa_app_static_url}js/settings/taxes.js?{$wa->version()}"></script>
+<script>(function() { "use strict";
+    document.title = "[`Taxes`] — {$wa->accountName()|escape:javascript}";
+    $.settings.taxesInitForm({ifempty($tax.id, 'null')});
+
+    {if $tax.id}
+        const settings_content = $('#s-settings-content');
+        const form = $('#s-tax-form');
+        const alert = $('.js-alert-deleted');
+
+        // Link to delete rule
+        $('.js-delete-tax-link').on('click', function(event) {
+            event.preventDefault();
+
+            $.waDialog.confirm({
+                title: '[`Are you sure?`]',
+                success_button_title: '[`Delete`]',
+                success_button_class: 'danger',
+                cancel_button_title: '[`Cancel`]',
+                cancel_button_class: 'light-gray',
+                onSuccess() {
+                    settings_content.find('.js-tax-dropdown a[href="#/taxes/{$tax.id}"]').parents('li').remove();
+                    alert.show();
+
+                    setTimeout(() => {
+                        alert.hide();
+                    }, 2000)
+
+                    $.settings.stopDispatch(1);
+                    window.location.hash = '#/taxes/';
+                    $.post(form.attr('action'), { 'delete': 1, id: {$tax.id} });
+                }
+            });
+        });
+    {/if}
+
+    {if !$billing_address_required}
+        form.find('[name="tax[address_type]"]').on('change', function() {
+            if ($(this).val() == 'billing') {
+                form.find('.billing-address-warning').show();
+            } else {
+                form.find('.billing-address-warning').hide();
+            }
+        });
+    {/if}
+
+})();</script>

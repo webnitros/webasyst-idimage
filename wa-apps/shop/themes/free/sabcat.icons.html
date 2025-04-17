@@ -1,0 +1,24 @@
+{strip}
+    {if $category.subcategories}
+        {$_lazy = true}
+        <ul class="js-list-categories category-subcat-icon clear-list" data-lazy="{$_lazy}">
+            {foreach $category.subcategories as $sc}
+                <li class="category-subcat-icon_item">
+                    <div class="category-subcat-icon_img">
+                        {if isset($Wmimages[$sc.id].icon)}
+                            {$sc.params.icon = $Wmimages[$sc.id].icon}
+                        {/if}
+                        {if isset($skImages[$sc.id].icon)}
+                            {$sc.params.icon = $skImages[$sc.id].icon}
+                        {/if}
+                        <img class="js-cat-item-image" src="{$wa_theme_url}img/lazy-image.png" data-src="{if isset($sc.params.icon) && $sc.params.icon}{$sc.params.icon}{else} {$wa_theme_url}img/dummy96.png{/if}" alt="{$sc.name}">
+                    </div>
+                    <div class="category-subcat-icon_name">
+                        <a href="{$sc.url}" class="js-cat-link">{$sc.name|escape}</a>
+                        <span class="hint">({$sc.count})</span>
+                    </div>
+                </li>
+            {/foreach}
+        </ul>
+    {/if}
+{/strip}

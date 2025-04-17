@@ -1,0 +1,80 @@
+{strip}
+{if !empty($products_list_id)}
+    {$list = $wa->shop->productSet($products_list_id)}
+    {if !empty($list)}
+        {$favorites = $wa->cookie('product_favor_arr')}
+        {if $favorites}
+            {$product_favor_arr = ","|explode:$favorites}
+        {else}
+            {$product_favor_arr = []}
+        {/if}
+        {if (!$wa->isMobile() && !empty($theme_settings.product_show_tile_features)) || ($wa->isMobile() && !empty($theme_settings.product_show_tile_mobile_features))}
+            {$features = $wa->shop->features($list)}
+        {/if}
+
+        {$isPreviewProductGalleryTile = true}
+
+        {if $isPreviewProductGalleryTile}
+            {$products_ids = ""}
+            {foreach $list as $p}
+                {if $p.id}{$products_ids[] = $p.id}{/if}
+            {/foreach}
+            {$img_width_with_set = $theme_settings.width_grid_img|trim|default:'380'}
+            {$size_image = "`$img_width_with_set`x0"}
+            {$products_images = $wa->shop->images($products_ids, $size_image)}
+        {/if}
+        {$ignoreStock = $wa->shop->settings('ignore_stock_count')}
+        <div class="home-products home-products--carousel js-owl-carousel-product">
+            {if $list_title}
+                <div class="home-products_head-outer">
+                    <div class="container">
+                        <div  class="home-products_head">
+                            <div class="home-products__title title">{$list_title}</div>
+                        </div>
+                    </div>
+                </div>
+            {/if}
+            <div class="container">
+                <div class="products-grid-outer">
+                    <div class="js-preview-products products-tile">
+                        <div class="owl-carousel owl-theme owl-loaded">
+                            {foreach $list as $p}
+                                {include file="list-thumbs-view-grid.html" product=$p favorites=$product_favor_arr lazy_class="owl-lazy" isSlider=true ignoreStock=$ignoreStock}
+                            {/foreach}
+                        </div>
+                        <div class="home-products__direction js-carousel-direction"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {/if}
+{/if}
+{/strip}
+{if !$wa->isMobile()}
+    <script>
+        $(function () {
+            $(".grid-gallery__el").hover(function() {
+                let _this = $(this);
+                let id = _this.attr('data-id');
+
+                let wrap = _this.closest('.Product-grid');
+                wrap.find('.dotted-img__item').each(function() {
+                    if ($(this).attr('data-id') == id) {
+                        $(this).addClass('-Active');
+                    } else {
+                        $(this).removeClass('-Active');
+                    }
+                });
+            });
+            $('.Product-grid_img').mouseout(function() {
+                $('.dotted-img__item').each(function() {
+                    if ($(this).attr('data-id') == 1) {
+                        $(this).addClass('-Active');
+                    } else {
+                        $(this).removeClass('-Active');
+                    }
+                });
+            })
+        })
+    </script>
+{/if}

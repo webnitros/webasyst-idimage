@@ -1,0 +1,129 @@
+<div class="box">
+    <div class="state-with-inner-icon left width-100 custom-mb-8 custom-mt-4">
+        <div class="icon">
+            <i class="fas fa-search text-gray"></i>
+        </div>
+        <input type="search" id="s-customers-search" class="width-100 small" placeholder="[`Search customers`]">
+    </div>
+</div>
+
+<ul class="menu large custom-mt-0">
+    <li>
+        <a href="#/all/">
+            <i class="fas fa-users"></i>
+            <span>[`All contacts`]</span>
+            <span class="count">{$all_contacts_count}</span>
+        </a>
+    </li>
+
+    <li>
+        <a href="#/shop/">
+            <i class="fas fa-shopping-cart"></i>
+            <span>[`Customers`]</span>
+            <span class="count">{$all_customers_count}</span>
+        </a>
+    </li>
+
+    {foreach $filters as $filter}
+    {if empty($filter.contact_id) || $filter.contact_id == $wa->user('id')}
+    <li>
+        <a href="#/filter/{$filter.id}/">
+            {$wa->shop->getIcon({$filter.icon|default:'funnel'})}
+            <span class="s-name">{$filter.name|escape}</span>
+        </a>
+    </li>
+    {/if}
+    {/foreach}
+
+    <!-- plugin hook: 'backend_customers.sidebar_top_li' -->
+    {* @event backend_customers.%plugin_id%.sidebar_top_li *}
+    {if !empty($backend_customers)}{foreach $backend_customers as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
+
+    <li>
+        <a href="#/searchform/" class="small"><i class="fas fa-plus-circle fa-xs text-green"></i><span>[`New search`]</span></a>
+    </li>
+
+</ul>
+
+<div class="box">
+
+    <!-- plugin hook: 'backend_customers.sidebar_section' -->
+    {* @event backend_customers.%plugin_id%.sidebar_section *}
+    {if !empty($backend_customers)}{foreach $backend_customers as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
+
+    <div class="drop-target">
+        <h5 class="heading custom-mx-8" style="cursor:default">
+            <span class="count"><a href="#/editcategory/" title="[`New category`]"><i class="fas fa-plus-circle text-green"></i></a></span>
+            [`Categories`]
+        </h5>
+        {if !empty($categories)}
+        <ul class="menu" id="customer-categories">
+            {foreach $categories as $c}
+                <li class="rounded" data-category-id="{$c.id}">
+                    <a href="#/category/{$c.id}">
+                        <span class="custom-mr-4">{$wa->shop->getIcon($c.icon)}<span>{$c.name|escape}</span></span>
+                        <span class="count">{$c.cnt}</span>
+                    </a>
+                </li>
+            {/foreach}
+        </ul>
+        {else}
+            <div class="box align-center custom-mt-24">
+                <p class="hint">
+                    [`Add a category to group customers and set personalized discounts.`]
+                </p>
+            </div>
+        {/if}
+    </div>
+
+</div>
+
+<script>$(function() {
+    $('.link-to-contacts a').attr('href', "{$contacts_url}");
+
+    $('#customer-categories').bind('update_counters', function(e, counters) {
+        if (!$.isEmptyObject(counters)) {
+            const items = $('#customer-categories li').find('.count').text(0).end();
+            $.each(counters, function(id, count) {
+                items.filter('[data-category-id=' +  id + ']').find('.count').text(count || 0);
+            });
+        }
+    });
+
+    // Categories in sidebar accept drag-and-droppable customers
+    $('#customer-categories li').droppable({
+        accept: 'tr.s-customer',
+        tolerance: 'pointer',
+        over: function() {
+            $(this).addClass('drag-newparent');
+        },
+        out: function() {
+            $(this).removeClass('drag-newparent');
+        },
+        activate: function() {
+            $(this).parents('.block').addClass('drag-active');
+        },
+        deactivate: function() {
+            $(this).removeClass('drag-newparent').parents('.block').removeClass('drag-active');
+        },
+        drop: function(e, ui) {
+            var li = $(this);
+            var customer_id = ui.draggable.data('customerId');
+            var category_id = li.data('categoryId');
+            if (!customer_id || !category_id) {
+                return;
+            }
+            $.post('?module=customers&action=category', { customer_id: customer_id, category_id: category_id }, function(r) {
+                li.children('a').append(
+                    $('<span><i class="fas fa-check text-green custom-pl-4"></i>'+'</span>').animate({ 'opacity': 0 }, 1000, function() {
+                        $(this).remove();
+                    })
+                );
+                if (r.data && !$.isEmptyObject(r.data.counts)) {
+                    $('#customer-categories').trigger('update_counters', [r.data.counts]);
+                }
+            }, 'json');
+        }
+    });
+
+});</script>

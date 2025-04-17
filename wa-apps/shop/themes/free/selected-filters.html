@@ -1,0 +1,116 @@
+{strip}
+{if !empty($filters)}
+    {$getParams = $wa->get(null, array())}
+    {$_show_clear = false}
+    {if $getParams}
+        <div class="filters-checked">
+            {foreach $filters as $filterId => $filter}
+                {if $filterId == 'price'}
+                    {if $wa->get('price_min') || $wa->get('price_max')}
+                        {$v_min_price = $wa->get('price_min')}
+                        {$v_max_price = $wa->get('price_max')}
+                        {if (int)$v_min_price != $filter.min || (int)$v_max_price != $filter.max}
+                            {$_show_clear = true}
+                            {$c = $wa->shop->currency(true)}
+                            <span class="filters-checked__item js-filter-checked-item">
+                                <span class="filters-checked__title">
+                                    [`Price`]:
+                                    {if !empty($v_min_price) && $v_min_price != $filter.min} [`from`] {(int)$v_min_price} {/if}
+                                    {if !empty($v_max_price) && $v_max_price != $filter.max} [`to`] {(int)$v_max_price} {/if}
+                                    {$c.sign}
+                                </span>
+                                <i class="filters-checked__remove js-filter-checked-remove fi-rr-cross" data-code="price"></i>
+                            </span>
+                        {/if}
+                    {/if}
+                {else}
+                    {if $filter.type == 'boolean'}
+                        {if $wa->get($filter.code) || $wa->get($filter.code) === '0'}
+                            {$filter_value = ""}
+                            {$filter_value = $wa->get($filter.code)}
+                            {if is_array($filter_value) && isset($filter_value[0])} {$filter_value = $filter_value[0]} {/if}
+                            {if $filter_value === '0' || $filter_value === '1'}
+                                {$_show_clear = true}
+                                <span class="filters-checked__item js-filter-checked-item">
+                                    <span class="filters-checked__title">{$filter.name}: {if $filter_value === '1'}[`Yes`]{else}[`No`]{/if}</span>
+                                    <i class="filters-checked__remove js-filter-checked-remove fi-rr-cross" data-code="{$filter.code}"></i>
+                                </span>
+                            {/if}
+                        {/if}
+                    {elseif isset($filter.min) && isset($getParams[$filter.code]) }
+                        {$_v_filter = $wa->get($filter.code)}
+
+                        {if (isset($_v_filter.min) && !empty($_v_filter.min)) || (isset($_v_filter.max) && !empty($_v_filter.max))}
+                            {$_show_clear = true}
+                            <span class="filters-checked__item js-filter-checked-item">
+                                <span class="filters-checked__title">
+                                    {$filter.name}:
+                                    {if isset($_v_filter.min) && $_v_filter.min} [`from`] {(float)$_v_filter.min}{/if}
+                                    {if isset($_v_filter.max) && $_v_filter.max} [`to`] {(float)$_v_filter.max}{/if}
+                                </span>
+                                <i class="filters-checked__remove js-filter-checked-remove fi-rr-cross" data-code="{$filter.code}"></i>
+                            </span>
+                        {/if}
+                    {elseif $filter.type == 'color'}
+                        {if isset($getParams[$filter.code])}
+                            {$_show_clear = true}
+                            {$_is_first = true}
+                            <span class="filters-checked__item js-filter-checked-item">
+                                 <span class="filters-checked__title">
+                                    {$filter.name}:
+                                    {foreach $filter.values as $v_id => $v}
+                                        {if in_array($v_id, (array)$wa->get($filter.code, array()))}
+                                            {if !$_is_first},{/if}{$_is_first = false} {$v|strip_tags|trim}
+                                        {/if}
+                                    {/foreach}
+                                 </span>
+                                <i class="filters-checked__remove js-filter-checked-remove fi-rr-cross" data-code="{$filter.code}"></i>
+                            </span>
+                        {/if}
+                    {else}
+                        {if isset($getParams[$filter.code]) && isset($filter.values) && !empty($filter.values)}
+                            {$_is_first = true}
+                            {$_show_clear = true}
+                            <span class="filters-checked__item js-filter-checked-item">
+                                <span class="filters-checked__title">
+                                    {$filter.name}:
+                                    {foreach $filter.values as $v_id => $v}
+                                        {if in_array($v_id, (array)$wa->get($filter.code, array()))}
+                                            {if !$_is_first},{/if}{$_is_first = false}<span> {$v}</span>
+                                        {/if}
+                                    {/foreach}
+                                </span>
+                                <i class="filters-checked__remove js-filter-checked-remove fi-rr-cross" data-code="{$filter.code}"></i>
+                            </span>
+                        {/if}
+                    {/if}
+                {/if}
+            {/foreach}
+
+
+            {if $_show_clear}
+                {$reset_link = $wa->currentUrl(0,1)}
+                {if isset($category) && class_exists('shopSeofilterViewHelper')}
+                    {$reset_link = $wa->shop->categoryUrl($category)}
+                {/if}
+                <a href="{$reset_link}{if $wa->get('sort')}?sort={$wa->get('sort')|escape}&order={$wa->get('order')|escape}{/if}"  class="filters-checked__clear-all link-action">
+                    <span class="btn-action-icon__title">[`Clear`]</span>
+                </a>
+            {/if}
+        </div>
+    {/if}
+{/if}
+{/strip}
+
+{literal}
+    <script>
+        $('.js-filter-checked-remove').on('click',function(){
+            const code = $(this).data('code');
+            if ($(`.js-filter-el[data-code="${code}"]`).find('.option-color_outer').length) {
+                $(`.js-filter-el[data-code="${code}"]`).find('.option-color_outer').removeClass('checked');
+            } else {
+                $(`.js-filter-el[data-code="${code}"]`).find('.checked').removeClass('checked');
+            }
+        })
+    </script>
+{/literal}

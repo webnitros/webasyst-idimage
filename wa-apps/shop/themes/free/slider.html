@@ -1,0 +1,236 @@
+{strip}
+{if $theme_settings.homepage_type_slider_mode == 'promos'}
+    {if count($mPromoCards) > 0}
+
+        <div class="slider-outer js-slider-outer slider-outer--photos slider-outer--home">
+            <div class="js-home-slider owl-carousel home-slider-photos" {if $theme_settings.homepage_banner_autoscroll}data-pause="3" {/if}data-type="">
+                {$positionTextArr = explode(',', $theme_settings.homepage_slider_text_position)}
+                {foreach $mPromoCards as $item}
+                    {if !empty($item@first) && !empty($item.image)}
+                        {$wa->globals('preload_image', $item.image)}
+                    {/if}
+                    <div class="home-slider-photos_el">
+                        <a class="home-slider-photos_el-content" href="{$item.link|escape}" {if !empty($style_slide)} style="{$style_slide}"{/if}>
+
+
+                            {if $item@first}
+                                <img alt="{if !empty($item.title)}{$item.title}{/if}" src="{$item.image}" >
+                            {else}
+                                <img class="owl-lazy" alt="{if !empty($item.title)}{$item.title}{/if}" data-src="{$item.image}" src="{$wa_theme_url}img/lazy-image.png" >
+                            {/if}
+                            {if $item.title || $item.body || $item.countdown_datetime}
+                                <div class="home-slider-photos__text home-slider-photos__text--{$positionTextArr[$item@iteration - 1]}" style="color: {if $item.color}{$item.color}{else}{$theme_settings.second_color}{/if}">
+                                    {if $item.title}
+                                        <div class="home-slider-photos__title">{$item.title}</div>
+                                    {/if}
+                                    {if $item.body}
+                                        <div class="home-slider-photos__body">{$item.body}</div>
+                                    {/if}
+                                    {if $item.countdown_datetime}
+                                        <div class="home-slider-photos__countdown" id="home-slider-photos__countdown--{$item.id}" data-date="{$item.countdown_datetime}">
+                                            <div class="home-slider-photos__countdown__days">
+                                                <div class="home-slider-photos__countdown__value">-</div>
+                                                <div class="home-slider-photos__countdown__title">Дней</div>
+                                            </div>
+                                            <div class="home-slider-photos__countdown__hours">
+                                                <div class="home-slider-photos__countdown__value">-</div>
+                                                <div class="home-slider-photos__countdown__title">Часов</div>
+                                            </div>
+                                            <div class="home-slider-photos__countdown__minutes">
+                                                <div class="home-slider-photos__countdown__value">-</div>
+                                                <div class="home-slider-photos__countdown__title">Минут</div>
+                                            </div>
+                                            <div class="home-slider-photos__countdown__seconds">
+                                                <div class="home-slider-photos__countdown__value">-</div>
+                                                <div class="home-slider-photos__countdown__title">Секунд</div>
+                                            </div>
+                                        </div>
+                                    {/if}
+                                </div>
+
+                                {if $item.countdown_datetime}
+                                    <script>
+                                        $(document).on('ready', function () {
+                                            const timer = document.getElementById("home-slider-photos__countdown--{$item.id}");
+                                            const dateSeychas = $(timer).data('date');
+                                            const countDownDate = new Date(dateSeychas).getTime();
+                                            const x = setInterval(function() {
+                                            var now = new Date().getTime();
+                                            var distance = countDownDate - now;
+                                            var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                                            var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                            var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                                            var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                                            {literal}
+                                            timer.innerHTML = `
+                                                        <div class="home-slider-photos__countdown__days">
+                                                            <div class="home-slider-photos__countdown__value">${days}</div>
+                                                            <div class="home-slider-photos__countdown__title">Дней</div>
+                                                        </div>
+                                                        <div class="home-slider-photos__countdown__hours">
+                                                            <div class="home-slider-photos__countdown__value">${hours}</div>
+                                                            <div class="home-slider-photos__countdown__title">Часов</div>
+                                                        </div>
+                                                        <div class="home-slider-photos__countdown__minutes">
+                                                            <div class="home-slider-photos__countdown__value">${minutes}</div>
+                                                            <div class="home-slider-photos__countdown__title">Минут</div>
+                                                        </div>
+                                                        <div class="home-slider-photos__countdown__seconds">
+                                                            <div class="home-slider-photos__countdown__value">${seconds}</div>
+                                                            <div class="home-slider-photos__countdown__title">Секунд</div>
+                                                        </div>
+                                                    `;
+                                            {/literal}
+                                            if (distance < 0) {
+                                                clearInterval(x);
+                                            }
+                                            }, 1000);
+                                        })
+
+                                    </script>
+                                {/if}
+                            {/if}
+                        </a>
+                    </div>
+                {/foreach}
+            </div>
+
+            {if count($mPromoCards) > 1}
+                <div class="js-dots-slider owl-dots">
+                    {foreach $mPromoCards as $item}
+                        <button data-index="{$item@index}" class="js-slider-init-action owl-dot{if $item@first} active{/if}"><span></span></button>
+                    {/foreach}
+                </div>
+                <div class="js-nav-slider owl-nav">
+                    <button data-index="prev" type="button" class="js-slider-init-action owl-prev"></button>
+                    <button data-index="next" type="button" class="js-slider-init-action owl-next"></button>
+                </div>
+            {/if}
+        </div>
+    {/if}
+{else if $theme_settings.homepage_type_slider_mode == 'products'}
+
+    {$_price_range = $theme_settings.price_range_in_product_list}
+    {$homeProductsPromo = $wa->shop->productSet( $theme_settings.promo_product_list_id)}
+
+    {$homeProductsPromo_features = []}
+    {$id_features = []}
+    {$dummy96 = "{$wa_theme_url}img/dummy96.png"}
+    {if count($homeProductsPromo) > 0}
+        <div class="js-preview-cart slider-outer slider-outer--products js-slider-outer{if !$theme_settings.horizontal_menu} slider-outer--home--pb{/if}">
+            <article class="js-home-slider owl-carousel main-slider" data-pause="3" data-type="product">
+                {foreach $homeProductsPromo as $product}
+                    <div  class="main-slider_item ">
+                        <a data-position="fixed" class="main-slider_item-img " href="{$product.frontend_url}">
+                            {if empty($product@first)}
+                                {$wa->shop->productImgHtml($product, '0x320', ['class' => "owl-lazy", 'alt' => $product.name, 'default' => $dummy96])|replace:"src":"src=`$wa_theme_url`img/lazy-image.png data-src"}
+                            {else}
+                                {$image_url = $wa->shop->productImgUrl($product, '0x320')}
+                                {$wa->globals('preload_image', $image_url)}
+
+                                {$dummy96 = "{$wa_theme_url}img/dummy96.png"}
+                                {$wa->shop->productImgHtml($product, '0x320', ['alt' => $product.name, 'default' => $dummy96])}
+                            {/if}
+                        </a>
+                        <div class="main-slider_item-content">
+                            <div class="main-slider_item__header">
+                                <h3 class="main-slider_item-title">
+                                    <a title="{$product.name}{if $product.summary} &ndash; {strip_tags($product.summary)|escape}{/if}" href="{$product.frontend_url}">{$product.name}</a>
+                                </h3>
+                                {$badge_html = $wa->shop->badgeHtml($product.badge)}
+                                {if $badge_html}
+                                    {$badge_html}
+                                {/if}
+
+                                {if $theme_settings.product_discount_percentage == 1}
+                                    {$compare_price = $product.compare_price}
+                                    {$price = $product.price}
+                                    {if $compare_price > $price}
+                                        {$discount = (($compare_price-$price)/$compare_price)*100}
+                                        {$discount = ceil($discount)}
+                                    {/if}
+
+                                    {$productDiscount = isset($discount) && $price > 0}
+
+                                    <div class="badge product-card_discounts {if !$productDiscount} -Close{/if}" data-compare="{$compare_price}">
+                                        <span data-minimal="3" class="">{if $productDiscount}– {$discount}%{/if}</span>
+                                    </div>
+                                {/if}
+                            </div>
+                            <div class="main-slider_item-desc">
+                                {$_badge_percent = ($theme_settings.product_discount_percentage == 1 && $product.compare_price > $product.price  &&  $product.price != 0)}
+                                {if $_badge_percent}
+                                    <div class="main-slider_item_discounts">
+
+                                        {if $theme_settings.product_discount_percentage == 1 && $compare_price > $price}
+                                            {$discount = (($compare_price-$price)/$compare_price)*100}
+                                            {$discount = ceil($discount)}
+                                            {if $price > 0}
+                                                <div class="product-discount">-{$discount}%</div>
+                                            {/if}
+                                        {/if}
+                                    </div>
+                                {/if}
+
+                                {if $wa->isMobile()}
+                                    {strip_tags($product.summary)|truncate:255}
+                                {else}
+                                    {$product.summary}
+                                {/if}
+
+                            </div>
+                            <div class="main-slider_item-prs">
+                                <span class="main-slider_item-pr">
+                                    {if empty($product.price) && !empty($theme_settings.text_zero_price)}
+                                        <span class="main-slider_item-price-zero">{$theme_settings.text_zero_price}</span>
+                                    {elseif $_price_range && ($product.max_price && $product.min_price && $product.max_price > $product.min_price)}
+                                        <span class="nowrap">{shop_currency_html($product.min_price)}</span> ... <span class="nowrap">{shop_currency_html($product.max_price)}</span>
+                                    {else}
+                                        <span class="product__price price nowrap">{shop_currency_html($product.price)}</span>
+                                        {if $product.compare_price}
+                                            <span class="old-price nowrap">{shop_currency_html($product.compare_price)}</span>
+                                        {/if}
+                                    {/if}
+                                </span>
+                                {if !$_price_range && $product.compare_price > 0 && $product.price < $product.compare_price && !empty($product.price)}
+                                    <span class="main-slider_item-oldpr old-price">{shop_currency_html($product.compare_price)}</span>
+                                {/if}
+
+                                {$available = $wa->shop->settings('ignore_stock_count') || $product.count === null || $product.count > 0}
+                                {if $available}
+                                    {if $wa->shop->cart->total() > 0}{$add2label_cart = '[`Add to cart`]'}{else}{$add2label_cart = '[`Buy`]'}{/if}
+                                    {if $product.sku_count > 1}
+                                        <span class="button main-slider_item-btn js-card-dialog addtocart addtocart--large" data-href="{$product.frontend_url}{if strpos($product.frontend_url, '?')}&{else}?{/if}cart=1&select-options=1"></i>{$add2label_cart}</span>
+                                    {else}
+                                        {$preview_image = $wa->shop->productImgUrl($product, '60')}
+                                        <form class="js-add-to-cart main-slider_item-cart" method="post" action="{$wa->getUrl('/frontendCart/add')}">
+                                            <input type="hidden" name="product_id" value="{$product.id}">
+                                            {$addedText = "[`Added`]"}
+                                            <span class="button main-slider_item-btn js-submit-form addtocart addtocart--large" data-added-text="{$addedText}">{$add2label_cart}</span>
+                                        </form>
+                                    {/if}
+                                {/if}
+                            </div>
+
+                        </div>
+                    </div>
+                {/foreach}
+            </article>
+            {if count($homeProductsPromo) > 1}
+                <div class="js-dots-slider owl-dots">
+                    {foreach $homeProductsPromo as $item}
+                        <button data-index="{$item@index}" class="js-slider-init-action owl-dot{if $item@first} active{/if}"><span></span></button>
+                    {/foreach}
+                </div>
+                <div class="js-nav-slider owl-nav">
+                    <button data-index="prev" type="button" class="js-slider-init-action owl-prev"></button>
+                    <button data-index="next" type="button" class="js-slider-init-action owl-next"></button>
+                </div>
+            {/if}
+        </div>
+    {/if}
+{/if}
+{/strip}
+
+
+

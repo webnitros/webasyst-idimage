@@ -1,0 +1,142 @@
+{function localizedType f=null}{strip}
+    {if $f instanceof waContactBranchField}
+        {$ftypes['Branch']}
+    {elseif $f instanceof waContactStringField && $f->getParameter('input_height') > 1}
+        {$ftypes['Text']}
+    {elseif $f instanceof waContactRadioSelectField}
+        {$ftypes['Radio']}
+    {else}
+        {ifempty($ftypes[$f->getType()], $f->getType())}
+    {/if}
+{/strip}{/function}
+
+{if !isset($default_value)}
+    {$default_value = null}
+{/if}
+
+
+{if strpos($tr_classes, 'wrap') !== false}
+    {$f_wrap = 'wrap'}
+    {$tr_classes = str_replace('wrap', '', $tr_classes)}
+{/if}
+
+<tr class="{$tr_classes}" data-field-id="{$fid}"{if !$new_field} data-field-type="{$f->getType()}"{/if}>
+    <td class="min-width"><i class="fas fas fa-grip-vertical text-gray sort-outer"></i></td>
+    <td class="min-width custom-p-0">
+        {if $f->getParameter('always_required')}
+            <label>
+                <input type="hidden" name="{$prefix}[{$fid}][_disabled]" value="">
+                <span class="wa-checkbox">
+                    <input type="checkbox" checked disabled>
+                    <span>
+                        <span class="icon">
+                            <i class="fas fa-check"></i>
+                        </span>
+                    </span>
+                </span>
+            </label>
+        {else}
+            <label>
+                <input type="hidden" name="{$prefix}[{$fid}][_disabled]" value="1">
+                <span class="wa-checkbox">
+                    <input type="checkbox" id="enbl-{$uniqid}" name="{$prefix}[{$fid}][_disabled]" value=""{if !$f->getParameter('_disabled')} checked{/if}>
+                    <span>
+                        <span class="icon">
+                            <i class="fas fa-check"></i>
+                        </span>
+                    </span>
+                </span>
+            </label>
+        {/if}
+    </td>
+    <td>
+        <label for="enbl-{$uniqid}" class="name-label">{$f->getName()|escape}</label>
+        <input type="text" class="name-input" placeholder="[`Field name`]" name="{$prefix}[{$fid}][localized_names]" value="{$f->getName()|escape}">
+
+        {if !$new_field}
+            <span class="name-hint hint"><em>{$fid}</em> &mdash; {localizedType f=$f}</span>
+            {if $f->getType() === 'Composite'}
+                <ul class="hint">
+                    {foreach $f->getParameter('fields') as $sf}
+                        <li>{$sf->getName()}</li>
+                    {/foreach}
+                </ul>
+            {/if}
+        {/if}
+    </td>
+    <td{if $new_field} class="min-width custom-pl-0"{/if}>
+        <div class="flexbox middle {$f_wrap|default:''}">
+            {if !$new_field}
+                <div class="custom-ml-auto custom-mr-4 nowrap">
+                    <a href="javascript:void(0)" class="inline"><i class="js-edit fas fa-pencil-alt"></i></a>
+                    {if $f->getParameter('app_id') === 'shop'}
+                        <a href="javascript:void(0)" class="custom-mx-4 inline"><i class="fas fa-trash-alt text-red js-delete-outer"></i></a>
+                    {/if}
+                </div>
+            {/if}
+
+            <div class="hide-when-field-disabled small nowrap">
+                {if $f->getParameter('always_required')}
+                    <em class="small">
+                        [`Required`]
+                    </em>
+                {else}
+                    <label>
+                    <input type="hidden" name="{$prefix}[{$fid}][required]" value="">
+                    <span class="wa-checkbox">
+                        <input type="checkbox" name="{$prefix}[{$fid}][required]" value="1"{if $f->getParameter('required')} checked{/if}>
+                        <span>
+                            <span class="icon">
+                                <i class="fas fa-check"></i>
+                            </span>
+                        </span>
+                    </span>
+                        [`Required`]
+                    </label>
+                {/if}
+            </div>
+
+            {if $new_field}
+                <div class="hide-when-field-disabled">
+                    <div class="wa-select small">
+                        <select class="type-selector" name="{$prefix}[%FID%][_type]">
+                            <option value="string">[`Text (input)`]</option>
+                            <option value="textarea">[`Text (textarea)`]</option>
+                            <option value="number">[`Number (input)`]</option>
+                            <option value="branch">[`Selectable (radio)`]</option>
+                            <option value="select">[`Selectable (select)`]</option>
+                            <option value="conditional">[`Conditional (select/input)`]</option>
+                            <option value="checkbox">[`Checkbox`]</option>
+                        </select>
+                    </div>
+                    <div class="field-advanced-settings"></div>
+                </div>
+            {else}
+                <div class="hide-when-field-enabled">
+                    <input type="hidden" name="{$prefix}[{$fid}][_default_value_enabled]" value="{if ifset($default_value) !== null}1{/if}">
+                    {if ifset($default_value) === null}
+                        <a href="javascript:void(0)" class="setup-default-value-link small hint inline-link"><b><i>[`Set default fixed value`]</i></b></a>
+                    {else}
+                        <a href="javascript:void(0)" class="setup-default-value-link hint inline-link"><b><i>[`Default fixed value:`] <strong>{$default_value|escape}</strong></i></b></a>
+                    {/if}
+                    <div class="hidden default-value-editor">
+                        <div class="small">[`Default fixed value:`]</div>
+                        {if $f instanceof waContactConditionalField || $f instanceof waContactRegionField || $f instanceof waContactBranchField}
+                            <input type="text" name="{$prefix}[{$fid}][_default_value]" value="{ifset($default_value)|escape}">
+                        {else}
+                            <div class="field value" style="padding:0;margin:0">{$form->html('_default_value')}</div>
+                        {/if}
+                    </div>
+                </div>
+
+                {if $f->getParameter('app_id') === 'shop'}
+                    <div class="hide-when-field-disabled">
+                        <div class="field-advanced-settings custom-ml-8">
+                            {wa_action app="shop" module="settings" action="checkoutContactFormEditor" f=$f fid=$fid prefix=$prefix parent=$parent}
+                        </div>
+                    </div>
+                {/if}
+            {/if}
+        </div>
+    </td>
+</tr>

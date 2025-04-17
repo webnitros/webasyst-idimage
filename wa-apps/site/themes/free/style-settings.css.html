@@ -1,0 +1,175 @@
+{strip}
+
+    {$is_ruble_arial = true}
+    {$font_name = "sans-serif"}
+    {if $theme_settings.font == "helvetica"}
+        {$font_name = "'Helvetica', arial, sans-serif"}
+    {elseif $theme_settings.font == "arial"}
+        {$font_name = "'Arial', arial, sans-serif"}
+    {elseif $theme_settings.font == "roboto"}
+        {$font_name = "'Roboto', arial, sans-serif"}
+    {elseif $theme_settings.font == "opensans"}
+        {$font_name = "'Open Sans', arial, sans-serif"}
+    {elseif $theme_settings.font == "montserrat"}
+        {$font_name = "'Montserrat', arial, sans-serif"}
+    {elseif $theme_settings.font == "robotocondensed"}
+        {$font_name = "'Roboto Condensed', arial, sans-serif"}
+    {elseif $theme_settings.font == "sourcesanspro"}
+        {$font_name = "'Source Sans Pro', arial, sans-serif"}
+    {elseif $theme_settings.font == "oswald"}
+        {$font_name = "'Oswald', arial, sans-serif"}
+    {elseif $theme_settings.font == "notosans"}
+        {$font_name = "'Noto Sans', arial, sans-serif"}
+    {elseif $theme_settings.font == "robotomono"}
+        {$font_name = "'Roboto Mono', arial, sans-serif"}
+    {elseif $theme_settings.font == "raleway"}
+        {$font_name = "'Raleway', arial, sans-serif"}
+    {elseif $theme_settings.font == "ubuntu"}
+        {$font_name = "'Ubuntu', arial, sans-serif"}
+    {elseif $theme_settings.font == "nunito"}
+        {$font_name = "'Nunito', arial, sans-serif"}
+    {elseif $theme_settings.font == "robotoslab"}
+        {$font_name = "'Roboto Slab', arial, sans-serif"}
+    {elseif $theme_settings.font == "ptsans"}
+        {$font_name = "'PT Sans', arial, sans-serif"}
+    {elseif $theme_settings.font == "merriweather"}
+        {$font_name = "'Merriweather', arial, sans-serif"}
+    {elseif $theme_settings.font == "playfairdisplay"}
+        {$font_name = "'Playfair Display', arial, sans-serif"}
+    {elseif $theme_settings.font == "lora"}
+        {$font_name = "'Lora', arial, sans-serif"}
+    {elseif $theme_settings.font == "opensanscondensed"}
+        {$font_name = "'Open Sans Condensed', arial, sans-serif"}
+    {elseif $theme_settings.font == "rubik"}
+        {$font_name = "'Rubik', arial, sans-serif"}
+    {elseif $theme_settings.font == "inter"}
+        {$font_name = "'Inter', arial, sans-serif"}
+    {elseif $theme_settings.font == "nunitosans"}
+        {$font_name = "'Nunito Sans', arial, sans-serif"}
+    {elseif $theme_settings.font == "firasans"}
+        {$font_name = "'Fira Sans', arial, sans-serif"}
+    {elseif $theme_settings.font == "ptserif"}
+        {$font_name = "'PT Serif', arial, sans-serif"}
+    {elseif $theme_settings.font == "notoserif"}
+        {$font_name = "'Noto Serif', arial, sans-serif"}
+    {elseif $theme_settings.font == "yanonekaffeesatz"}
+        {$font_name = "'Yanone Kaffeesatz', arial, sans-serif"}
+    {/if}
+    <style>
+        @font-face {
+            font-family: 'free-font';
+            src:  url('{$wa_real_theme_url}fonts/free/fonts/free-font.eot?v{$wa_theme_version}');
+            src:  url('{$wa_real_theme_url}fonts/free/fonts/free-font.eot?v{$wa_theme_version}') format('embedded-opentype'),
+            url('{$wa_real_theme_url}fonts/free/fonts/free-font.ttf?v{$wa_theme_version}') format('truetype'),
+            url('{$wa_real_theme_url}fonts/free/fonts/free-font.woff?v{$wa_theme_version}') format('woff'),
+            url('{$wa_real_theme_url}fonts/free/fonts/free-font.svg?v{$wa_theme_version}') format('svg');
+            font-weight: normal;
+            font-style: normal;
+            font-display: block;
+        }
+
+        body, button, input, optgroup, select, textarea {
+            font-family: {$font_name};
+        }
+
+
+        {$logo_width = (int)$theme_settings.width_logo}
+        {$logo_width_950 = (int)$theme_settings.logo_width_mobile}
+        {if $logo_width > 0}
+            @media (min-width: 950px) {
+                .footer_logo img, .header_logo img {
+                    width: {$logo_width}px;
+                }
+            }
+        {/if}
+        {if $logo_width_950 > 0}
+             @media (max-width: 950px) {
+                .footer_logo img, .header_logo img {
+                    width: {$logo_width_950}px;
+                }
+            }
+        {/if}
+
+        {if $theme_settings.bgcolor_sticker_hit}
+            .badge.bestseller {
+                background: {$theme_settings.bgcolor_sticker_hit};
+            }
+        {/if}
+        {if $theme_settings.bgcolor_sticker_new}
+            .badge.new {
+                background: {$theme_settings.bgcolor_sticker_new};
+            }
+        {/if}
+        {if $theme_settings.bgcolor_sticker_discount}
+            .badge.low-price {
+                background: {$theme_settings.bgcolor_sticker_discount};
+            }
+        {/if}
+
+        {if $wa_app != 'shop'}
+            {$product_tile_name_height = 1.2}
+        {else}
+            {if !$wa->isMobile()}
+                {if $theme_settings.tile_title_height == 'one'}
+                    {$product_tile_name_height = 1.2}
+                {elseif $theme_settings.tile_title_height == 'two'}
+                    {$product_tile_name_height = 2.7}
+                {elseif $theme_settings.tile_title_height == 'three'}
+                    {$product_tile_name_height = 3.9}
+                {elseif $theme_settings.tile_title_height == 'four'}
+                    {$product_tile_name_height = 5.1}
+                {elseif $theme_settings.tile_title_height == 'five'}
+                    {$product_tile_name_height = 6.4}
+                {/if}
+            {else}
+                {if $theme_settings.tile_title_height == 'one'}
+                    {$product_tile_name_height = 1.3}
+                        {elseif $theme_settings.tile_title_height == 'two'}
+                    {$product_tile_name_height = 2.7}
+                        {elseif $theme_settings.tile_title_height == 'three'}
+                    {$product_tile_name_height = 3.9}
+                        {elseif $theme_settings.tile_title_height == 'four'}
+                    {$product_tile_name_height = 5.3}
+                        {elseif $theme_settings.tile_title_height == 'five'}
+                    {$product_tile_name_height = 6.5}
+                {/if}
+            {/if}
+        {/if}
+        {if $product_tile_name_height}
+            .Product-grid_name {
+                height: {$product_tile_name_height}rem;
+                overflow: hidden;
+            }
+        {/if}
+
+
+
+
+        {if $theme_settings.border_radius}
+            .Nav-search input.Nav-inp-search,
+            .home-slider-photos_el-content img,
+            .promo-cards__item--outer,
+            .quickorder-form [data-quickorder-pfb],
+            .Cart__Qty, .b-comments-section, .option-color_outer._only-text, .review-write__btn, .nav-cat-btn, .admin-edit-links__el, .product_add2cart .addtocart, .wa-order-cart-wrapper .wa-cart-details .wa-coupon-section .wa-input, .wa-button,
+            .wa-submit-button, .addtocart--mini, .filter-el--btns input[type="submit"], .Product-grid_cart .button, .main-slider_item-btn, .product-added-msg, .My__Button--Pin, .sidear-mobile form#filter-body.show .filter__submit input[type=submit], .stock__popap-box,
+            .filter_warehouse--box .filter-el_opts, .pagination li.selected, .pages .shop a, .button, .button-link, button, input[type=button], input[type=submit]{
+                border-radius: {$theme_settings.border_radius}px;
+            }
+
+            .product_options .select-v-inline a{
+                border-radius: {$theme_settings.border_radius * 2}px;
+            }
+
+            .image-preview.selected,
+            .image-preview.selected.image-preview--video {
+                border-radius: 4px;
+            }
+        {/if}
+        {if $theme_settings.border_radius}
+            .inp-search > i {
+                border-radius: 0 {$theme_settings.border_radius}px {$theme_settings.border_radius}px 0;
+            }
+        {/if}
+    </style>
+{/strip}
+

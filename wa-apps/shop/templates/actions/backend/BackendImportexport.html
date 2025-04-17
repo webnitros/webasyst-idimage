@@ -1,0 +1,81 @@
+{$plugin_names = array()}
+<div class="flexbox">
+    <div class="sidebar width-21rem blank">
+        <ul class="menu" id="s-importexport-menu">
+            <li>
+                <a href="#/csv:product/">
+                    <span class="icon"><i class="fas fa-file-csv"></i></span>
+                    <span>
+                        [`Import products from CSV`]<br>
+                        <span class="hint">[`Add new and update existing products via CSV files`]</span>
+                    </span>
+                </a>
+            </li>
+
+            <li>
+                <a href="#/images:product/">
+                    <span class="icon"><i class="fas fa-image"></i></span>
+                    <span>
+                        [`Bulk image upload`]<br>
+                        <span class="hint">[`Instantly create multiple products from a set of uploaded images`]</span>
+                    </span>
+                </a>
+            </li>
+
+            {foreach $plugins as $info}
+            {$plugin_names[$info.id] = $info.name|default:$info.id|escape}
+            <li>
+                <a href="#/{$info.id}{if isset($info.default_profile)}:{$info.default_profile}{/if}/">
+                    {if empty($info.img)}<i class="fas fa-{$info.icon|default:'plugins'}"></i>{else}<i class="icon" style="background: url('{$wa_url}{$info.img|escape}'); background-size: 100%;"></i>{/if}
+                    <span>
+                        {$info.name|default:$info.id|escape}<br>
+                        <span class="hint">{$info.description|default:''|escape}</span>
+                    </span>
+                </a>
+            </li>
+            {/foreach}
+        </ul>
+
+        <div class="box align-center bordered-top">
+            <p class="hint width-80 custom-mx-auto custom-mt-12">
+              <a href="#/plugins/" data-url="{$wa_backend_url}installer/#/plugins&amp;tag=importexport/shop/">[`Browse import/export plugins`]</a><br>
+            [`Install new plugins from the Webasyst Store using the Installer app`]
+            </p>
+        </div>
+    </div>
+
+    <div class="content box contentbox not-blank">
+        <div id="s-importexport-header">
+            <h1><!-- title placeholder --></h1>
+            <p class="small"><!-- description placeholder --></p>
+        </div>
+
+        <ul class="tabs s-export-profile-list custom-mt-24 custom-pl-0 flexbox wrap" id="s-importexport-profile" style="display: none;">
+            <li class="no-tab"><a href="#/profile/add/" data-href="#/profile/add/%plugin%/" class="js-action">
+                    <i class="fas fa-plus-circle"></i>[`New profile`]</a>
+            </li>
+            <li class="no-tab small delete-link-wrapper custom-ml-auto" style="display: none;">
+                <a href="#/profile/delete/" data-href="#/profile/delete/%plugin%/" class="js-action js-confirm" data-confirm-text="[`Delete current profile settings and all its exported files?`]"><i class="fas fa-trash-alt text-red"></i>[`Delete this profile`]</a>
+            </li>
+        </ul>
+
+        <div id="s-importexport-content">
+            <div class="box">{if $plugins}[`Loading...`] <i class="fas fa-spinner fa-spin"></i>{/if}</div>
+        </div>
+    </div>
+</div>
+{wa_js file="js/importexport/importexport.min.js"}
+{$wa_app_static_url}js/importexport/importexport.js
+{/wa_js}
+
+<script type="text/javascript">
+document.title = '{"[`Import / Export`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+$.importexport.init({
+    debug:{var_export(waSystemConfig::isDebug(),true)},
+    loading : '<div class="box">[`Loading...`] <i class="fas fa-spinner fa-spin"><'+'/i><'+'/div>',
+    title_suffix: '{" — "|cat:{$wa->accountName(false)}|escape:'javascript'}',
+    plugin_names: {json_encode($plugin_names)},
+    plugin_profiles: {json_encode($plugin_profiles)},
+    backend_url:'{$wa_backend_url|escape:'javascript'}'
+});
+</script>

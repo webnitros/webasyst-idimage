@@ -1,0 +1,63 @@
+<div class="product-page_main-right {if $productGalleryOn}-productMiniGallery{/if}">
+    <div class="cart ">
+        {$text_not_avalible = "[`Out of stock`]"}
+        {if !empty($theme_settings.text_product_preorder)}
+            {$text_product_preorder = $theme_settings.text_product_preorder}
+        {else}
+            {$text_product_preorder = "[`Pre-order only`]"}
+        {/if}
+        {$text_product_not_available_option = "[`Product with the selected option combination is not available for purchase`]"}
+        {$text_product_not_available_option_one_sku = "[`This product is not available for purchase`]"}
+
+        {$_is_dialog = $wa->get('cart')}
+
+        {$_is_dialog_select_options = !empty($_is_dialog) && $wa->get('select-options')}
+        {$image_preview = $wa->shop->productImgUrl($product, '60')}
+
+
+        {include file="product.cart.html"}
+        {if empty($_is_dialog_select_options)}{include file="product.mini.desc.html"}{/if}
+
+    </div>
+
+
+    <script>
+        $(document).ready(function () {
+            const colorItems = $('.option-color_outer');
+            colorItems.each(function () {
+                const colorItem = $(this);
+                const colorLink = colorItem.children('a');
+                if (colorLink.css('background-color') == 'rgb(255, 255, 255)') {
+                    colorLink.addClass('white');
+                }
+            })
+        })
+    </script>
+    <!-- plugin hook: 'frontend_product.block_aux' -->
+    {* @event frontend_product.%plugin_id%.block_aux *}
+    {if !empty($frontend_product)}
+        <div class="cart_aux">
+            {foreach $frontend_product as $_}
+                {if !empty($_.block_aux)}{$_.block_aux}{/if}
+            {/foreach}
+        </div>
+    {/if}
+
+    <!-- plugin hook: 'frontend_product.menu' -->
+    {* @event frontend_product.%plugin_id%.menu *}
+    {foreach $frontend_product as $_}
+        {if !empty($_.menu)}
+            {$_.menu}
+        {/if}
+    {/foreach}
+
+    {if $theme_settings.plugin_hook_block_in_product == 'right_block'}
+        <!-- plugin hook: 'frontend_product.block' -->
+        {* @event frontend_product.%plugin_id%.block *}
+        {foreach $frontend_product as $_}
+            {if !empty($_.block)}
+                {$_.block}
+            {/if}
+        {/foreach}
+    {/if}
+</div>

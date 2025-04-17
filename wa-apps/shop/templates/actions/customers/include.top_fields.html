@@ -1,0 +1,122 @@
+{$need_other_values = $need_other_values|default:false}
+
+{if $top}
+
+    {$customers_rights = $wa->userRights('customers')}
+    {$_has_hidden_fields = false}
+
+    <div class="s-customer-fields-section small break-words" id="js-customer-fields-section">
+        <ul class="unstyled s-customer-top-field-list custom-mb-0">
+            {foreach $top as $top_field}
+                <li class="s-customer-top-field-default-value-item flexbox middle wrap" style="column-gap: 0.5rem;">
+                    {if $top_field.id !== 'im'}
+                        <i class="fas fa-{if $top_field.default_value.is_confirmed}check-circle text-green{else}{if $top_field.id == 'email'}envelope{else}{$top_field.id}{/if}{/if} text-gray" {if $top_field.default_value.is_confirmed}title="[`Confirmed`]"{/if}></i>
+                    {/if}
+
+                    {if $top_field.id == 'phone'}
+                        {$_formatted_phone_value = $top_field.default_value.value|regex_replace:'/^(8|(\+)?7)/':'+7'}
+                        <span>{$top_field.default_value.formatted}</span>
+                        <div class="dropdown js-messengers nowrap width-100-mobile">
+                            <span class="dropdown-toggle badge button-light-gray small rounded">[`Message`]</span>
+                            <div class="dropdown-body right">
+                                <ul class="menu">
+                                    <li>
+                                        <a href="https://wa.me/{if $wa->locale() == 'ru_RU'}{$_formatted_phone_value|escape}{else}{$top_field.default_value.value|escape}{/if}" target="_blank"><i class="fab fa-whatsapp" style="color: #25D366;"></i><span>WhatsApp</span></a>
+                                    </li>
+                                    <li>
+                                        <a href="https://t.me/{if $wa->locale() == 'ru_RU'}{$_formatted_phone_value|escape}{else}{$top_field.default_value.value|escape}{/if}" target="_blank"><i class="fab fa-telegram" style="color: #2AABEE;"></i><span>Telegram</span></a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <script>
+                                ( function($) {
+                                    $(".js-messengers").waDropdown();
+                                })(jQuery);
+                            </script>
+                        </div>
+                    {else}
+                        <span>{$top_field.default_value.formatted}</span>
+                    {/if}
+
+                    {if $top_field.id == 'email' && !empty($similar_contacts.email.count)}
+                        <span class="similar">
+                            <span class="custom-mr-4">
+                                {if $customers_rights}
+                                    <a href="?action=customers#/search/email={urlencode($similar_contacts.email.value)}"
+                                      id="js-client-duplicate-tooltip-email" class="nowrap badge small orange text-white"
+                                      data-wa-tooltip-content="{_w('%d more customer found with the same email address', '%d more customers found with the same email address', $similar_contacts.email.count)}">
+                                        <i class="fas fa-user-friends small custom-ml-4"></i>
+                                        +{$similar_contacts.email.count}
+                                    </a>
+                                    <script>
+                                        ( function($) {
+                                            $("#js-client-duplicate-tooltip-email").waTooltip();
+                                        })(jQuery);
+                                    </script>
+                                {/if}
+                            </span>
+                         </span>
+                    {elseif $top_field.id == 'phone' && !empty($similar_contacts.phone.count)}
+                        <span class="similar">
+                            <span class="custom-mr-4">
+                                {if $customers_rights}
+                                    <a href="?action=customers#/search/phone={urlencode($similar_contacts.phone.value)}"
+                                      id="js-client-duplicate-tooltip-phone" class="nowrap badge small orange text-white"
+                                      data-wa-tooltip-content="{_w('%d more customer found with the same phone number', '%d more customers found with the same phone number', $similar_contacts.phone.count)}">
+                                        <i class="fas fa-user-friends small custom-ml-4"></i>
+                                        +{$similar_contacts.phone.count}
+                                    </a>
+                                    <script>
+                                        ( function($) {
+                                            $("#js-client-duplicate-tooltip-phone").waTooltip();
+                                        })(jQuery);
+                                    </script>
+                                {/if}
+                            </span>
+                        </span>
+                    {/if}
+                </li>
+            {/foreach}
+
+            {if $need_other_values}
+                {foreach $top as $top_field}
+                    {foreach $top_field.other_values as $value}
+                        {if empty($_has_hidden_fields)}{$_has_hidden_fields = true}{/if}
+
+                        <li class="s-customer-top-field-other-value-item flexbox middle space-4" style="display: none;">
+                            {if $top_field.id !== 'im'}
+                                <i class="fas fa-{if $top_field.id == 'email'}envelope{else}{$top_field.id}{/if}{if $value.is_confirmed} text-green{else} text-gray{/if}" {if $value.is_confirmed}title="[`Confirmed`]"{/if}></i>
+                            {/if}
+
+                            {$value.formatted}
+                        </li>
+                    {/foreach}
+                {/foreach}
+            {/if}
+        </ul>
+
+        {if !empty($_has_hidden_fields)}
+            <div class="s-fields-toggle">
+                <a class="js-toggle-button small gray" href="javascript:void(0);">
+                    <i class="svg-icon size-10 arrow-toggle" style="padding: 0 7px 0 5px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 5">
+                            <polyline style="fill:none; stroke: currentColor; stroke-linecap:round; stroke-linejoin:round;" points="0.5 0.5 4.5 4.5 8.5 0.5"/>
+                        </svg>
+                    </i>
+                    [`More contact information`]
+                </a>
+
+                <script>
+                    ( function($) {
+                        var $wrapper = $("#js-customer-fields-section").removeAttr("id");
+                        $wrapper.on("click", ".js-toggle-button", function(event) {
+                            event.preventDefault();
+                            $(this).closest(".s-fields-toggle").hide();
+                            $wrapper.find(".s-customer-top-field-other-value-item").show();
+                        });
+                    })(jQuery);
+                </script>
+            </div>
+        {/if}
+    </div>
+{/if}

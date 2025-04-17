@@ -1,0 +1,290 @@
+{strip}
+{$homeBlocks = explode(',', $theme_settings.home_blocks_list)}
+{foreach $homeBlocks as $block}
+    {if $block == 'slider'}
+        {*{$wa->block("shop.home.before.sliders")}*}
+        {$mPromoCards = $wa->shop->promos()|array_values}
+        {if $theme_settings.promo_product_show && !empty($theme_settings.promo_product_title) && $wa->shop->productSet($theme_settings.promo_product_list_id)}
+            {$showProductPromoList = true}
+        {else}
+            {$showProductPromoList = false}
+        {/if}
+        <div class="promo{if $showProductPromoList} slider-promo--box{/if}">
+            <div class="container">
+                {if $showProductPromoList}
+                    <div class="slider-promo--box">
+                {elseif $theme_settings.promo_cards_show}
+                    <div class="slider-promocards--box{if $theme_settings.display_promo_cards == 'vertical'} slider-promocards--vertical{else} slider-promocards--horizontal{/if}">
+                {/if}
+                    {include file="slider.html"}
+                    {if $showProductPromoList}
+                        <div class="promo-product {if !$theme_settings.horizontal_menu} slider-outer--home--pb{/if}">
+                            {include file='home.products.view-carousel.html' products_list_id=$theme_settings.promo_product_list_id list_title=$theme_settings.promo_product_title}
+                        </div>
+                    {elseif $theme_settings.promo_cards_show}
+                        {include file='promo.cards.html'}
+                    {/if}
+                {if $showProductPromoList || $theme_settings.promo_cards_show}</div>{/if}
+            </div>
+        </div>
+
+        {*{$wa->block("shop.home.after.sliders")}*}
+    {/if}
+
+    {if $block == 'category'}
+        {*{$wa->block("shop.home.before.category")}*}
+        {$categories = $wa->shop->categories(0, null, true, true)}
+        {if count($categories) > 0 && $theme_settings.show_home_cat_list}
+            <div class="homepage-categories {if !$theme_settings.total_max_maxcat_homepage}homepage-categories--margin{/if}">
+                <div class="container">
+                    {if class_exists('shopWmimageincatPlugin')}
+                        {$Wmimages = shopWmimageincatPlugin::getCategoryImageObj()}
+                    {/if}
+
+                    {if $theme_settings.home_categories_title}
+                        <div class="home-products_head-outer">
+                            <div class="home-products_head">
+                                <div class="home-products__title title">{$theme_settings.home_categories_title}</div>
+                            </div>
+                        </div>
+                    {/if}
+                    {if $theme_settings.total_max_maxcat_homepage}
+                        {include file="home.scat.html" categories=$categories}
+                    {else}
+                        {include file="categories.grid.html" categories=$categories setting_cat_in_row=$theme_settings.category_row_home}
+                    {/if}
+                </div>
+            </div>
+        {/if}
+        {*{$wa->block("shop.home.after.category")}*}
+    {/if}
+
+    {if $block == 'product-slider'}
+        {*{$wa->block("shop.home.before.product.slider")}*}
+        {$product_list_file = "home.products.view-carousel.html"}
+
+        {include file=$product_list_file products_list_id=$theme_settings.home_product_list_1 list_title=$theme_settings.home_product_list_1_title}
+        {include file=$product_list_file products_list_id=$theme_settings.home_product_list_2 list_title=$theme_settings.home_product_list_2_title}
+        {include file=$product_list_file products_list_id=$theme_settings.home_product_list_3 list_title=$theme_settings.home_product_list_3_title}
+
+        {literal}
+            <script>
+                $('.products-grid-outer').each(function () {
+                    let slider = $(this);
+                    let sliderWidth = slider.width();
+                    let itemWidth = 0;
+                    slider.find('.Product-grid').each(function () {
+                        itemWidth += $(this).width();
+                    })
+                    if (itemWidth < sliderWidth) {
+                        slider.find('.owl-carousel').css('justify-content','center');
+                    }
+                })
+            </script>
+        {/literal}
+        {*{$wa->block("shop.home.after.product.slider")}*}
+    {/if}
+
+    {if $block == 'brands'}
+        {$wa->block("shop.home.before.brands")}
+        <div class="brands">
+            <div class="container">
+
+                {if $theme_settings.use_plugin_brands == 'brands_pro'}
+                    {include file="home.brands-pro.block.html"}
+                {else if $theme_settings.use_plugin_brands == 'brands'}
+                    {include file="home.brands.block.html"}
+                {/if}
+
+                <!-- plugin hook: 'frontend_homepage' -->
+                {* @event frontend_homepage.%plugin_id% *}
+                {foreach $frontend_homepage as $_}<div class="content content-box">{$_}</div>{/foreach}
+            </div>
+            {*{$wa->block("shop.home.after.brands")}*}
+        </div>
+    {/if}
+
+    {if $block == 'text'}
+        {*{$wa->block("shop.home.before.text")}*}
+        {if !empty($theme_settings.home_text_head) || !empty($theme_settings.home_text_note)}
+            <div class="homepage-text-outer">
+                {if !empty($theme_settings.home_text_head) || !empty($theme_settings.home_text_note)}
+                    <div class="homepage-text">
+                        <div class="container clearfix">
+                            {if !empty($theme_settings.home_text_head)}
+                            <h1 class="title">{$theme_settings.home_text_head}</h1>
+                            {/if}
+                            {$theme_settings.home_text_note}
+                        </div>
+                    </div>
+                {/if}
+            </div>
+        {/if}
+        {*{$wa->block("shop.home.after.text")}*}
+    {/if}
+
+    {if $block == 'news'}
+        {*{$wa->block("shop.home.before.news")}*}
+        {$is_news = false}
+        {if ($theme_settings.home_lastposts && $wa->blog)}
+            {$blog_id = (int)$theme_settings.home_blog_id}
+            {if empty($blog_id)}{$blog_id = null}{/if}
+            {$blog_posts = $wa->blog->posts($blog_id,4)}
+            {if !empty($blog_posts) && count($blog_posts)}
+                {$is_news = true}
+            {/if}
+        {/if}
+
+        {if !empty($is_news)}
+            <div class="homepage-news-outer">
+                {if class_exists('blogSkimagePlugin')}
+                    {$sk_blog_images = blogSkimageHelper::getImages()}
+                {/if}
+                <div class="container">
+                    <div class="home-new_head">
+                        <div class="home-new__title title">{$theme_settings.home_news_title}</div>
+                    </div>
+                    <ul class="home-prev-news clear-list">
+                        {foreach $blog_posts as $item}
+                            <div class="home-prev-news_item__wrap">
+                                <li class="home-prev-news_item">
+                                    {$image = ""}
+                                    {if empty($image) && isset($item.image) && !empty($item.image)}
+                                        {$image = $item.image}
+                                    {/if}
+                                    {if isset($sk_blog_images[$item.id]['preview']) && !empty($sk_blog_images[$item.id]['preview'])}
+                                        {$image = $sk_blog_images[$item.id]['preview']}
+                                    {/if}
+                                    {if !empty($image)}
+                                        <a href="{$item.link}" class="home-prev-news_item-image">
+                                            <img src="{$image}" alt="{$item.title}">
+                                        </a>
+                                    {/if}
+                                    <div class="home-prev-news_item-info">
+                                        <div class="home-prev-news_item-name">
+                                            <a href="{$item.link}">{$item.title|truncate:60:'...'}</a>
+                                        </div>
+                                        <div class="home-prev-news_item-text">
+                                            {strip_tags($item.text)|truncate:128}
+                                        </div>
+                                        <span class="home-prev-news_item-date">{$item.datetime|wa_datetime:"humandate"}</span>
+                                        <div class="home-prev-news_item-more sdColor">
+                                            <a href="{$item.link}">[`Read more`]</a> &rarr;
+                                        </div>
+                                    </div>
+                                </li>
+                            </div>
+                        {/foreach}
+                    </ul>
+                </div>
+            </div>
+        {/if}
+        {*{$wa->block("shop.home.after.news")}*}
+    {/if}
+
+    {if $block == 'reviews'}
+        {$reviews = $wa->shop->reviews()}
+        {if !empty($reviews)}
+            <div class="homepage-reviews-outer">
+                <div class="homepage-reviews">
+                    <div class="homepage-reviews_head">
+                        <div class="homepage-reviews_title title">[`Reviews`]</div>
+                    </div>
+                    <div class="container">
+                        <div class="reviews__list">
+                            {foreach $reviews as $review}
+                                {$p = $wa->shop->product($review.product_id)}
+                                {$productUrl = $wa->shop->productUrl($p)}
+                                <div class="reviews__item">
+                                    <div class="review__header">
+                                        <div class="review__header__left">
+                                            <a href="{$productUrl}" class="review__product__image">
+                                                {$wa->shop->getProductImgHtml($p, '150x0')}
+                                            </a>
+                                        </div>
+                                        <div class="review__header__right">
+                                            <a href="{$productUrl}" class="review__product__title">
+                                                {$p.name}
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="review__bottom">
+                                        <div class="review__text">
+                                            {$review.text|truncate:80:"..."}
+                                            <div class="review__value">
+                                                <div class="review__value__star">
+                                                    {if $p.rating > 0 && $theme_settings.product_ratings}
+                                                        <span class="rating nowrap">
+                                                            {$wa->shop->ratingHtml($p.rating, 10)}
+                                                        </span>
+                                                    {elseif $p.rating == 0 && $theme_settings.product_ratings}
+                                                        <a class="rating -zero" href="{$p.frontend_url}?reviews=scroll">
+                                                            <div class="">
+                                                                <i class="icon10 star"></i>
+                                                            </div>
+                                                            <div class="">
+                                                                <i class="icon10 star"></i>
+                                                            </div>
+                                                            <div class="">
+                                                                <i class="icon10 star"></i>
+                                                            </div>
+                                                            <div class="">
+                                                                <i class="icon10 star"></i>
+                                                            </div>
+                                                            <div class="">
+                                                                <i class="icon10 star"></i>
+                                                            </div>
+                                                        </a>
+                                                    {/if}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="review__info">
+                                            <div class="review__user-name">
+                                                <i class="fi-rr-user icon"></i>{$review.author.name}
+                                            </div>
+                                            <div class="review__date">{$review.datetime}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {/foreach}
+                        </div>
+                        <div class="home-products__direction js-carousel-direction">
+                            <div data-index="prev" class="js-slider-init-action owl-prev disabled"></div>
+                            <div data-index="next" class="js-slider-init-action owl-next"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {/if}
+    {/if}
+    <script>
+        $(document).ready(function(){
+            const sliderBox = $('.reviews__list');
+            const wrapActions = sliderBox.siblings(".js-carousel-direction");
+
+            sliderBox.owlCarousel({
+                nav: true,
+                autoWidth: true,
+                navText: ['', ''],
+                navElement: "div",
+                navContainer: wrapActions,
+                margin: 20,
+                dots: false,
+                onInitialize() {
+                    wrapActions.html("");
+                },
+                responsive: {
+                    0: {
+                        autoWidth: false,
+                        items: 1
+                    },
+                    500: {
+                        autoWidth: true
+                    },
+                }
+            });
+        });
+    </script>
+{/foreach}
+{/strip}

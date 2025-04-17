@@ -1,0 +1,180 @@
+<script type="text/javascript" src="{$wa_url}wa-apps/shop/plugins/kealabs/js/md5.js"></script>
+<script type="text/javascript" src="{$wa_url}wa-apps/shop/plugins/kealabs/js/kealabsSettings.js"></script>
+<link rel="stylesheet" href="{$wa_url}wa-apps/shop/plugins/kealabs/css/kealabsSettings.css">
+<div style="display:none" id="kea-settings-configured">{$configured}</div>
+<div style="display:none" id="kea-settings-autoconfigured">{$autoconfigured}</div>
+<div style="display:none" id="kea-settings-uuid">{$uuid}</div>
+<div class="kea-content">
+    <div class="kea-head">
+        <h1>Kea Labs</h1>
+        <h3>Продвинутые товарные рекомендации</h3>
+        <div class="kea-wrapper"><img src="{$wa_url}wa-apps/shop/plugins/kealabs/img/logo-with-bg-xs.png"></div>
+    </div>
+    <div class="kea-info">
+        <div id="kea-not-configured">
+            <h2>Добро пожаловать в Kea Labs</h2>
+            <p> С нами вы сможете настроить продвинутые товарные для своего интернет-магазина, повысить конверсию и
+                увеличить прибыль.<br>
+                Если вы уже регистрировались в Kea Labs, нажмите кнопку "Уже зарегистрирован" или заполните форму, если
+                вы у нас впервые. <br>После этого с вами свяжется наша команда.</p>
+        </div>
+    </div>
+    <img src="{$wa_url}wa-apps/shop/plugins/kealabs/img/loading.gif" class="kea-loading">
+    <div class="kea-container">
+        <div class="kea-tabs">
+            <input id="tab-register" type="submit" class="kea-tab-white" value="Регистрация">
+            <input id="tab-login" type="button" class="kea-tab" value="Уже зарегистрирован">
+        </div>
+        <form id="plugins-settings-form" method="post" class="kea-box-shadow-6" action="?plugin=kealabs&action=save">
+            <div class="kea-fields">
+                <div class="kea-field">
+                    <div class="name">
+                        Токен
+                    </div>
+                    <div class="value">
+                        <input type="text" name="token" value="{$token}"/>
+                        <div id="token-error" class="kea-field-error" style="display:none">Поле обязательно для
+                            заполнения (32 знака)
+                        </div>
+                    </div>
+                </div>
+                <div class="kea-field">
+                    <div class="name">
+                        Секретный ключ
+                    </div>
+                    <div class="value">
+                        <input type="text" name="secret" value="{$secret}"/>
+                        <div id="secret-error" class="kea-field-error" style="display:none">Поле обязательно для
+                            заполнения (32 знака)
+                        </div>
+                    </div>
+                </div>
+                <div class="kea-field">
+                    <div class="value kea-checkbox">
+                        <input type="checkbox" name="enabled" value="{$enabled}" {if isset($enabled) && $enabled>0}checked="checked"{/if}>
+                    </div>
+                    <div class="name">
+                        Включить плагин
+                    </div>
+                </div>
+                <div class="kea-field kea-text-center">
+                    <!--<div class="name"></div>-->
+                    <input type="submit" class="kea-button kea-button-disabled" value="Сохранить настройки">
+                </div>
+            </div>
+            <div class="kea-feature-list">
+                <p>Если вы уже зарегистрированы в Kea Labs, вам остаётся только ввести токен и секретный ключ.
+                    Вы можете найти их в личном кабинете </p>
+                <img src="{$wa_url}wa-apps/shop/plugins/kealabs/img/screen_sm.png">
+                <a class="kea-cp-link" href="https://kealabs.com/cabinet">Личный кабинет</a>
+            </div>
+        </form>
+        <!-- Register new account-->
+        <form id="kea-new-account" class="kea-box-shadow-6">
+            <div class="kea-fields">
+                <div id="field_name" class="kea-field">
+                    <!--<div class="name">-->
+                    <!--<p>Ваше имя*</p>-->
+                    <!--<div class="kea-field-error" style="display:none">Поле обязательно для заполнения</div>-->
+                    <!--</div>-->
+                    <div class="value">
+                        <input type="text" placeholder="Ваше имя*" name="name"/>
+                        <div class="kea-field-error" style="display:none">Поле обязательно для заполнения</div>
+                    </div>
+                </div>
+                <div id="field_email" class="kea-field">
+                    <!--<div class="name">-->
+                    <!--&lt;!&ndash;<p>Ваш e-mail*</p>&ndash;&gt;-->
+                    <!--<div class="kea-field-error" style="display:none">Поле обязательно для заполнения</div>-->
+                    <!--</div>-->
+                    <div class="value">
+                        <input type="text" placeholder="Ваш e-mail*" name="email"/>
+                        <div class="kea-field-error" style="display:none">Поле обязательно для заполнения</div>
+                    </div>
+                </div>
+                <div id="field_phone" class="kea-field">
+                    <!--<div class="name">-->
+                    <!--&lt;!&ndash;<p>Ваш телефон*</p>&ndash;&gt;-->
+                    <!--<div class="kea-field-error" style="display:none">Поле обязательно для заполнения</div>-->
+                    <!--</div>-->
+                    <div class="value">
+                        <input type="text" placeholder="Ваш телефон*" name="phone"/>
+                        <div class="kea-field-error" style="display:none">Поле обязательно для заполнения</div>
+                    </div>
+                </div>
+                <div id="field_password" class="kea-field">
+                    <!--<div class="name">-->
+                    <!--&lt;!&ndash;<p>Пароль*</p>&ndash;&gt;-->
+                    <!--<div class="kea-field-error" style="display:none">Поле обязательно для заполнения</div>-->
+                    <!--</div>-->
+                    <div class="value">
+                        <input type="password" placeholder="Пароль*" name="password"/>
+                        <div class="kea-field-error" style="display:none">
+                            <div class="arrow_box"></div>
+                            Поле обязательно для заполнения
+                        </div>
+                    </div>
+                </div>
+                <div id="field_password_confirm" class="kea-field">
+                    <!--<div class="name">-->
+                    <!--<p>Повторите пароль*</p>-->
+                    <!--<div class="kea-field-error" style="display:none">Поле обязательно для заполнения</div>-->
+                    <!--</div>-->
+                    <div class="value">
+                        <input type="password" placeholder="Повторите пароль*" name="passwordConfirm"/>
+                        <div class="kea-field-error" style="display:none">Поле обязательно для заполнения</div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <input id="btn-register" type="submit" class="kea-button" value="Зарегистрироваться">
+                </div>
+            </div>
+            <div class="kea-feature-list">
+                <ul>
+                    <li>Рекомендация сложных товаров</li>
+                    <li><span class="kea-check-icon"></span> Продвинутые рекомендации сопутствующих товаров</li>
+                    <li><span class="kea-check-icon"></span> Настройка алгоритмов под каждый магазин командой аналитиков
+                    </li>
+                    <li><span class="kea-check-icon"></span> Не требуется выгрузка товаров или самостоятельная настройка
+                    </li>
+                    <li><span class="kea-check-icon"></span> Улучшенная персонализация с быстрым обучением</li>
+                    <li><span class="kea-check-icon"></span> Анализ внешнего вида товаров</li>
+                    <li><span class="kea-check-icon"></span> Учёт популярности, трендов и маркетинговых акций</li>
+                </ul>
+            </div>
+        </form>
+    </div>
+    <div class="kea-error">
+        Не удалось зарегистрироваться. Если ошибка повториться напишите или позвоните нам. Мы поможем!<br/>
+        Служба поддержки:<a href="mailto:support@kealabs.com">support@kealabs.com</a><br/>
+        Телефон: <span class="kea-phone">+7 (499) 110-71-87</span>
+        <div class="kea-button kea-error-button"> OK</div>
+    </div>
+    <div class="kea-finished-registration">
+        <h4>Спасибо за подключение!</h4> <br>
+        <p>Наша команда уже изучает ваш магазин. После этого мы проведем настройку сервиса и свяжемся с вами через
+        несколько часов. <br>
+        Напишите нам, если у вас есть вопросы: <a href="mailto:support@kealabs.com">support@kealabs.com</a><br>
+        Телефон: <span class="kea-phone">+7 (499) 110-71-87</span>
+        </p>
+        <div class="kea-button kea-finished-button"> OK</div>
+    </div>
+    <div class="kea-auto-registation">
+        Сервис автоматически синхронизировался с другим уже настроенным сервисом Kea Labs у вас в магазине!<br/>
+        <br/>
+        Наша команда уже изучает ваш магазин. После этого мы проведем настройку сервиса и свяжемся с вами через
+        несколько часов. <br>
+        Напишите нам, если у вас есть вопросы: <a href="mailto:support@kealabs.com">support@kealabs.com</a><br/>
+        Телефон: <span class="kea-phone">+7 (499) 110-71-87</span>
+        <div class="kea-button kea-finished-button"> OK</div>
+    </div>
+    <div class="kea-footer">
+        <div style="position: relative">
+            <div class="kea-footer-desc">
+                Напишите нам, если у вас есть вопросы: <a href="mailto:support@kealabs.com">support@kealabs.com</a><br>
+                Телефон: <span class="kea-phone">+7 (499) 110-71-87</span>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,383 @@
+<section class="s-new-transfer-wrapper" style="display:none;">
+<style>
+    .ui-menu .ui-menu-item-disabled {
+        margin: 0;
+        padding: 0;
+        zoom: 1;
+        float: left;
+        clear: left;
+        width: 100%;
+    }
+    .ui-menu .ui-menu-item-disabled a {
+        text-decoration: none;
+        display: block;
+        padding: .2em .4em;
+        line-height: 1.5;
+        zoom: 1;
+        color: gray;
+    }
+    .ui-menu .ui-menu-item-disabled a.ui-state-hover,
+    .ui-menu .ui-menu-item-disabled a.ui-state-active {
+        font-weight: normal;
+        margin: -1px;
+    }
+</style>
+<div id="s-new-transfer" class="s-new-transfer custom-mt-16">
+    <form method="post">
+        <div class="s-new-transfer__content">
+            <div class="s-new-transfer__content-inner">
+                {if empty($stocks)}
+                    <p class="small italic">
+                        {sprintf('[`Add at least one stock in your <a href="%s">store settings</a>.`]', '?action=settings#/stock')}
+                    </p>
+                {else}
+                    <div class="fields">
+                        <div class="field-group">
+                            <div class="flexbox middle full-width">
+                                <h3>
+                                    <span>[`New transfer`]</span>
+                                </h3>
+                                <div class="flexbox space-4">
+                                    <div class="wa-select small">
+                                        <select name="price_type">
+                                            <option value="base">[`Base price`]</option>
+                                            <option value="purchase">[`Purchase price`]</option>
+                                            <option value="none">[`Don’t autofill pricing`]</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="wa-select">
+                                        <select name="currency">
+                                            {foreach $currencies as $currency}
+                                                <option value="{$currency.code}" data-sign-html="{$currency.sign_html|escape}" data-sign-position="{$currency.sign_position}">{$currency.code}</option>
+                                            {/foreach}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name for-input">
+                                    [`ID`]
+                                </div>
+                                <div class="value">
+                                    <input type="text" name="string_id" value="{$string_id}" placeholder="{$string_id}" class="bold large">
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name for-input">
+                                    [`Source stock`]
+                                </div>
+                                <div class="value ">
+                                    <select name="from" class="text-ellipsis width-100-mobile">
+                                        <option value="0">[`New arrival (no source stock)`]</option>
+                                        {foreach $stocks as $stock}
+                                            <option value="{$stock.id}" {if $from == $stock.id}selected="selected"{/if}>{$stock.name|escape}</option>
+                                        {/foreach}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name for-input">
+                                    [`Destination stock`]
+                                </div>
+                                <div class="value ">
+                                    <select name="to">
+                                        <option value=""></option>
+                                        <option value="0" disabled>[`Write-off (no destination stock)`]</option>
+                                        {foreach $stocks as $stock}
+                                            <option value="{$stock.id}" {if $to == $stock.id}selected="selected"{/if}>{$stock.name|escape}</option>
+                                        {/foreach}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="name custom-pt-16">
+                                    [`Products`]
+                                </div>
+                                <div class="value">
+                                    <table class="zebra bigdata custom-mb-8 width-70 width-100-mobile">
+                                        <tbody class="s-transfer-products-list"></tbody>
+                                        <tfoot>
+                                            <tr class="s-transfer-product-item s-tmpl" style="display: none;" data-id="">
+                                                <td class="min-width custom-pr-4">
+                                                    <img class="s-product-img blank" src="{$wa_app_static_url}img/image-dummy.svg">
+                                                </td>
+                                                <td class="valign-middle" style="min-width:60px;">
+                                                    <a href="" class="s-product-name" target="_blank"></a>
+                                                    <span class="s-sku-name hint"></span>
+                                                </td>
+                                                <td class="min-width nowrap">
+                                                    &times;
+                                                    <span class="s-transfer-count">
+                                                        <input type="number" name="count[]" value="1" class="s-transfer-input-count small number bold shortest" disabled="disabled">
+                                                    </span>
+                                                    <input type="hidden" name="id[]" value="" disabled="disabled">
+                                                </td>
+                                                <td class="min-width nowrap">
+                                                    <input class="s-transfer-input-price small number bold shorter" type="text" name="price[]" value="" disabled="disabled">
+                                                </td>
+                                                <td class="min-width custom-pt-8">
+                                                    <a class="s-delete-item"><i class="fas fa-trash-alt text-red"></i></a>
+                                                </td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+
+                                    <input type="search" class="s-transfer-products-add-autocomplete search longer" placeholder="[`Enter a product name, an SKU name, or an SKU code`]">
+
+                                </div>
+                            </div>
+
+                            <!-- plugin hook: 'backend_stocks.%plugin_id%.transfer' -->
+                            {* @event backend_stocks.%plugin_id%.transfer *}
+                            {foreach $backend_stocks_hook as $_}{$_.transfer|default:''}{/foreach}
+
+                            <div class="field">
+                                <div class="value submit">
+                                    <button type="submit" class="button green" name="send">[`Create`]</button>
+                                    <button type="button" class="button light-gray js-close-new-transfer">[`Cancel`]</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {/if}
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    $(function () {
+
+        var $wrapper = $('#s-new-transfer'),
+            list = $('.s-transfer-products-list', $wrapper),
+            form = $('form', $wrapper),
+            count = 0;
+
+        var showValidateErrors = function (errors) {
+            $.each(errors, function(i, er) {
+                var el = er.name === 'id' ? list : form.find('[name="' + er.name + '"]');
+                el.addClass('state-error');
+
+                el = er.name === 'price[0]' ? form.find('[name="count[0]"]') : el;
+                var parent = el.parent();
+                parent.append('<div class="state-error-hint">' + er.msg + '</div>');
+            });
+        };
+
+        var clearValidateErrors = function () {
+            form.find('.state-error-hint').remove()
+                .end().find('.state-error').removeClass('state-error');
+        };
+
+        var disableHeaderSelects = function (disabled = true) {
+            $('select[name=price_type]').prop('disabled', disabled);
+            $('select[name=currency]').prop('disabled', disabled);
+        }
+
+        var renderItemCurrency = function ($item, data) {
+            var $selected_curerency_option = $('[name="currency"] option:selected');
+            var sign_position = $selected_curerency_option.data('sign-position');
+            var sign_html = $selected_curerency_option.data('sign-html');
+
+            var $td = $item.find('.s-transfer-input-price').closest('td');
+            if (sign_position === 1) {
+                $td.append(sign_html);
+            } else {
+                $td.prepend(sign_html);
+            }
+        }
+
+        var renderItem = function (data) {
+            var item = $('.s-transfer-product-item.s-tmpl', $wrapper).clone();
+            item.removeClass('s-tmpl');
+            item.attr('data-id', data.id);
+            item.find('a').attr('href', 'products/' + data.product_id + '/');
+            const image_url = data.sku_image_url || data.image_url;
+            if (image_url) {
+                item.find('img').removeClass('blank').attr('src', image_url);
+            }
+            item.find('.s-product-name').text(data.product_name);
+            item.find('.s-sku-name').text(data.name || data.sku_code);
+            item.find('[name="id[]"]').attr({
+                'disabled': false,
+                'name': 'id[' + count.toString() + ']'
+            }).val(data.id);
+            item.find('[name="count[]"]').attr({
+                'disabled': false,
+                'name': 'count[' + count.toString() + ']'
+            });
+
+            var price_val = '';
+            var price_type = $('select[name=price_type]').val();
+            if (price_type === 'base' && data.price) {
+                price_val = data.price;
+            } else if (price_type === 'purchase' && data.purchase_price) {
+                price_val = data.purchase_price;
+            }
+            item.find('[name="price[]"]').attr({
+                'disabled': false,
+                'name': 'price[' + count.toString() + ']'
+            }).val(price_val);
+
+            renderItemCurrency(item, data);
+
+            count++;
+            return item.show();
+        };
+
+        {foreach $skus as $sku}
+            list.append(renderItem({$sku|json_encode}));
+        {/foreach}
+
+        function submit(url, callback) {
+            clearValidateErrors();
+
+            const $submit = $('[name=send]');
+            $submit.prop('disabled', true);
+            let $loading = form.find('.js-loading');
+            if ($loading.length) {
+                $loading.remove();
+            }
+            $loading = $('<span class="js-loading"><i class="fas fa-spinner fa-spin custom-mr-4"></i></span>')
+                .prependTo($submit);
+
+            const resetSubmit = () => {
+                $loading.remove();
+                $submit.prop('disabled', false);
+            };
+
+            disableHeaderSelects(false);
+            const form_data = form.serialize();
+            disableHeaderSelects(true);
+
+            $.shop.jsonPost(
+                url,
+                form_data,
+                function (r) {
+                    // table
+                    $wrapper.trigger('afterSubmit', [r]);
+
+                    $('.js-close-new-transfer').trigger('click');
+                    resetSubmit()
+                    disableHeaderSelects(false);
+                },
+                function (r) {
+                    showValidateErrors(r.errors || []);
+                    resetSubmit()
+                }
+            );
+        };
+
+        var search_input = $('.s-transfer-products-add-autocomplete', $wrapper);
+        const getUnselectedItems = function (r) {
+            if (!Array.isArray(r) || !r.length) {
+                return r;
+            }
+
+            const selected_items = list.find('.s-transfer-product-item:not(.s-tmpl)');
+            if (!selected_items.length) {
+                return r;
+            }
+
+            const selected_ids = selected_items.toArray().map(el => String(el.dataset.id));
+            const result = r.filter(p => !selected_ids.includes(p.id));
+
+            return result;
+        };
+        search_input.autocomplete({
+            source: function (request, response) {
+                const selected_currency_val = $('select[name=currency]').val();
+                const currency_param = selected_currency_val ? '&currency=' + selected_currency_val : '';
+                $.getJSON(
+                    '?module=transfer&action=skus&stock_id=' + $('[name=from]').val() + currency_param,
+                    request,
+                    function (r) {
+                        response(getUnselectedItems(r));
+                    }
+                );
+            },
+            minLength: 3,
+            delay: 300,
+            open: function () {
+                $('.ui-menu-item .s-sku-disabled').each(function () {
+                    var el = $(this);
+                    var li = el.closest('.ui-menu-item');
+                    li.removeClass('ui-menu-item').addClass('ui-menu-item-disabled');
+                });
+            },
+            select: function (event, ui) {
+                if (ui.item.disabled) {
+                    search_input.val('');
+                    return false;
+                }
+                search_input.val('');
+                list.append(renderItem(ui.item));
+                disableHeaderSelects();
+                $('.s-transfer-product-item[data-id="'+ui.item.id+'"]').find('.s-transfer-input-count').focus();
+                return false;
+            }
+        });
+
+        list.on('click', '.s-delete-item', function () {
+            var el = $(this);
+            var item = el.closest('.s-transfer-product-item');
+            item.remove();
+            if (!$('.s-transfer-product-item:visible').length) {
+                disableHeaderSelects(false);
+            }
+            return false;
+        });
+
+        $.shop.changeListener(form, ':input', clearValidateErrors);
+        form.on('change', ':input', clearValidateErrors);
+
+        form.find('[name=send]').click(function () {
+            submit('?module=transfer&action=send');
+            return false;
+        });
+
+        form.find('[name=send_and_receive]').click(function () {
+            submit('?module=transfer&action=sendAndReceive');
+            return false;
+        });
+
+        (function (select) {
+            var last_selected = select.find('option:selected').val();
+            select.change(function () {
+                var len = form.find('.s-transfer-products-list').children().length
+                var current_selected = $(this).val();
+
+                var $stock_to = form.find('[name=to]');
+                $stock_to.find('option[value="0"]').prop('disabled', current_selected === '0');
+                $stock_to.find('option:first').prop('selected', current_selected === '0' && $stock_to.val() === null);
+
+                if (len > 0) {
+                    var msg = $_(len, "You’ve added %d product to this transfer already. Are you sure you want to change the source stock?")
+                    msg = msg.replace('%d', len);
+
+                    $.waDialog.confirm({
+                        title: msg,
+                        success_button_title: 'OK',
+                        success_button_class: 'success',
+                        cancel_button_title: $_('Cancel'),
+                        cancel_button_class: 'light-gray',
+                        onSuccess: function() {
+                            last_selected = current_selected;
+                        },
+                        onCancel: function() {
+                            select.val(last_selected);
+                        }
+                    });
+                } else {
+                    last_selected = current_selected;
+                }
+            });
+        })(form.find('[name=from]'));
+
+        $('.js-close-new-transfer').on('click', function () {
+            $('#s-new-transfer-product').trigger('click');
+        });
+    });
+</script>
+</section>

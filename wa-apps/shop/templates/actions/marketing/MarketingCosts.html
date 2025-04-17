@@ -1,0 +1,205 @@
+{$_cost_id = waRequest::request("cost_id", null)}
+{$_promo_id = waRequest::request("promo_id", null)}
+{$_start_date = waRequest::request("start_date", null)}
+{$_finish_date = waRequest::request("finish_date", null)}
+
+<div class="article wider">
+<div class="article-body">
+
+{* PAGE *}
+<div class="s-costs-page" id="js-costs-page">
+    {* HEADER *}
+    <header class="s-page-header">
+
+        <div class="flexbox middle wrap">
+            <h1 class="s-title wide">[`Marketing costs`]</h1>
+            <div class="flexbox middle space-8">
+
+                {$_groupby = waRequest::request("groupby", "days")}
+                {$_timeframe = waRequest::get("timeframe", "30")}
+                {$_from = waRequest::request("from", null)}
+                {$_to = waRequest::request("to", null)}
+
+                {$_time_filters = [
+                    "30" => [
+                        "id" => "30",
+                        "name" => _w('Last %d day', 'Last %d days', 30),
+                        "uri" => "`$marketing_url`costs/?timeframe=30&groupby=days"
+                    ],
+                    "90" => [
+                        "id" => "90",
+                        "name" => _w('Last %d day', 'Last %d days', 90),
+                        "uri" => "`$marketing_url`costs/?timeframe=90&groupby=days"
+                    ],
+                    "365" => [
+                        "id" => "365",
+                        "name" => _w('Last %d day', 'Last %d days', 365),
+                        "uri" => "`$marketing_url`costs/?timeframe=365&groupby=months"
+                    ],
+                    "all" => [
+                        "id" => "all",
+                        "name" => _w("All time"),
+                        "uri" => "`$marketing_url`costs/?timeframe=all&groupby=months"
+                    ],
+                    "custom" => [
+                        "id" => "custom",
+                        "name" => _w("Select dates..."),
+                        "uri" => "javascript:void(0);"
+                    ]
+                ]}
+
+                {$_active_time_filter = $_time_filters["90"]}
+                {if !empty($_timeframe) && !empty($_time_filters[$_timeframe])}
+                    {$_active_time_filter = $_time_filters[$_timeframe]}
+                {/if}
+
+
+                <div class="s-timeframe-custom js-timeframe-custom" style="{if $_active_time_filter.id !== "custom"}display: none{/if}">
+                    <form class="flexbox middle">
+                        [`from`]
+
+                        <label class="s-datepicker-wrapper state-with-inner-icon right custom-ml-4 custom-mr-8">
+                            <input type="hidden" name="from" value="{$_from|default:""|escape}">
+                            <input class="s-datepicker js-datepicker" type="text" value="{if !empty($_from)}{$_from|wa_date}{/if}" data-alt="input[name='from']">
+                            <span class="icon"><i class="fas fa-calendar-alt"></i></span>
+                        </label>
+
+                        [`to`]
+
+                        <label class="s-datepicker-wrapper state-with-inner-icon right custom-ml-4">
+                            <input type="hidden" name="to" value="{$_to|default:""|escape}">
+                            <input class="s-datepicker js-datepicker" type="text" value="{if !empty($_to)}{$_to|wa_date}{/if}" data-alt="input[name='to']">
+                            <span class="icon"><i class="fas fa-calendar-alt"></i></span>
+                        </label>
+
+                        <div class="wa-select">
+                            <select name="groupby">
+                                <option value="days" {if $_groupby === "days"}selected{/if}>[`by day`]</option>
+                                <option value="months" {if $_groupby === "months"}selected{/if}>[`by month`]</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="js-use-custom-timeframe">[`Apply`]</button>
+
+                        <input name="timeframe" value="custom" type="hidden">
+                    </form>
+                </div>
+
+                <div class="dropdown js-timeframe-filter">
+                    <button class="dropdown-toggle button light-gray" type="button">{$_active_time_filter.name|escape}</button>
+                    <div class="dropdown-body right">
+                        <ul class="menu">
+                            {foreach $_time_filters as $_filter}
+                                <li class="{if $_filter.id === $_active_time_filter.id}selected{/if}">
+                                    <a class="js-set-timeframe" data-id="{$_filter.id|escape}" href="{$_filter.uri|escape}">{$_filter.name|escape}</a>
+                                </li>
+                            {/foreach}
+                            </li>
+                        </ul>
+                    </div>
+
+
+                    <script>
+                        ( function($) {
+                            $(".js-timeframe-filter").waDropdown({
+                                items: ".menu > li"
+                            });
+                        })(jQuery);
+                    </script>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    {* BODY *}
+    <div class="s-page-body">
+
+        {* CHART *}
+        <div class="s-graph-section fields" id="costs_graph">
+            <div class="s-graph-wrapper fields-group"></div>
+            <div class="s-hint-wrapper"></div>
+        </div>
+
+        {* EDITOR *}
+        <div id="s-mcosts-editor-wrapper" style="display:none;"></div>
+
+        {* ADD *}
+        <div class="custom-mt-40 custom-mb-12">
+            <button class="button light-gray rounded" id="s-new-expense-button">
+                <i class="fas fa-plus-circle text-green"></i>
+                [`Add expense`]
+            </button>
+        </div>
+
+        {* BOTTOM TABLE *}
+        <div>
+            {if count($expenses)}
+                <table class="zebra single-lined blank">
+                    <tbody id="s-reports-marketing-costs-table">
+                        {include file="./MarketingCostRows.html" inline}
+                    </tbody>
+                </table>
+            {else}
+                <table class="zebra single-lined blank hidden"><tbody id="s-reports-marketing-costs-table"></tbody></table>
+                <div class="empty expense-row custom-mt-16">
+                    <h3 class="custom-mb-12">[`No marketing expenses on the selected period`]</h3>
+                    <p class="gray small custom-mt-0" class="gray small">[`Add your marketing expenses to automate ROI (Return On Investment) calculation by traffic source and campaign.`]</p>
+                </div>
+            {/if}
+        </div>
+
+        <div class="box align-center">
+            <a href="javascript:void(0)" id="load-more-link" {if $limit > count($expenses)} style="display:none"{/if}>[`Load more...`]</a>
+        </div>
+    </div>
+
+    <script>
+        ( function($) { "use strict";
+            $.shop.marketing.setTitle({_w("Marketing costs")|json_encode});
+
+            var sources = [{
+                id: "wa-shop-marketing-costs-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/marketing/costs.js?v={$wa->version()}"
+            },{
+                id: "wa-content-d3-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/d3/d3.min.js?v={$wa->version(true)}"
+            },{
+                id: "wa-content-color-picker-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/farbtastic/farbtastic.js?v={$wa->version(true)}"
+            },{
+                id: "wa-content-color-picker-css",
+                type: "css",
+                uri: "{$wa_url}wa-content/js/farbtastic/farbtastic.css?v={$wa->version(true)}"
+            }];
+
+            $.shop.marketing.load(sources).then( function() {
+                $.shop.marketing.init.costsPage({
+                    $wrapper: $("#js-costs-page"),
+                    chart_data: {$graph_data|json_encode},
+                    request_options: {$request_options|json_encode},
+                    errors: {if !empty($errors)}{$errors|json_encode}{else}[]{/if},
+                    limit: {$limit|json_encode},
+
+                    cost_id: {if !empty($_cost_id)}{$_cost_id|json_encode}{else}null{/if},
+                    promo_id: {if !empty($_promo_id)}{$_promo_id|json_encode}{else}null{/if},
+                    start_date: {if !empty($_start_date)}{$_start_date|json_encode}{else}null{/if},
+                    finish_date: {if !empty($_finish_date)}{$_finish_date|json_encode}{else}null{/if},
+
+                    urls: {
+                        "dir_root": "{$marketing_url}costs/"
+                    },
+                    locales: {
+                        "saved": {_w("Saved")|json_encode},
+                        "confirm": {_w("Are you sure?")|json_encode}
+                    }
+                });
+            });
+        })(jQuery);
+    </script>
+</div>
+
+</div>
+</div>

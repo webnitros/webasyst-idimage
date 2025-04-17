@@ -1,0 +1,451 @@
+{$is_view_split_pos = $view === 'split' && !empty($params.viewpos)}
+{function name="dummy_no_orders" target=body}
+<i class="fas fa-shopping-cart text-light-gray opacity-80" style="font-size: {if $target === 'body'}10{else}6{/if}rem; margin-right: 1.5rem;"></i>
+    {if $is_orders_empty}
+        <p class="gray {if $target !== 'body'}small{/if}">[`New orders will start to land here shortly.`]</p>
+        {if !$is_view_split_pos}
+            {if shopHelper::isSettingsMarketplacesSectionVisible()}
+                <a class="button rounded light-gray{if $target !== 'body'} small{/if}" href="{$wa_app_url}?action=settings#/marketplaces/">[`Set up sales channels`]</a>
+                <a class="button rounded custom-mt-16 nobutton{if $target !== 'body'} small{/if}" href="[`https://support.webasyst.com/shop-script/45384/getting-your-first-sale/`]" target="_blank">[`How to get my first order`] <i class="fas fa-external-link-alt opacity-50 fa-xs"></i></a>
+            {else}
+                <a class="button rounded light-gray{if $target !== 'body'} small{/if}" href="[`https://support.webasyst.com/shop-script/45384/getting-your-first-sale/`]" target="_blank">[`How to get my first order`] <i class="fas fa-external-link-alt opacity-50 fa-xs"></i></a>
+            {/if}
+        {/if}
+    {else}
+        <p class="gray {if $target !== 'body'}small{/if}">[`There are no orders in this view.`]</p>
+    {/if}
+
+    {if $is_view_split_pos}
+        <a class="button rounded light-gray small" href="?action=settings#/pos/"><i class="fas fa-cog fa-sm text-gray"></i> [`Set up POS`]</a>
+    {/if}
+{/function}
+{capture assign="_dummy_no_orders_body"}
+<div class="content contentbox box not-blank width-100 s-no-orders-{$view} js-no-orders" style="min-height: calc(100vh - 3.5rem - 50px); display: grid; place-items:center">
+    <div class="align-center">
+        {if $view == 'split'}
+            <i class="fas fa-store text-light-gray opacity-20" style="font-size: 10rem; margin-right: 1.5rem;"></i>
+        {else}
+            {dummy_no_orders}
+        {/if}
+    </div>
+</div>
+{/capture}
+{capture assign="_dummy_kanban_premium"}
+    <div class="s-kanban flexbox js-fix-max-width" style="max-width: calc(100vw - 18rem);">
+        <div class="flexbox fixed space-12 width-100">
+            {for $i=1 to 4}
+                <div class="s-kanban__list">
+                    <div class="s-kanban__list__body hide-scrollbar custom-px-12">
+                        <div class="s-kanban__list__body__footer"></div>
+                    </div>
+                    <div class="s-kanban__list__fade"></div>
+                </div>
+            {/for}
+        </div>
+        <div class="s-kanban-premium">
+            {include file="templates/includes/availableWithPremiumAlert.html" title="[`Kanban`]" inline}
+        </div>
+    </div>
+{/capture}
+
+{if empty($orders)}
+    {if $view !== 'kanban'}
+        {if $view == 'split'}
+        <div class="sidebar blank width-adaptive-widest wide-mobile overflow-visible" id="s-orders">
+            <div class="sidebar-header" style="position: sticky; top: 0; z-index: 1;"></div>
+            <div class="sidebar-body">
+                <div class="width-100 align-center custom-mt-32">
+                    {dummy_no_orders target=sidebar}
+                </div>
+            </div>
+        </div>
+        {/if}
+        {$_dummy_no_orders_body}
+    {else}
+        <link href="{$wa_app_static_url}css/backend/orders/kanban.css?v={$wa->version()}" rel="stylesheet" />
+        {if shopLicensing::isPremium()}
+        <div class="s-kanban flexbox js-fix-max-width" style="max-width: calc(100vw - 18rem);">
+            <div class="flexbox fixed space-12 width-100">
+                {foreach $state_names as $state}
+                <div class="s-kanban__list">
+                    <div class="flexbox middle custom-p-12">
+                        <div class="wide text-ellipsis" style="color:{$state.options.style.color|escape};font-weight:{$state.options.style['font-weight']|escape|default:'normal'};" data-wa-tooltip-content="{$state.name|escape}">
+                            <span class="s-status-wrapper large nowrap">
+                                <i class="{$wa->shop->convertIcon({$state.options.icon|escape})}"></i> {$state.name|escape}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="s-kanban__list__count gray bold" data-status-id="processing">0</span>
+                        </div>
+                    </div>
+                    <div data-kanban-list-status-id="processing" data-kanban-list-total="0" class="s-kanban__list__body hide-scrollbar custom-px-12">
+                        <div class="s-kanban__list__body__footer">
+                            <div class="spinner custom-p-8 js-kanban-spinner" style="display: none;"></div>
+                        </div>
+                    </div>
+                    <div class="s-kanban__list__fade"></div>
+                </div>
+                {/foreach}
+            </div>
+        </div>
+        {else}
+            {$_dummy_kanban_premium}
+        {/if}
+    {/if}
+{else}
+<div class="{if $view != 'table' && $view != 'kanban'}sidebar flexbox vertical blank width-adaptive-widest wide-mobile {else}width-100{/if} overflow-visible" id="s-orders">
+    {if $view == 'split'}
+        <div class="sidebar-header"></div>
+    {/if}
+    <div{if $view != 'table' && $view != 'kanban'} class="s-orders-body wide" style="min-height: 0;"{/if}>
+        {if $view == 'split'}
+            <ul class="list s-orders" id="order-list">
+            </ul>
+            {capture name="template-order-list-split"}
+                {literal}
+                {% var orders = o.orders; %}
+                {% for (var i = 0, n = orders.length; i < n; i += 1) { %}
+                    {% var order = orders[i]; %}
+                    <li class="item order s-order-status-pending{% if (order.unsettled==='1') { %} s-unsettled{% } %} width-100-mobile" data-order-id="{%#order.id%}" data-state-id="{%#order.state_id%}">
+
+                        {% if (!$.isEmptyObject(order.contact)) { %}
+                            <a class="image" href="#/orders/{/literal}{if $params_str}{$params_str}&{/if}{literal}id={%#order.id%}/">
+                                <img src="{%#order.contact.photo_50x50%}" class="userpic userpic-48">
+                            </a>
+                            {% var state_color = '#ccc'; %}
+                            {% var state_name = ''; %}
+                            {% var paid_state_name = ''; %}
+                            {% if (order.state_id in o.states) { %}
+                                {% state_color = o.states[order.state_id].options.style.color; %}
+                                {% state_name = o.states[order.state_id].name; %}
+                                {% paid_state_name = o.states.paid.name; %}
+                            {% } %}
+                            <a class="details" href="#/orders/{/literal}{if $params_str}{$params_str}&{/if}{literal}id={%#order.id%}/">
+                                {% include('template-order-list-split-details', { order: order, state_color: state_color, state_name: state_name, paid_state_name: paid_state_name }); %}
+                            </a>
+                        {% } %}
+
+                    </li>
+                {% } %}
+                {/literal}
+            {/capture}
+            {capture name="template-order-list-split-details"}
+                {literal}
+                    <div class="flexbox middle nowrap space-8 full-width small">
+                        <span class="flexbox middle space-8">
+                            <strong class="s-order-status-badge badge uppercase small" style="background-color: {%#o.state_color%};" title="{%#o.state_name%}">
+                                <span class="text-ellipsis">{%#o.state_name%}</span>
+                            </strong>
+                            {% if ((o.order.params?.sales_channel||'').substr(0, 4) === 'pos:') { %}
+                            <i class="fas fa-cash-register text-light-gray"></i>
+                            {% } %}
+                        </span>
+                        <span class="count align-right">
+                            {% if (o.order.paid_date) { %}
+                            <span class="text-green custom-ml-4 cursor-pointer" data-wa-tooltip-content="[`Paid`] {% if (o.order.paid_datetime_str) { %}{%#o.order.paid_datetime_str%}{% } else { %}{%#o.order.paid_date_str%}{% } %}" data-wa-tooltip-placement="left">
+                                <i class="fas fa-check-circle"></i>
+                            </span>
+                            {% } %}
+                            <strong class="black semibold {%=(o.order.state_id == 'new') ? 'highlighted' : '' %}">{%#o.order.total_str%}</strong>
+                        </span>
+                    </div>
+
+                    <p class="small custom-mb-4">
+                        <span class="semibold custom-mr-4">{%#o.order.id_str%}</span>
+                        {% if (o.order.contact.name) { %}
+                            <span class="opacity-80 break-words">{%#o.order.contact.name%}</span>
+                        {% } %}
+                    </p>
+                    <p class="hint">
+                        <span class="gray">[`Created`] {%#o.order.create_datetime_str%}</span>
+                        {% if (o.order.paid_date) { %}
+                            <br><span class="gray">[`Paid`] {% if (o.order.paid_datetime_str) { %}{%#o.order.paid_datetime_str%}{% } else { %}{%#o.order.paid_date_str%}{% } %}</span>
+                        {% } %}
+                    </p>
+                {/literal}
+            {/capture}
+        {elseif $view == 'table'}
+            <div class="dropdown js-selection-dropdown custom-mx-16 custom-my-4 s-orders-selection-menu" id="s-orders-selection-menu" style="display: none;">
+                <label>
+                    <span class="wa-checkbox">
+                        <input type="checkbox" name="" class="s-order-list-select-all">
+                        <span>
+                            <span class="icon">
+                                <i class="fas fa-check"></i>
+                            </span>
+                        </span>
+                    </span>
+                </label>
+                <a href="#" class="dropdown-toggle button small nobutton custom-ml-4" data-sort="">
+                    [`With selected`]
+                    <i class="fas fa-spin fa-spinner loading js-selection-menu-loading" style="display: none"></i>
+                </a>
+
+                <div class="dropdown-body" style="">
+                    <ul class="menu wf-actions">
+                        {foreach $actions as $a_id => $a}
+
+                            {$_available_for_states = $a.available_for_states|default:[]}
+                            {$_available_for_states_str = $a.available_for_states|join:','}
+
+                            <li class="disabled s-wf-action-item js-wf-action-item" data-action-id="{$a_id}" data-available-for-states="{$_available_for_states_str|escape}">
+                                <a href="javascript:void(0);" data-action-id="{$a_id}">{$a['name']}</a>
+                            </li>
+                        {/foreach}
+                    </ul>
+                </div>
+            </div>
+
+            <div id="skeleton_table">
+                {include './skeleton/table.html' no_sidebar=true inline}
+            </div>
+            <div class="s-order-table-wrapper scrollable-x">
+                <table class="zebra bigdata s-order-table custom-mt-0 single-lined" id="order-list" data-skeleton="#skeleton_table">
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            {capture name="template-order-list-table"}
+                {include file='./include.template_order_list_table.html' inline}
+            {/capture}
+        {elseif $view == 'kanban'}
+            <link href="{$wa_app_static_url}css/backend/orders/kanban.css?v={$wa->version()}" rel="stylesheet" />
+            {if shopLicensing::isPremium()}
+                <script src="{$wa_app_static_url}js/backend/orders/kanban.js?v={$wa->version()}"></script>
+                <script>
+                    Kanban.init({
+                        filter_params: {json_encode($params)},
+                        filter_params_str: '{$params_str}',
+                        state_transitions: {$state_transitions|json_encode},
+                        locale: {
+                            'no_action_for_states': {_w("No actions are available to transfer orders to this status.")|json_encode},
+                            'action_requires_user_input': {_w("The action transferring orders to this status requires additional data. Please use the action button on the order-viewing screen.")|json_encode}
+                        }
+                    })
+                </script>
+
+                <div id="skeleton_kanban">
+                    {include './skeleton/kanban.html' select='kanban' no_sidebar=true inline}
+                </div>
+                <div class="s-kanban flexbox js-fix-max-width">
+                    <div class="flexbox fixed space-12 width-100" id="order-list" data-skeleton="#skeleton_kanban"></div>
+                </div>
+
+                {capture name="template-order-list-kanban"}
+                    {include file='./include.template_order_list_kanban.html' inline}
+                {/capture}
+                {capture name="template-order-list-kanban-card"}
+                    {include file='./include.template_order_list_kanban_card.html' inline}
+                {/capture}
+            {else}
+                {$_dummy_kanban_premium}
+            {/if}
+        {/if}
+
+        {if $view != 'kanban'}
+        <div class="lazyloading-wrapper small {if $view == 'table'}custom-ml-16{else}custom-pb-20{/if}">
+            <div class="lazyloading-progress-string custom-mb-16">{_w('%d order','%d orders', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div>
+            {if $count < $total_count}
+                <div>
+                    <a href="javascript:void(0);" class="lazyloading-link custom-mb-24">[`Show more orders`]</a>
+                </div>
+            {/if}
+            <span class="lazyloading-progress" style="display:none">
+                <i class="fas fa-spinner fa-spin"></i> [`Loading`] <span class="lazyloading-chunk">{_w('%d order', '%d orders', min($total_count - $count, $count))}...</span>
+            </span>
+        </div>
+        {/if}
+    </div>
+
+    {if $view == 'split'}
+        <div class="s-tiny-ad">
+
+            {if !empty($show_mobile_ad)}
+                <div class="s-tiny-ad-box">
+
+                    <a href="javascript:void(0)" class="s-tiny-ad-close" data-key="mobile" title="[`Close`]">&times;</a>
+                    <h5 class="heading"><span><span class="icon custom-mr-8"><img src="{$wa_app_static_url}img/shop.svg" style="width: 20px; height: 20px; position: relative; top: -2px;" alt="Shop-Script" /></span> [`Mobile app`]</span></h5>
+
+                    <div class="flexbox space-12">
+                        <div>
+                            <a href="https://apps.apple.com/{if $wa->locale() == 'ru_RU'}ru{else}us{/if}/app/webasyst-shop-script/id6443853956" target="_blank">
+                                <img src="{$wa_app_static_url}img/badge-appstore{if $wa->locale() == 'ru_RU'}-ru{else}-en{/if}.png" class="s-mobile-badge" alt="App Store">
+                            </a>
+                            <a href="https://play.google.com/store/apps/details?id=com.webasyst.shopscript" target="_blank">
+                                <img src="{$wa_app_static_url}img/badge-google-play{if $wa->locale() == 'ru_RU'}-ru{else}-en{/if}.png" class="s-mobile-badge" alt="Google Play">
+                            </a>
+                            {if $wa->locale() == 'ru_RU'}
+                                <a href="https://apps.rustore.ru/app/com.webasyst.shopscript" target="_blank">
+                                    <img src="{$wa_app_static_url}img/badge-rustore.svg" class="s-mobile-badge" alt="RuStore">
+                                </a>
+                            {/if}
+                        </div>
+
+                        <div class="align-center middle">
+                            <a href="https://www.webasyst.{if $wa->locale() == 'ru_RU'}ru{else}com{/if}/mobile/" target="_blank">
+                                <img src="https://www.webasyst.{if $wa->locale() == 'ru_RU'}ru{else}com{/if}/wa-apps/site/themes/webasystcom/img/mobile-qr-{if $wa->locale() == 'ru_RU'}ru{else}en{/if}.webp" class="s-mobile-qr {if $wa->locale() != 'ru_RU'}s-tiny{/if}" />
+                            </a>
+                            <p class="custom-mt-4 small{if $wa->locale() != 'ru_RU'} s-tiny{/if}">
+                                [`Install Shop-Script mobile app on your phone today:`]
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {elseif !empty($show_premium_ad)}
+                <div class="s-tiny-ad-box">
+                    <a href="javascript:void(0)" class="s-tiny-ad-close" data-key="premium" title="[`Close`]">&times;</a>
+                    {include file="templates/includes/availableWithPremiumAlert.html"
+                        size_tiny=true
+                        title="[`Go premium`]"
+                        body="[`Unlock advanced features to boost your business growth.`]"
+                        button="[`What’s there in premium?`]"
+                    inline}
+                </div>
+            {/if}
+        </div>
+    {/if}
+</div>
+
+{if $view == 'split'}
+<div class="width-100" id="skeleton_split">
+    {include './skeleton/split.html' no_sidebar=true inline}
+</div>
+{/if}
+<div class="content desktop-and-tablet-only hide-scrollbar" id="s-order" {if $view == 'table' || $view == 'kanban'}style="display:none;"{/if} {if $view == 'split'}data-skeleton="#skeleton_split"{/if}></div>
+{capture name="template-order-list-printforms-menu-items"}
+    {literal}
+        {% var printform, printform_iterator = $.shop.iterator(o.printforms); %}
+        {% if (printform_iterator.len() > 0) { %}
+            <li class="s-printform-item-sep"></li>
+            {% while (printform = printform_iterator.next()) { %}
+                <li class="s-printform-item">
+                    <label>
+                        <span class="wa-checkbox">
+                            <input type="checkbox" checked="true" data-id="{%#printform_iterator.key()%}" value="{%#printform.url%}">
+                            <span>
+                                <span class="icon">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                            </span>
+                        </span>
+                        <span {% if (!printform.all) { %}style="opacity: 0.5;"{% } %}>
+                            {%=printform.name%}
+                            {% if (printform.owner_name) { %}
+                                —
+                                {%=printform.owner_name%}
+                            {% } %}
+                        </span>
+                    </label>
+                </li>
+            {% } %}
+            <li class="s-printform-item-button">
+                <input type='button' class="small" value="[`Print`]">
+            </li>
+        {% } %}
+    {/literal}
+{/capture}
+
+{* js templates block*}
+
+{foreach ifempty($smarty.capture, []) as $template => $template_content}
+    {if $template_content && (strpos($template, 'template-')===0)}
+        <script id="{$template}" type="text/html">
+            {$template_content|replace:'</':'<\/'}
+        </script>
+        {capture name=$template}{/capture}
+    {/if}
+{/foreach}
+
+{/if}
+
+{if $is_view_split_pos}
+<script src="{$wa_app_static_url}js/backend/orders/sales-stats.js?v{$wa->version()}"></script>
+{/if}
+<script>
+( function($) {
+    const state_icons = {};
+    {if $state_names}
+        {foreach $state_names as $state_id => $state_name}
+            state_icons['{$state_id}'] = '{$wa->shop->convertIcon({$state_name.options.icon})}'
+        {/foreach}
+    {/if}
+
+    $('#skeleton_{$view}').skeletonLoader({
+        content: '[data-skeleton="#skeleton_{$view}"]',
+        delay: 10,
+        show: true,
+        deleteSkeleton: false
+    });
+
+    $.order_list.init({
+        id: {if $view != 'table' && !empty($order.id)}{$order.id}{else}0{/if},
+        view: '{$view}',
+        plugin_hash: '{$plugin_hash}',
+        filter_params: {json_encode($params)},
+        filter_params_str: {$params_str|json_encode},
+        filter_params_extended: {$params_extended|json_encode},
+        orders: {json_encode($orders)},
+        total_count: {$total_count},
+        total_processing: {$total_processing|json_encode},
+        all_order_state_ids: {$all_order_state_ids|json_encode},
+        count: {$count},
+        lazy_loading: {
+            auto: {if $view == 'kanban'}false{else}true{/if}
+        },
+        update_process: {
+            timeout: {$timeout},
+            last_update_datetime: {$last_update_datetime|json_encode}
+        },
+        title_suffix: '{' — '|cat:{$wa->accountName(false)}|escape:'javascript'}',
+        state_names: {json_encode($state_names)},
+        state_icons,
+        counters: {json_encode($counters)},
+        state_counters: {json_encode($state_counters)},
+        $selectionMenu: $("#s-orders-selection-menu"),
+        sort: {$sort|json_encode},
+        locale: {
+            'error': "[`An error occurred`]"
+        },
+        templates: {
+            dummy_no_orders_body: {$_dummy_no_orders_body|json_encode}
+        }
+    });
+
+    if ('{$view}' === 'split') {
+        const class_hide_mobile = 'desktop-and-tablet-only';
+        if (new RegExp('id=\\d+').test(window.location.hash)) {
+            $('#s-order').removeClass(class_hide_mobile);
+            $('#s-orders').addClass(class_hide_mobile);
+        } else {
+            $('#skeleton_split').addClass(class_hide_mobile);
+        }
+
+        $(".s-tiny-ad .s-tiny-ad-close").on('click', function (e) {
+            e.preventDefault();
+            $(this).closest('.s-tiny-ad').hide();
+            $.post("{$wa_app_url}?module=backend&action=sidebarMenuSaveState", {
+                {if !empty($show_mobile_ad)}hide_mobile_ad{else}hide_premium_ad{/if}: 1
+            });
+        });
+    }
+
+    {if $is_view_split_pos}
+    $.orders_sales.init({
+        $wrapper: $('#js-orders-stats'),
+        preloaded_html: {$orders_sales_html|default:null|json_encode},
+        date: {$params.viewpos|json_encode}
+    });
+    {/if}
+})(jQuery);
+
+
+$(window).off('wa_loaded').on('wa_loaded', function (e, view) {
+    if (view.includes('{$view}')) {
+        $.skeletonLoader.hide();
+    }
+});
+
+(function() {
+    $("#s-orders [data-wa-tooltip-content]").waTooltip();
+})();
+</script>

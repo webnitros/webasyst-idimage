@@ -1,0 +1,350 @@
+.kea-button {
+    background-color: #90C025 !important;
+    border-color: #80ab21 !important;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    text-align: center;
+    padding: 10px 0px;
+    width: 242px;
+    border-style: initial;
+    border-radius: 2px;
+    transform: perspective(1px) translateZ(0);
+    box-shadow: 0 0 1px transparent;
+    -webkit-transition-duration: 0.3s;
+    transition-duration: 0.3s;
+    -webkit-transition-property: transform;
+    transition-property: transform;
+}
+
+.kea-button-disabled {
+    background-color: #bebebf !important;
+    border-color: #a6a5ab !important;
+}
+
+.kea-tab-white {
+    background-color: #ffffff !important;
+    border-color: #80ab21 !important;
+    color: black;
+    cursor: pointer;
+    font-size: 16px;
+    text-align: center;
+    padding: 10px 0px;
+    z-index: 0;
+    width: 208px;
+    position: relative;
+    border-style: initial;
+    box-shadow: 0px 4px 15px rgba(0,0,0,0.5);
+}
+.kea-tab-white:focus {
+    outline: none;
+}
+.kea-tab-white:hover {
+    background-color: white !important;
+    border: 0px !important;
+    color: black;
+}
+
+.kea-tab {
+    background-color: #90C025 !important;
+    border-color: #80ab21 !important;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    text-align: center;
+    padding: 10px 0px;
+    width: 208px;
+    border-style: initial;
+    box-shadow: 2px 3px 10px rgba(0,0,0,0.5);
+}
+.kea-tab:focus {
+    outline: none;
+}
+.kea-tab:hover {
+    background-color: #658a39;
+    border-color: #658a39;
+}
+
+.kea-button:focus {
+    outline: none;
+}
+.kea-button:hover {
+     background-color: #658a39;
+     border-color: #658a39;
+ }
+.kea-button-white {
+    background-color: #ffffff !important;
+    border-color: #80ab21 !important;
+    color: black;
+}
+.kea-tabs {
+    text-align: left;
+}
+/*.kea-field-error {*/
+    /*position: absolute;*/
+    /*!* right: -95px; *!*/
+    /*background: #b13b3b;*/
+    /*padding: 3px;*/
+    /*border-radius: 3px;*/
+    /*color: white;*/
+    /*font-size: 12px;*/
+    /*width: 237px;*/
+    /*top: 2px;*/
+/*}*/
+.kea-field-error {
+    position: relative;
+    /* background: #b13b3b; */
+    /* border: 2px solid #b13b3b; */
+    color: #a70000;
+    /* margin-top: 2px; */
+    padding: 2px 0px 2px 2px;
+    border-radius: 2px;
+}
+#kea-not-configured {
+    width: 900px;
+    margin: 0 auto;
+}
+
+#kea-new-account {
+    text-align: left;
+    padding: 20px;
+    background: #fff;
+    z-index: 0;
+    position: relative;
+    box-shadow: 0px 6px 7px rgba(0,0,0,0.5);
+}
+
+#plugins-settings-form {
+    text-align: left;
+    padding: 20px;
+    background: #fff;
+    z-index: 0;
+    position: relative;
+}
+
+.kea-text-centered {
+    text-align: center!important;
+}
+.kea-box-shadow-6 {
+    box-shadow: 0px 6px 7px rgba(0,0,0,0.5);
+}
+.kea-box-shadow-0 {
+    box-shadow: 0px 0px 7px rgba(0,0,0,0.5);
+}
+
+.kea-info {
+    width: 100%;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+.kea-info p {
+    margin-bottom: 0px;
+    font-size: 13px;
+}
+.kea-fields {
+    display: inline-block;
+    vertical-align: top;
+}
+#plugins-settings-form .kea-feature-list img {
+    display: block;
+    margin: 0 auto;
+    width: 170px;
+    border: 1px solid #ddd;
+}
+#plugins-settings-form .kea-button {
+    margin-top: 80px;
+}
+.kea-text-center {
+    text-align: center;
+}
+.kea-cp-link:hover {
+    color: #769c22!important;
+}
+.kea-cp-link:visited {
+    color: #769c22!important;
+}
+.kea-cp-link {
+    margin: auto;
+    cursor: pointer;
+    padding: 8px;
+    text-decoration: underline;
+    font-size: 16px;
+    color: #90c025;
+}
+.kea-feature-list ul li {
+    margin: 6px 0px;
+}
+.kea-feature-list ul {
+    margin-top: 0px;
+    padding-left: 35px;
+    list-style-image: url('/wa-apps/shop/plugins/kealabs/img/ico-check-xs.png');
+}
+.kea-feature-list  {
+    display: inline-block;
+    width: 305px;
+}
+.kea-feature-list p {
+    padding: 15px 15px;
+    text-align: center;
+    margin-bottom: 0px;
+}
+.kea-feature-list a {
+    display: block;
+    text-align: center;
+}
+.kea-head {
+    background: #26150e;
+    color: whitesmoke;
+    padding: 10px 0px;
+}
+.kea-head .kea-wrapper img {
+    position: absolute;
+    right: 0px;
+    top: -59px;
+}
+.kea-head .kea-wrapper {
+    margin: 0 auto;
+    width: 800px;
+    position: relative;
+}
+.kea-head h1 {
+    color: #90C025;
+}
+.kea-head h3 {
+    margin-bottom: 0px;
+}
+.kea-container {
+    width: 600px;
+    margin: 0 auto;
+}
+.kea-footer {
+    height: 50px;
+    width: 100%;
+    background: #26150e;
+    position: absolute;
+    bottom: 0px;
+    line-height: 16px;
+}
+.kea-footer .kea-footer-desc a:hover {
+    color: #719b22!important;
+}
+.kea-footer .kea-footer-desc a:visited {
+    color: #719b22!important;
+}
+.kea-footer .kea-footer-desc a {
+    color: #90C025;
+    cursor: pointer;
+}
+.kea-footer .kea-footer-desc {
+    color: white;
+    font-size: smaller;
+    position: absolute;
+    right: 5px;
+    text-align: right;
+    bottom: -40px;
+}
+.kea-content {
+    width: 100%;
+    text-align: center;
+    min-height: 600px;
+}
+.kea-loading {
+    width: 100px;
+    height: 100px;
+    display: none;
+    position: absolute;
+    top: 45%;
+    left: 47%;
+    z-index: 2;
+}
+.kea-error {
+    display: none;
+}
+
+.kea-text-centered .kea-field {
+    text-align: left!important;
+}
+.kea-text-centered .kea-field input {
+    width: 255px;
+}
+.kea-field p {
+    margin-bottom: 0px;
+}
+.kea-field input {
+    width: 230px;
+    padding: 6px;
+    border-radius: 2px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+}
+.kea-field .name {
+    display: inline-block;
+    color: #505050;
+    padding: 5px 0px;
+}
+.kea-field .value {
+    position: relative;
+    padding: 4px 0px;
+}
+.kea-field .kea-checkbox input {
+    width: 10px;
+}
+.kea-field .kea-checkbox {
+    padding-top: 0.36em;
+    text-align: left;
+    display: inline-block;
+}
+
+/* override base styles */
+#wa-plugins-content {
+    padding: 0px !important;
+}
+#wa-plugins-container .content {
+    position: relative;
+}
+.kea-finished-registration .kea-button {
+    margin: 40px auto;
+}
+.kea-auto-registation .kea-button {
+    margin: 40px auto;
+}
+.kea-finished-registration {
+    width: 900px;
+    margin: 100px auto;
+    line-height: 25px;
+    text-align: center;
+}
+
+.kea-auto-registation {
+    width: 900px;
+    margin: 100px auto;
+    line-height: 25px;
+    text-align: center;
+}
+
+.kea-error .kea-button {
+    margin: 20px auto;
+}
+.kea-error {
+    width: 900px;
+    margin: 100px auto;
+    line-height: 25px;
+    text-align: center;
+    background-color: #fcf2f2;
+    border-left: 5px solid #d9534f;
+    padding: 10px;
+}
+
+.kea-error a:hover {
+    color: #719b22!important;
+}
+
+.kea-error a {
+    color: #90C025;
+    cursor: pointer;
+}
+
+.kea-phone {
+    color: #90C025;
+    font-weight: bold;
+}

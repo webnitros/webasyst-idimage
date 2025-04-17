@@ -1,0 +1,46 @@
+{strip}
+
+    {if !empty($theme_settings.brands_mainpage) && class_exists('shopBrandViewHelper')}
+
+        {$brands = []}
+        {$fullListBrands = shopBrandViewHelper::getAllBrands()}
+
+        {if $theme_settings.brands_mainpage == 'all'}
+            {$brands = $fullListBrands}
+        {elseif $theme_settings.brands_mainpage == 'id' && !empty($theme_settings.home_brands_ids)}
+            {$showBrandHome = ","|explode:$theme_settings.home_brands_ids}
+            {foreach $fullListBrands as $brand}
+                {if in_array($brand.id, $showBrandHome)}
+                    {$brands[] = $brand}
+                {/if}
+            {/foreach}
+        {/if}
+
+        {if count($brands) > 0}
+            <div class="homepage-brands-head">
+                <div class="homepage-brands-head__inner">
+                    <div class="title">[`Our brands`]</div>
+                    <div class="all_brands maincolor">
+                        <a href="{$wa->getUrl('shop/frontend/brands')}">[`All brands`] →</a>
+                    </div>
+                </div>
+            </div>
+            <div class="js-brands-carousel homepage-brands margin-bottom">
+                <div class="js-homepage-brands-direction"></div>
+                <div class="owl-carousel">
+                    {foreach $brands as $b}
+                        <div class="homepage-brands_el js-homepage-brands-el">
+                            <a title="{$b.name|escape}" href="{$b->getFrontendUrl()}">
+                                {if $b.image_url}
+                                    <img src="{$b.image_url}" alt="{$b.name|escape}">
+                                {else}
+                                    <span>{$b.name|escape}</span>
+                                {/if}
+                            </a>
+                        </div>
+                    {/foreach}
+                </div>
+            </div>
+        {/if}
+    {/if}
+{/strip}

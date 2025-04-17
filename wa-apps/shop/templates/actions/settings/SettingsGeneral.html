@@ -1,0 +1,435 @@
+{$_id = 's-settings-general-form'}
+<form id="{$_id}" action="?module=settings&action=general">
+    <div class="s-settings-form">
+        <h1>[`General settings`]</h1>
+
+        <div class="fields form">
+            <div class="fields-group">
+                <div class="field custom-mt-8">
+                    <div class="name for-input">[`Store name`]</div>
+                    <div class="value">
+                        <input type="text" class="bold large long" name="name" value="{$name|escape}">
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="name for-input">[`Phone number`]</div>
+                    <div class="value">
+                        <input type="tel" name="phone" value="{$phone|escape}" placeholder="[`+1 212-555-1312`]" class="small long">
+
+                        <div class="hint">[`Phone number is published in the storefront and included in email notification`]</div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="name for-input">[`Email`]</div>
+                    <div class="value">
+                        <input type="email" name="email" value="{$email|escape}" class="small long">
+
+                        <div class="hint">[`Email notifications are sent from this address. It is also the administrator’s email address to which order notifications are sent.`]</div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="name for-input">[`Country`]</div>
+                    <div class="value">
+                        <div class="wa-select small">
+                            <select name="country">
+                                {if empty($country)}
+                                <option value=""></option>
+                                {/if}
+
+                                {foreach $countries as $c}
+                                <option value="{$c.iso3letter|escape}"{if $country == $c.iso3letter} selected{/if}>{$c.name|escape}</option>
+                                {/foreach}
+                            </select>
+                        </div>
+
+                        <div class="hint">[`Your online store base country.`]</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fields-group">
+                <div class="field">
+                    <div class="name">[`Storefronts`]</div>
+
+                    <div class="value s-settings-storefront-list">
+                        {foreach $routes as $_d => $_d_routes}
+                            {foreach $_d_routes as $_r_id => $_r}
+                            <div>
+                                <a href="?action=storefronts#/design/theme={ifset($_r.theme, 'default')}&domain={urlencode($_d)}&route={$_r_id}&action=settings">
+                                    {$domains[$_d]|default:$_d|escape}/{$_r.url}
+                                    <i class="fas fa-cog smaller text-light-gray"></i>
+                                </a>
+                            </div>
+                            {/foreach}
+                        {/foreach}
+                    </div>
+                </div>
+            </div>
+
+            <div class="fields-group">
+                <h5 class="heading">[`Orders & Customers`]</h5>
+
+                <div class="field">
+                    <div class="name for-checkbox">[`Cart`]</div>
+                    <div class="value">
+                        <label>
+                            <span class="wa-checkbox">
+                                <input type="checkbox" name="merge_carts" value="1"{if !empty($merge_carts)} checked="checked"{/if}>
+                                <span>
+                                    <span class="icon">
+                                        <i class="fas fa-check"></i>
+                                    </span>
+                                </span>
+                            </span>
+                            [`Sync shopping cart items on all devices for authorized customers.`]
+                        </label>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="name">[`Order ID format`]</div>
+                    <div class="value">
+                        <input type="text" name="order_format" class="small" value="{$order_format}">
+                        <p class="hint">{sprintf_wp(
+                            '%s will be replaced with the actual order ID. Do not delete %s from this string.',
+                            '<strong>&#123;$order.id&#125;</strong>',
+                            '&#123;$order.id&#125;'
+                        )}</p>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="name">[`Default no-product orders item name`]</div>
+                    <div class="value">
+                        <input type="text" name="order_noproduct_item_name" value="{$order_noproduct_item_name}" placeholder="[`Payment for the ordered service`]" class="long" />
+                        <p class="hint">{sprintf_wp(
+                            '%s will be replaced with the full order ID string.',
+                            '<strong>&#123;$order.id_str&#125;</strong>'
+                        )}</p>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="name for-checkbox">[`Sort order items`]</div>
+
+                    <div class="value">
+                        {foreach $sort_order_items_variants as $sort_variant => $variant_data}
+                        <div>
+                            <label>
+                                <span class="wa-radio">
+                                    <input type="radio" name="sort_order_items" value="{$sort_variant}"{if $sort_variant == $sort_order_items} checked{/if}>
+                                    <span></span>
+                                </span>
+                                {$variant_data.name|default:''}
+                            </label>
+                        </div>
+                        {/foreach}
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="name for-checkbox"">[`Gravatar`]</div>
+                    <div class="value">
+                        <label>
+                            <span class="wa-checkbox">
+                                <input type="checkbox" name="use_gravatar" value="1" {if $use_gravatar}checked="checked"{/if}>
+                                <span>
+                                    <span class="icon">
+                                        <i class="fas fa-check"></i>
+                                    </span>
+                                </span>
+                            </span>
+                            [`Display Gravatar userpics`]
+                        </label>
+
+                        <p class="hint">[`Gravatar.com (Globally Recognized Avatars) is a web service that returns a userpic (profile photo, avatar) by an email address. If no photo has uploaded to a customer profile, their Gravatar userpic will be displayed instead.`]</p>
+
+                        <p class="custom-mb-0 small">[`In case there were no Gravatar userpic uploaded`]:</p>
+                        <div class="wa-select small">
+                            <select name="gravatar_default">
+                                <option value="custom" {if $gravatar_default == 'custom'}selected="selected"{/if}>[`Use default userpic`]</option>
+                                <option value="mm" {if $gravatar_default == 'mm'}selected="selected"{/if}>[`(mystery-man) a simple, cartoon-style silhouetted outline of a person (does not vary by email hash)`]</option>
+                                <option value="identicon" {if $gravatar_default == 'identicon'}selected="selected"{/if}>[`a geometric pattern based on an email hash`]</option>
+                                <option value="monsterid" {if $gravatar_default == 'monsterid'}selected="selected"{/if}>[`a generated “monster” with different colors, faces, etc.`]</option>
+                                <option value="wavatar" {if $gravatar_default == 'wavatar'}selected="selected"{/if}>[`generated faces with differing features and backgrounds`]</option>
+                                <option value="retro" {if $gravatar_default == 'retro'}selected="selected"{/if}>[`awesome generated, 8-bit arcade-style pixelated faces`]</option>
+                            </select>
+                        </div>
+
+                        <img id="s-settings-general-gravatar" class="userpic" src="{shopHelper::getGravatar($wa->user('email', 'default'), 50, $gravatar_default)}" style="display: block; width: 50px; margin-top: 10px;">
+                    </div>
+                </div>
+
+                {* Validation required fields *}
+                <div class="field">
+                    <div class="name">[`Required fields validation`]</div>
+
+                    <div class="value">
+                        <span class="switch smaller js-toggle-backend-validation-status">
+                            <input type="checkbox" name="disable_backend_customer_form_validation" value="1"{if empty($disable_backend_customer_form_validation)} checked{/if}>
+                        </span>
+
+                        <!-- enabled -->
+                        <div class="description small custom-mt-4"{if empty($disable_backend_customer_form_validation)} style="display:none"{/if}>
+                            [`When a new order is created via backend manually, contact info form will not be validated. Fields which are necessary to fill in when order is placed in the storefront, can be left blank when order is created via backend.`]
+                        </div>
+
+                        <!-- disabled -->
+                        <div class="description small custom-mt-4"{if !empty($disable_backend_customer_form_validation)} style="display:none"{/if}>
+                            [`When a new order is created by an administrator on behalf of a customer, contact fields’ values will be validated according to <a href="?action=settings#/checkout/">checkout settings for a selected storefront</a>. All fields marked as required must be completed. For “Manual order” mode, the settings saved in section “<a href="?action=settings#/orderEditor/">Order editor</a>” will be used.`]
+                        </div>
+                    </div>
+                </div>
+
+                {* Anti-spam *}
+                <div class="field" style="display: none;{* OLD CHECKOUT IS DEPRECATED @ WA2UI #105.1797 *}">
+                    <div class="name">[`Checkout anti-spam filter`]</div>
+
+                    <div class="value">
+                        <span class="switch smaller js-toggle-checkout-antispam-status">
+                            <input type="checkbox" name="antispam[enabled]" value="1"{if !empty($checkout_antispam)} checked{/if}>
+                        </span>
+
+                        <!-- enabled -->
+                        <div class="description antispam-enabled"{if empty($checkout_antispam)} style="display:none"{/if}>
+                            <p class="small custom-mt-4">[`Checkout anti-spam filtering is seamless for real customers and will automatically reject spammy orders placed by robots.`]</p>
+
+                            <div class="fields">
+                                <div class="field">
+                                    <div class="name">[`Alerts on rejected checkout attempts`]</div>
+                                    <div class="value">
+                                        <input type="email" name="antispam[email]" placeholder="your@email.here" value="{$checkout_antispam_email|escape}" class="long small">
+
+                                        <div class="hint">[`Enable alerts on spammy checkout attempts to make sure none of real orders were rejected by the anti-spam filter.`]</div>
+                                    </div>
+                                </div>
+
+                                <div class="field">
+                                    <div class="name">[`Captcha`]</div>
+                                    <div class="value small">
+                                        <label>
+                                            <span class="wa-checkbox">
+                                                <input type="checkbox" name="antispam[captcha]" value="1" type="checkbox"{if $checkout_antispam_captcha} checked{/if}>
+                                                <span>
+                                                    <span class="icon">
+                                                        <i class="fas fa-check"></i>
+                                                    </span>
+                                                </span>
+                                            </span>
+                                            [`Enable captcha for checkout (not required)`]
+                                        </label>
+
+                                        <div class="hint">[`Optional. Enable checkout captcha when seamless anti-spam protection is not enough.`]</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- disabled -->
+                        <div class="description antispam-disabled hint"{if !empty($checkout_antispam)} style="display:none"{/if}>
+                            [`If your store is under spammers attack and you receive lots of fraudulent orders placed by robots, protect the checkout routine with seamless anti-spam filtering. This will automatically filter all spam and save genuine orders only.`]
+                        </div>
+                        <p class="hint">[`The anti-spam filter works with the multi-step checkout only.`]</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="fields-group">
+                <div class="field">
+                    <div class="name">[`Reviews`]</div>
+
+                    <div class="value">
+                        <label>
+                            <span class="wa-checkbox">
+                                <input type="checkbox" name="require_authorization" class="js-setting-require-auth" {if $require_authorization == '1'}checked="checked"{/if} value="1">
+                                <span>
+                                    <span class="icon">
+                                        <i class="fas fa-check"></i>
+                                    </span>
+                                </span>
+                            </span>
+                            [`Only authorized users can post reviews`]
+                        </label>
+
+                        <div class="hint">
+                            [`If enabled, user needs to sign in to post a review.`]<br>
+                            <strong>{sprintf('[`Make sure sign up and login forms are enabled in your <a href="%s">Site app settings</a>.`]',$wa_backend_url|cat:'site/#/settings/')}</strong>
+                        </div>
+
+                        <div class="custom-mt-4">
+                            <label>
+                                <span class="wa-checkbox">
+                                    <input type="checkbox" name="allow_image_upload" {if $allow_image_upload == '1'}checked="checked"{/if} value="1">
+                                    <span>
+                                        <span class="icon">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                                    </span>
+                                </span>
+                                [`Allow customers to attach images to their reviews`]
+                            </label>
+                        </div>
+
+                        <div class="custom-mt-4">
+                            <label>
+                                <span class="wa-checkbox">
+                                    <input type="checkbox" name="moderation_reviews" {if $moderation_reviews == '1'}checked="checked"{/if} value="1">
+                                    <span>
+                                        <span class="icon">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                                    </span>
+                                </span>
+                                [`Publish reviews only after moderation`]
+                            </label>
+
+                            <div class="hint">
+                                [`Recommended with enabled option “Allow customers to attach images to their reviews”.`]<br>
+                            </div>
+                        </div>
+
+                        <div id="setting-require-captcha">
+                            <div class="custom-mt-16 custom-pt-16 bordered-top">
+                                <label>
+                                    <span class="wa-checkbox">
+                                        <input type="checkbox" name="require_captcha" {if $require_captcha == '1'}checked="checked"{/if} value="1">
+                                        <span>
+                                            <span class="icon">
+                                                <i class="fas fa-check"></i>
+                                            </span>
+                                        </span>
+                                    </span>
+                                    [`Protect product review form with CAPTCHA`]
+                                </label>
+                            </div>
+
+                            <div id="service-agreement-settings-wrapper" class="custom-mt-16 small">
+                                <h5 class="heading">[`Personal data processing`]</h5>
+
+                                <div class="custom-my-4 js-value">
+                                    <label>
+                                        <span class="wa-radio">
+                                            <input type="radio" name="review_service_agreement" value=""{if empty($review_service_agreement)} checked{/if}>
+                                            <span></span>
+                                        </span>
+                                        [`Do not require consent to personal data protection policy`]
+                                    </label>
+                                </div>
+
+                                <div class="custom-my-4 js-value">
+                                    {$link_tag = sprintf('<a href="%s" target="_blank">', _w('---INSERT A LINK HERE!---'))}
+                                    <label data-default-text="{sprintf_wp('By submitting this form I agree to %spersonal data protection policy%s', $link_tag, '</a>')|escape}">
+                                        <span class="wa-radio">
+                                            <input type="radio" name="review_service_agreement" value="notice"{if ifset($review_service_agreement) == 'notice'} checked{/if}>
+                                            <span></span>
+                                        </span>
+                                        [`Show only notice and link to policy`]
+                                    </label>
+                                </div>
+
+                                <div class="custom-my-4 js-value">
+                                    <label data-default-text="{sprintf_wp('I agree to %spersonal data protection policy%s', $link_tag, '</a>')|escape}">
+                                        <span class="wa-radio">
+                                            <input type="radio" name="review_service_agreement" value="checkbox"{if ifset($review_service_agreement) == 'checkbox'} checked{/if}>
+                                            <span></span>
+                                        </span>
+                                        [`Show mandatory checkbox, notice, and link`]
+                                    </label>
+                                </div>
+
+                                <div class="js-text-editor js-value" style="display: none;">
+                                    <div class="flexbox">
+                                        <label class="custom-mr-4 js-textarea-checkbox">
+                                            <span class="wa-checkbox">
+                                                <input type="checkbox" checked disabled>
+                                                <span>
+                                                    <span class="icon">
+                                                        <i class="fas fa-check"></i>
+                                                    </span>
+                                                </span>
+                                            </span>
+                                        </label>
+
+                                        <div class="wide">
+                                            <textarea name="review_service_agreement_hint" class="small">{ifset($review_service_agreement_hint)|escape}</textarea>
+
+                                            <div class="hint">
+                                                <a href="#" class="inline-link generalte-example-link"><b><i>[`Restore original text`]</i></b></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fields-group">
+                <div class="field">
+                    <div class="name">
+                        [`Product lists`]
+                    </div>
+
+                    <div class="value">
+                        <label>
+                            <span class="wa-checkbox">
+                                <input type="checkbox" name="lazy_loading" {if !empty($lazy_loading)}checked{/if} value="1">
+                                <span>
+                                    <span class="icon">
+                                        <i class="fas fa-check"></i>
+                                    </span>
+                                </span>
+                            </span>
+                            [`Use lazy loading`]
+                        </label>
+
+                        <div class="hint">[`Products will be loaded automatically when you scroll the page in “Products” section in backend. If you need pagination, disable this setting.`]</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fields-group">
+                <div class="field">
+                    <div class="name">[`System settings`]</div>
+
+                    <div class="value">
+                        {if !empty($wa_settings)}
+                        <div class="custom-my-4"><a href="{$wa_backend_url}webasyst/settings/captcha/">[`Captcha`]</a></div>
+                        <div class="custom-my-4"><a href="{$wa_backend_url}webasyst/settings/maps/">[`Maps`]</a></div>
+                        <div class="custom-my-4"><a href="{$wa_backend_url}webasyst/settings/sms/">[`SMS`]</a></div>
+                        <div class="custom-my-4"><a href="{$wa_backend_url}webasyst/settings/push/">[`Web push notifications`]</a></div>
+                        {else}
+                        [`To be able to change system settings, you need access to Settings app.`]
+                        {/if}
+                    </div>
+                </div>
+            </div>
+
+            <div class="fields-group">
+                <div class="field">
+                    <div class="name">[`Shop-Script version`]</div>
+                    <div class="value">
+                        {$wa->version()}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottombar sticky s-settings-fixed-bottombar">
+        <input type="submit" class="button green js-form-submit" value="[`Save`]">
+        <span class="js-loading" style="display: none;"><i class="fas fa-spinner fa-spin"></i></span>
+    </div>
+</form>
+<script src="{$wa_app_static_url}js/settings/general.js?{$wa->version()}"></script>
+<script type="text/javascript">
+    document.title = '{"[`General settings`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+    $(function () {
+        new ShopSettingsGeneral($('#{$_id}'));
+    });
+</script>

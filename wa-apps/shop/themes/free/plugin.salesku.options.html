@@ -1,0 +1,95 @@
+{if $product.sku_type || count($product.skus) > 1}
+  <div class="Product__Box--Options salesku_options {if $wa->globals('salesku_options_fly')=='1'}fly{/if}">
+    {if $product.sku_type}
+      <!-- SELECTABLE FEATURES selling mode -->
+      {$default_sku_features = $product.sku_features}
+      {$product_available = $product.status}
+      <div class="options">
+        {foreach $product.features_selectable as $f}
+          <div class="salesku-feature-block">
+            {if $f.view_type == 'inline'}
+              <div class="Single__SKU--Inline inline-select{if $f.type == 'color'} color{/if}">
+                <div class="Single__Name--Option">{$f.name}</div>
+                <div class="Single__Value--Option">
+                  {foreach $f.values as $v_id => $v}
+                    {if !isset($default_sku_features[$f.id])}{$default_sku_features[$f.id]=$v_id}{/if}
+                    <a class="Single__Label--Selectable salesku-feature-select {if $v_id == ifset($default_sku_features[$f.id])}selected{/if} {if $f.type == 'color'}color{/if}"
+                       data-value="{$v_id}"
+                       {if $f.type == 'color'}title="{strip_tags($v)}"{/if}
+                       href="#" {if $f.type == 'color'} style="{$v->style}; margin-bottom: 20px;"{/if}>
+                      {if $f.type == 'color'}<i class="icon-correct-symbol icon16 checkmark color_checkmark"></i>{/if}
+                      {if $f.type == 'color'}<span class="color_name">{strip_tags($v)}</span>{else}{$v}{/if}
+                    </a>
+                  {/foreach}
+                  <input type="hidden" data-feature-id="{$f.id}" class="sku-feature" name="features[{$f.id}]" value="{ifset($default_sku_features[$f.id])}">
+                </div>
+              </div>
+            {else}
+              <div class="Single__Item--Option -Select">
+                {if !empty($f.name)}<span class="Single__Name--Option -Select">{$f.name}</span>{/if}
+                <div class="Single__Value--Option -Select salesku-feature-select">
+                  <select id="features{$f.id}" data-feature-id="{$f.id}" class="Single__Select--Option sku-feature" name="features[{$f.id}]">
+                    {foreach $f.values as $v_id => $v}
+                      <option value="{$v_id}" {if $v_id == ifset($default_sku_features[$f.id])}selected{/if}>{$v}</option>
+                    {/foreach}
+                  </select>
+                </div>
+              </div>
+            {/if}
+            {foreach $f.values as $v_id => $v}
+              <div class="salesku-feature-value salesku-feature-value-{$v_id}" style="display: none;">{if !empty($f.name)}{$f.name}:{/if} {$v}</div>
+            {/foreach}
+          </div>
+        {/foreach}
+      </div>
+    {else}
+      <!-- FLAT SKU LIST selling mode -->
+      {$product_available = false}
+      {if count($product.skus) > 1}
+        {if $product.skus_view_type=='select'}
+          <div class="salesku_skus">
+            <select class="Single__Select--Option" name="salesku_skus">
+              {foreach $product.skus as $sku}
+                {$sku_available =  $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
+                <option value="{$sku.id}" {if !$sku_available}  class="" {/if} {if $sku.id == $product.sku_id} selected="selected"{/if}>
+                  <span class="hint"> {$sku.name|escape} ({shop_currency_html($sku.price, $product.currency)})</span>
+                </option>
+              {/foreach}
+            </select>
+          </div>
+        {/if}
+        {* When there is more than one SKU, display selector *}
+        <div class="skus {if $product.skus_view_type=='select'} salesku_skus_select salesku_skus_{$product->getUid()}{/if}" {if $product.skus_view_type=='select'} style="display: none !important;"{/if}>
+          <span class="Single__Name--Option -SKU">Артикул</span>
+          {foreach $product.skus as $sku}
+            {$sku_available =  $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
+            <div class="Single__Item--Flat -Alternative" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+              <label class="Single__Label--Flat -Alternative {if !$sku.available}disabled{/if}">
+                <input name="sku_id"
+                       type="radio"
+                       class="Single__Input--Checkbox -Alternative"
+                       value="{$sku.id}"
+                       data-compare-price="{shop_currency($sku.compare_price, $product.currency, null, 0)}"
+                       data-price="{shop_currency($sku.price, $product.currency, null, 0)}"
+                       {if !$sku.available}disabled="disabled"{/if}
+                    {if !$sku_available}data-disabled="1"{/if}
+                    {if $sku.id == $product.sku_id} checked="checked"{/if}
+                    {if $sku.image_id} data-image-id="{$sku.image_id}"{/if}>
+                <span class="Single__Name--Flat -Alternative" itemprop="name">{if $sku.name}{$sku.name|escape}{else}{$sku.sku}{/if}</span>
+                <meta itemprop="price" content="{shop_currency($sku.price, $product.currency)}">
+                <meta itemprop="priceCurrency" content="{$wa->shop->currency()}">
+                <span class="Single__Price--Flat -Alternative price tiny nowrap">({shop_currency_html($sku.price, $product.currency)})</span>
+                {if (!($sku.count === null) && $sku.count <= 0)}
+                  <link itemprop="availability" href="https://schema.org/OutOfStock">
+                {else}
+                  <link itemprop="availability" href="https://schema.org/InStock">
+                {/if}
+              </label>
+            </div>
+            {$product_available = $product_available or $sku_available}
+          {/foreach}
+        </div>
+      {/if}
+    {/if}
+  </div>
+{/if}

@@ -1,0 +1,99 @@
+{strip}
+
+{$_uniqid = uniqid()}
+
+{$_rule_name = ""}
+{if !empty($rule.id)}
+    {$_rule_name = "rules[{$rule.id}]"}
+
+{else}
+    {$_rule_name = "rules[new]"}
+    {if isset($options.ident)}
+        {$_rule_name = "{$_rule_name}[{$options.ident}]"}
+    {/if}
+{/if}
+
+{/strip}
+
+<div class="s-custom-price-rule-section js-custom-price-rule-section" id="js-custom-price-rule-section-{$_uniqid}">
+    <div class="alert">
+        <div class="s-section-description">
+            [`Use the form below to set up extra rules for ordinary and purchase prices which should apply while this promo is active.`]
+        </div>
+    </div>
+
+    <div class="s-products-autocomplete fields">
+        <div class="field">
+            <div class="name">[`Add product`]:</div>
+            <div class="value">
+                <i class="fas fa-plus-circle text-green"></i>
+                <input type="text" class="s-autocomplete js-autocomplete long" value="" placeholder="{_w("type a product name")|escape}">
+                <div class="s-field-description hint">{sprintf("[`or add from “%s” section`]", "<a href=\"`$wa_app_url`products/\">[`Products`]</a>")}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="s-products-wrapper s-block {if empty($products)}is-empty{/if}">
+        <table class="s-products-table zebra">
+            <thead>
+                <tr class="transparent">
+                    <td colspan="5">
+                        <div class="flexbox middle space-8 custom-pb-16 bordered-bottom" style="justify-content: center;">
+                            <span class="icon"><i class="fas fa-exclamation-triangle text-yellow"></i></span>
+                            <span>[`Promo prices are not a discount.`]</span>
+                            {shopHinter::hint('marketing_promo_stock_price_products')}
+                        </div>
+                    </td>
+                </tr>
+                <tr class="transparent uppercase">
+                    <th colspan="2">[`Products`]</th>
+                    <th>[`Default prices`]</th>
+                    <th>[`Promo’s prices`]</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody class="s-products-list">
+                {if !empty($products)}
+                    {foreach $products as $_product}
+                        {$_rule_product_data = $rule.rule_params[$_product.id]|default:[]}
+                        {include file="./custom_price.product.html" product=$_product rule_name=$_rule_name rule_product_data=$_rule_product_data inline}
+                    {/foreach}
+                {/if}
+            </tbody>
+        </table>
+
+        <div class="s-empty-message">[`No products in this tool. First add products please.`]</div>
+    </div>
+
+    <input class="js-rule-type" type="hidden" name="{$_rule_name}[rule_type]" value="custom_price">
+
+    {capture assign="_custom_price_delete_dialog_template"}{include file="./custom_price_delete.dialog.html"}{/capture}
+    {capture assign="_custom_price_confirm_dialog_template"}{include file="./custom_price_confirm.dialog.html"}{/capture}
+    {$_templates = [
+        'custom_price_delete_dialog' => $_custom_price_delete_dialog_template,
+        'custom_price_confirm_dialog' => $_custom_price_confirm_dialog_template
+    ]}
+
+    <script>
+        ( function($) {
+            var $wrapper = $("#js-custom-price-rule-section-{$_uniqid}").removeAttr('id');
+
+            var ready_promise = $("#js-promo-page").data("ready");
+            ready_promise.then( function(controller) {
+                controller.initPriceRulesSection({
+                    $wrapper: $wrapper,
+                    rule_name: {$_rule_name|json_encode},
+                    urls: {
+                        "autocomplete": "{$wa_app_url}?action=autocomplete",
+                        "product": "{$wa_app_url}?module=marketingPromo&action=customPriceProduct"
+                    },
+                    locales: {
+                        "disabled_product": {_w("Not included in the promo")|json_encode}
+                    },
+                    templates: {$_templates|json_encode}
+                });
+            });
+        })(jQuery);
+    </script>
+</div>

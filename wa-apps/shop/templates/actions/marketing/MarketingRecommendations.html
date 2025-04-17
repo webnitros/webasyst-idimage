@@ -1,0 +1,188 @@
+{* PAGE *}
+
+<div class="article wider">
+<div class="article-body">
+
+<div class="s-recommendations-page box contentbox" id="js-recommendations-page">
+    {* HEADER *}
+    <header class="s-page-header">
+        <h1 class="s-title">[`Automated product recommendations`]</h1>
+    </header>
+
+    {* BODY *}
+    <div class="s-page-body">
+
+        <div class="s-settings-form">
+            <div class="fields cross-selling">
+                <div class="fields-group">
+
+                    <h4 class="black">[`Cross-selling`]</h4>
+                    <p class="small gray">[`Cross-selling is a technique of getting customer to buy related products to the order, e.g. complementary products and accessories. In Shop-Script, cross-selling mechanism works on a customers-who-bought-this-also-bought model. Shop-Script analyses which products are more likely to be bought with a particular product based on what other customers purchased so far. Related products are suggested to customer based on his current order content.`]</p>
+
+                    {foreach $types as $type_id => $type}
+                    <div class="field" data-type-id="{$type_id}">
+                        <div class="name">
+                            <span class="icon custom-mr-8">{$wa->shop->geticon($type.icon)}</span><strong>{$type.name|escape}</strong>
+                        </div>
+                        <div class="value">
+                            <ul class="inlinebox flexbox middle space-16">
+                                <li>
+                                    <div class="switch-with-text">
+                                        <span class="switch js-switch-cross_selling smaller">
+                                            <input type="checkbox" id="switch-cross_selling-{$type_id}"{if $type.cross_selling} checked{/if} >
+                                        </span>
+                                        <label for="switch-cross_selling-{$type_id}" data-active-text="[`On`]" data-inactive-text="[`Off`]">{if $type.cross_selling}[`On`]{else}[`Off`]{/if}</label>
+                                    </div>
+                                </li>
+                                <li class="custom-mt-0 field-settings nowrap"{if !$type.cross_selling} style="display:none"{/if}>
+                                    <div class="wa-select smaller custom-mr-0">
+                                        <select class="text-ellipsis width-100">
+                                            <option value="alsobought" {if !$type.cross_selling || $type.cross_selling == 'alsobought'}selected{/if}>[`Auto (based on what other customers purchased with a particular product)`]</option>
+                                            <optgroup label="[`Random products from a category`]">
+                                                {foreach $categories as $c}
+                                                    <option value="category/{$c.id}" {if $type.cross_selling == "category/`$c.id`"}selected{/if}>{str_repeat("&nbsp;&nbsp;", $c.depth)}{$c.name|escape}</option>
+                                                {/foreach}
+                                            </optgroup>
+                                        </select>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    {foreachelse}
+                        <p><em>[`Create at least one product type to setup product recommendations.`]</em></p>
+                    {/foreach}
+
+                </div>
+
+            </div>
+        </div>
+
+        <div class="s-settings-form">
+            <div class="fields upselling">
+                <div class="fields-group">
+
+                    <h4>[`Upselling &amp; Similar products`]</h4>
+                    <p class="small gray">[`Upselling is a technique of encouraging customer to purchase more expensive products or upgrades. In Shop-Script, up-selling is based on suggesting customers to view and purchase similar and/or alternative products. Similar product list is fetched automatically based on the product that the customer is currently viewing, or recently viewed, and filtering conditions which can be customized individually for every product type.`]</p>
+
+
+                    {foreach $types as $type}
+                    <div class="field" data-type-id="{$type.id}">
+                        <div class="name">
+                            <span class="icon custom-mr-8">{$wa->shop->geticon($type.icon)}</span><strong>{$type.name|escape}</strong>
+                        </div>
+                        <div class="value">
+                            <div class="switch-with-text">
+                                <span class="switch js-switch-upselling smaller">
+                                    <input type="checkbox" id="switch-upselling-{$type.id}"{if $type.upselling} checked{/if} >
+                                </span>
+                                <label for="switch-upselling-{$type.id}" data-active-text="[`On`]" data-inactive-text="[`Off`]">{if $type.upselling}[`On`]{else}[`Off`]{/if}</label>
+                            </div>
+
+                            <div class="field-settings" {if !$type.upselling}style="display:none"{/if}>
+                                <div class="small">
+                                    {$type.upselling_html|default:''}
+                                    <a href="javascript:void(0)" class="customize">[`Customize`]</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {foreachelse}
+                        <p><em>[`Create at least one product type to setup product recommendations.`]</em></p>
+                    {/foreach}
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) { "use strict";
+
+            $.shop.marketing.setTitle({_w("Recommendations")|json_encode});
+
+            var sources = [{
+                id: "wa-jquery-slider-js",
+                type: "js",
+                uri: "{$wa_url}wa-content/js/jquery-ui/jquery.ui.slider.min.js?v={$wa->version(true)}"
+            }, {
+                id: "wa-shop-settings-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/settings/recommendations.js?v={$wa->version()}"
+            }];
+
+            $.shop.marketing.load(sources).then( function() {
+                $.settings.recommendationsInit({
+                    $wrapper: $("#js-recommendations-page"),
+                    features: {json_encode($features)},
+                    data: {json_encode($data)},
+                    locales: {
+                        'yes': {_w('Yes')|json_encode},
+                        'no': {_w('No')|json_encode}
+                    }
+                });
+            });
+
+        })(jQuery);
+    </script>
+</div>
+
+</div>
+</div>
+<style>
+    .ui-slider {
+        width: 200px;
+        position: relative;
+    }
+    .ui-slider-horizontal {
+        height: 2px;
+        border: none;
+    }
+    .ui-slider-horizontal.ui-widget-content {
+        background: #bbb;
+    }
+    .ui-slider .ui-slider-range {
+        position: absolute;
+        z-index: 1;
+        font-size: .7em;
+        display: block;
+        border: 0;
+    }
+    .ui-slider-horizontal .ui-slider-range {
+        top: 0;
+        height: 100%;
+    }
+    .ui-slider-horizontal .ui-widget-header {
+        background: #0a0;
+        height: 4px;
+        position: relative;
+        top: -1px;
+    }
+    .ui-state-default, .ui-widget-content .ui-state-default {
+        border: 1px solid #d3d3d3;
+        background: #e6e6e6;
+        font-weight: normal;
+        color: #555555;
+        outline: none;
+    }
+    .ui-slider .ui-slider-handle {
+        position: absolute;
+        z-index: 2;
+        width: 1.2em;
+        height: 1.2em;
+        cursor: default;
+    }
+    .ui-slider-horizontal .ui-slider-handle {
+        top: -0.3em;
+        margin-left: -0.6em;
+    }
+    .ui-slider-horizontal .ui-slider-handle, .ui-slider-horizontal .ui-slider-handle.ui-state-focus {
+        top: -0.55em;
+        margin-left: -0.4em;
+        height: 1.1em;
+        width: 1.1em;
+        border-color: #aaa;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+        border-radius: 50%;
+    }
+</style>

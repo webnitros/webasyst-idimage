@@ -1,0 +1,12 @@
+<script>
+    $('.breadcrumbs').hide();
+</script>
+{strip}
+    <div class="error-box">
+        <h1>
+            {if $error_code}{$error_code}. {/if}
+            {if $error_message}{$error_message}{else}[s`Error`]{/if}
+        </h1>
+        <p>[s`The requested resource is not available.`]</p>
+    </div>
+{/strip}

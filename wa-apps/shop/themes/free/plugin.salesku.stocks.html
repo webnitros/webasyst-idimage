@@ -1,0 +1,140 @@
+{* Plugin settings. $theme_settings is not available here. Use variables for customization *}
+{* Show presence: *}
+{$_salesku_show_presence = false}
+{* Show presence info by warehouse: *}
+{$_salesku_enable_warehouse = false}
+{* . *}
+
+
+{$sku = $product.skus[$product.sku_id]}
+{$product_skus = $product.skus}
+{$product_available = $product.status && $sku.available && ($wa->shop->settings('ignore_stock_count') || $sku.count === null || $sku.count > 0)}
+
+{$product_available = false}
+
+{if count($product_skus) > 1}
+  {foreach $product_skus as $sku}
+    {if not $sku.available}
+      {$product_available = false}
+    {else}
+      {if $product.status and $sku.available and (is_null($sku.count) or $sku.count > 0)}
+        {$product_available = 'full'}
+        {break}
+      {elseif $wa->shop->settings('ignore_stock_count')}
+        {if $sku.count <= 0}
+          {$product_available = 'preorder'}
+        {/if}
+      {/if}
+    {/if}
+  {/foreach}
+{else}
+  {$sku = current($product_skus)}
+  {if not $sku.available}
+    {$product_available = false}
+  {else}
+    {if $product.status and $sku.available and (is_null($sku.count) or $sku.count > 0)}
+      {$product_available = 'full'}
+    {elseif $wa->shop->settings('ignore_stock_count')}
+      {if $sku.count <= 0}
+        {$product_available = 'preorder'}
+      {/if}
+    {/if}
+  {/if}
+{/if}
+{if $_salesku_show_presence}
+  {if ($product_available || count($product.skus) > 0)}
+    <div class="Product__Stocks stocks">
+      {function name=in_stock stock_name=false n=0 low=5 critical=2}
+        {if $n > $low or $n === null}
+          <i class="Single__Icon--Stock icon-stock-in -Green"></i>
+          {if $stock_name}<span class="Single__Name--Stock">{$stock_name}</span>{/if}
+          <span class="Single__Value--Stock -High">[`In stock`]</span>
+        {elseif $n > $critical}
+          <i class="Single__Icon--Stock icon-stock-in -Yellow"></i>
+          {if $stock_name}<span class="Single__Name--Stock">{$stock_name}</span>{/if}
+          <span class="Single__Value--Stock -Low">
+            {_w("Only a few items left")}
+          </span>
+        {elseif $n > 0}
+          <i class="Single__Icon--Stock icon-stock-in -Red"></i>
+          {if $stock_name}<span class="Single__Name--Stock">{$stock_name}</span>{/if}
+          <span class="Single__Value--Stock -Critical">
+            {_w("Only %d left in stock", "Only %d left in stock", $n)}
+          </span>
+        {elseif $n >= 1 and $n <= 0}
+          <i class="Single__Icon--Stock icon-stock-in -Green"></i>
+          {if $stock_name}<span class="Single__Name--Stock">{$stock_name}</span>{/if}
+          <span class="Single__Value--Stock -High">[`In stock`]</span>
+        {else}
+          <i class="Single__Icon--Stock {if $wa->shop->settings('ignore_stock_count')}icon-stock-pre -Yellow{else}icon-stock-out -Grey{/if}"></i>
+          {if $stock_name}<span class="Single__Name--Stock">{$stock_name}</span>{/if}
+          <span class="Single__Value--Stock -None">
+            {if $wa->shop->settings('ignore_stock_count')}[`Pre-order only`]{else}[`Out of stock`]{/if}
+          </span>
+        {/if}
+      {/function}
+
+
+      {foreach $product.skus as $sku}
+        <div {if $sku.id != $product.sku_id}style="display:none"{/if} class="sku-{$sku.id}-stock">
+          {if $_salesku_enable_warehouse and isset($sku.stock) && $sku.stock}
+            <a class="Single__Link--Warehouse js-show-products-stocks{$sku.id}" style="font-size: 1.2rem;">
+              <i class="Single__Icon--Warehouse icon-box" style="margin-right: .4rem; "></i>
+              <span class="Single__Value--Warehouse -High">Уточнить наличие</span>
+            </a>
+            <script>
+              window.addEventListener('load', function() {
+                tippy('.js-show-products-stocks{$sku.id}', {
+                  interactive: false,
+                  // sticky: true,
+                  appendTo: $('.js-show-products-stocks{$sku.id}').get(0),
+                  trigger: 'click',
+                  html: '#stocksTip{$sku.id}',
+                  theme: 'light',
+                  distance: -50,
+                  placement: 'top-start',
+                  performance: true,
+                  onShow: function (instance) {
+                    $(instance.popper).find('.tippy-content').html($('#stocksTip{$sku.id}').html());
+                  }
+                });
+              });
+            </script>
+            <div id="stocksTip{$sku.id}" class="Single__Box--Hidden js-stocks-popup">
+              {foreach $product.stocks as $stock_id => $stock}
+                {if isset($sku.stock[$stock_id])}
+                  {$stock_count = $sku.stock[$stock_id]}
+                {elseif isset($stock.substocks)}
+                  {$stock_count = 0}
+                  {* //Alexander Stienstra: account for virtual stocks, iterate through substocks (1 dimentional) array of virtual stock: *}
+                  {if isset($stock.substocks)}
+                    {foreach $stock.substocks as $sid}
+                      {$stock_count = $stock_count + $sku.stock[$sid]}
+                    {/foreach}
+                  {/if}
+                {else}
+                  {$stock_count = null}
+                {/if}
+                <span class="Product__Stocks--Title--Warehouse">{$stock.name}</span>
+                <span class="Product__Stocks--Info">{in_stock n=$stock_count low=$stock.low_count critical=$stock.critical_count}</span>
+              {/foreach}
+            </div>
+          {else}
+            {call name=in_stock n=$sku.count}
+          {/if}
+        </div>
+      {/foreach}
+      {*{if $product.sku_type}*}
+        {*<div class="sku-no-stock">*}
+          {*<strong class="stock-none">[`Product with the selected option combination is not available for purchase`]</strong>*}
+        {*</div>*}
+      {*{/if}*}
+    </div>
+  {else}
+    <div class="stocks">
+      <div class="sku-no-stock">
+        <strong class="stock-none"><i class="icon16 stock-transparent"></i>{if $wa->shop->settings('ignore_stock_count')}[`Pre-order only`]{else}[`Out of stock`]{/if}</strong>
+      </div>
+    </div>
+  {/if}
+{/if}

@@ -1,0 +1,21 @@
+{strip}
+{if count($category.subcategories) > 0}
+    <div class="js-cat_sub subcategory-box" data-save-filters="true">
+
+        {if class_exists('shopWmimageincatPlugin')}
+            {$Wmimages = shopWmimageincatPlugin::getCategoryImageObj()}
+        {/if}
+
+        {if !isset($sub_view)}
+            {$sub_view = $theme_settings.cat_view_subs}
+        {/if}
+        {if $sub_view == 'image'}
+            {include file="categories.grid.html" categories=$category.subcategories setting_cat_in_row=$theme_settings.category_row_cat}
+        {else if $sub_view == 'icon'}
+            {include file="sabcat.icons.html"}
+        {else}
+            {include file="sabcat.noimage.html"}
+        {/if}
+    </div>
+{/if}
+{/strip}

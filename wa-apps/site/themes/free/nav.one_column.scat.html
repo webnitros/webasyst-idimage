@@ -1,0 +1,108 @@
+{strip}
+<div class="menu-subcategory js-subcategory-menu"{if $openCat} style="display: block"{/if}>
+    <div class="MobileMenu_nav-header">
+        <div class="btn-back js-btn-close-submenu"><i class="fi-rr-angle-small-left"></i></div>
+        <div class="cat-title">{$cat.name}</div>
+        <div class="menu-close"><i class="fi-rr-cross-small"></i></div>
+    </div>
+    {if $linkFullCatalog}
+        <div class="subcat-menu__item subcat-menu__item__full-products">
+            <a href="{$cat.url}">Все товары категории</a>
+        </div>
+    {/if}
+    {foreach $cat.childs as $keyCatChild => $catChild_2}
+        {if !isset($catChild_2.params.menu_hide)}
+            {$_subcat_lvl2 = false}
+            {if !$isBrand}
+                {if count($catChild_2.childs) && $theme_settings.depth_subcategories > 2 }
+                    {foreach $catChild_2.childs as $catChild_3}
+                        {if !isset($catChild_3.params.menu_hide)}
+                            {$_subcat_lvl2 = true}
+                        {/if}
+                    {/foreach}
+                {/if}
+            {/if}
+            <div class="{if $_subcat_lvl2}js-subcatmenu-el has-subs{/if} subcat-menu__item{if $theme_settings.position_drop_down_categories == "parent"} pos-rel{/if}">
+                <div class="subcat-menu__text">
+                    <a href="{$catChild_2.url}">
+                        {$catChild_2.name}
+                    </a>
+                    {if $theme_settings.plugin_cic != 'none' && ($theme_settings.plugin_cic == 'menu' || $theme_settings.plugin_cic == 'menu_sb')}
+                        {if !empty($catChild_2.params.cic_category_items)}
+                            <span class="menu-product-count">
+                                {$catChild_2.params.cic_category_items}
+                            </span>
+                        {/if}
+                        {if !empty($catChild_2.params.cic_category_has_discount_items)}
+                            <div class="cat-badge cat-badge--discount">
+                                %
+                            </div>
+                        {/if}
+                        {if !empty($catChild_2.params.cic_category_has_new_items)}
+                            <div class="cat-badge cat-badge--new">
+                                new
+                            </div>
+                        {/if}
+                        {if !empty($catChild_2.params.cic_category_hot)}
+                            <div class="cat-badge cat-badge--hot">
+                                hot
+                            </div>
+                        {/if}
+                    {/if}
+                </div>
+
+                {if $_subcat_lvl2}
+                    <i class="js-cat-item-caret fi-rr-angle-small-right"></i>
+                {/if}
+                {if $_subcat_lvl2}
+                    <div class="menu-subcategory js-subcategory-menu">
+
+                        <div class="MobileMenu_nav-header">
+                            <div class="btn-back js-btn-close-submenu"><i class="fi-rr-angle-small-left"></i></div>
+                            <div class="cat-title">{$catChild_2.name}</div>
+                            <div class="menu-close"><i class="fi-rr-cross-small"></i></div>
+                        </div>
+
+                        {if $linkFullCatalog}
+                            <div class="subcat-menu__item subcat-menu__item__full-products">
+                                <a href="{$catChild_2.url}">Все товары категории</a>
+                            </div>
+                        {/if}
+                        {foreach $catChild_2.childs as $catChild_3}
+                            {if !isset($catChild_3.params.menu_hide)}
+                                <div class="subcat-menu__item">
+                                    <div class="subcat-menu__text">
+                                        <a href="{$catChild_3.url}">
+                                            {$catChild_3.name}
+                                        </a>
+                                        {if !empty($catChild_3.params.cic_category_items)}
+                                            <span class="menu-product-count">
+                                                {$catChild_3.params.cic_category_items}
+                                            </span>
+                                        {/if}
+                                        {if !empty($catChild_3.params.cic_category_has_discount_items)}
+                                            <div class="cat-badge cat-badge--discount">
+                                                %
+                                            </div>
+                                        {/if}
+                                        {if !empty($catChild_3.params.cic_category_has_new_items)}
+                                            <div class="cat-badge cat-badge--new">
+                                                new
+                                            </div>
+                                        {/if}
+                                        {if !empty($catChild_3.params.cic_category_hot)}
+                                            <div class="cat-badge cat-badge--hot">
+                                                hot
+                                            </div>
+                                        {/if}
+                                    </div>
+                                </div>
+                            {/if}
+                        {/foreach}
+                    </div>
+                {/if}
+            </div>
+        {/if}
+    {/foreach}
+</div>
+{/strip}

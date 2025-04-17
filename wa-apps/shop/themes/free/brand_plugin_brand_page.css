@@ -1,0 +1,165 @@
+.brand-plugin-page__wrapper {
+    display: block;
+}
+
+.brand-plugin-catalog-brand-categories {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.brands-page h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+}
+
+#themeOverride .brands-search-wrapper {
+    width: 100%;
+    margin-bottom: 15px;
+    position: relative;
+    max-width: 523px;
+}
+
+#themeOverride .brands-letters_header {
+    font-size: 1.1rem;
+    font-weight: 400;
+    margin-bottom: 1rem;
+    color: #666;
+}
+
+#themeOverride .brands-letters__list {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    margin: 1rem 0;
+}
+
+#themeOverride .brands-letters__item, #themeOverride .brands-letters__reset {
+    margin-right: 0.1rem;
+    margin-left: 0;
+    text-decoration: none;
+    color: #333;
+    list-style: none;
+    margin-top: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0.3rem 0.4rem;
+}
+
+#themeOverride .brands-letters__item--active {
+    background: #fafafa;
+}
+
+#themeOverride .brands-search-input {
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.2;
+    vertical-align: top;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    height: 40px;
+    padding: 9px 45px 10px 10px;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    outline: 0;
+    background: #fff;
+    transition: border-color .2s ease-in-out;
+}
+
+#themeOverride .brand-plugin-catalog-brand-categories__column {
+    display: inline-flex;
+}
+
+.brand-plugin-catalog-brand-categories__item {
+    padding-left: 0.6rem;
+    width: 100%;
+}
+
+.brand-plugin-catalog-brand-categories__list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.brand-plugin-catalog-brand-categories__list_depth_0 > .brand-plugin-catalog-brand-categories__item {
+    background: #fafafa;
+    padding: 0.8rem 0.8rem;
+    margin: 0 0.9rem 1.6rem 0;
+    widtH: 238px;
+    display: inline-flex;
+    flex-direction: column;
+    max-height: 250px;
+    overflow: overlay;
+    border-radius: 16px;
+}
+
+.brand-plugin-catalog-brand-categories__list_depth_0 > .brand-plugin-catalog-brand-categories__item.show {
+    max-height: initial;
+    padding-bottom:30px;
+}
+
+#themeOverride .shop-brand-brands__brand-name {
+    font-size: 1.1rem !important;
+}
+
+#themeOverride .brand-plugin-catalog-header-brand__image-column {
+    width: 150px;
+    vertical-align: top;
+    text-align: center;
+    padding: 0;
+    margin: 2rem 2rem 2rem 0;
+    float: left;
+}
+
+#themeOverride .brand-plugin-catalog-header__brand {
+    margin-bottom: 2rem;
+}
+
+#themeOverride .shop-brand-brands__brand-link {
+    display: block;
+    padding: 1rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    border: 2px solid transparent;
+    margin: 0.6rem 1rem;
+    background: #fafafa;
+    font-weight: 400;
+}
+
+.brand-plugin-catalog-brand-categories__list {
+    margin: 0.2rem 0px;
+}
+
+.brand-plugin-catalog-brand-categories__list_depth_0 > .brand-plugin-catalog-brand-categories__item > .brand-plugin-catalog-brand-categories__link {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+@media (max-width: 550px) {
+    .brand-plugin-catalog-brand-categories__list_depth_0 > .brand-plugin-catalog-brand-categories__item {
+        width: 89%;
+        margin: 0.3rem;
+        max-height: initial;
+    }
+}
+.brand-plugin-catalog-brand-categories__list_depth_0 > .brand-plugin-catalog-brand-categories__item {
+    overflow: hidden;
+    position: relative;
+}
+.brand-plugin-catalog-brand-categories__list_depth_0 > .brand-plugin-catalog-brand-categories__item>.-showFullBtn {
+    content: 'Показать все';
+    background: #fafafa;
+    width: 100%;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    padding: 5px 30px;
+    border-top: 1px solid #ebebeb;
+    box-sizing: border-box;
+    display: block;
+    cursor: pointer;
+}.brand-plugin-catalog-brand-categories__list_depth_0 > .brand-plugin-catalog-brand-categories__item>.-showFullBtn:hover {
+     background: #e7e7e7;
+ }

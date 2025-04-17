@@ -1,0 +1,21 @@
+<div class="Login">
+    <div class="Login__Box">
+        <h1 class="Title__Main -With-Border -Centered">[`Login`]</h1>
+        {$wa->loginForm($error, [
+        'show_title'          => false,
+        'show_sub_title'      => true,
+        'show_oauth_adapters' => true
+        ])}
+    </div>
+</div>
+
+<style>
+    #themeOverride .wa-value input[type="checkbox"],
+    #themeOverride .wa-field-terms-accepted input[type="checkbox"],
+    #themeOverride .wa-field-remember-me input[type="checkbox"]{
+        display: initial;
+        -webkit-appearance: checkbox;
+        -moz-appearance: checkbox;
+        appearance: checkbox;
+    }
+</style>

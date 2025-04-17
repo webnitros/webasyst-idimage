@@ -1,0 +1,266 @@
+{*id метрики*}
+{$metrikaId = '92675167'}
+{*Отправка электронной коммерции*}
+{$ecomerc = true}
+
+{*id цели добавления в корзину*}
+{$idAddToCart = '285803588'}
+{*наименование цели добавления в корзину*}
+{$nameAddToCart = 'addtocart'}
+
+{*id цели оформления заказа*}
+{$idPurchase = '285803588'}
+{*наименование цели оформления заказа*}
+{$namePurchase = 'purchase'}
+
+{*id цели удаления товара из корзины*}
+{$idDeleteProduct = '286721465'}
+{*наименование цели удаления товара из корзины*}
+{$nameDeleteProduct = 'deleteProduct'}
+
+{*id цели обращения в виджет чата на сайте*}
+{$nameDeleteProduct = 'chatik'}
+{*идентификатор блока обращения в виджет чата на сайте*}
+{$classDeleteProduct = '.chatik-block'}
+
+{*id цели добавления в избранное*}
+{$nameFavoriteAdd = 'addFavor'}
+
+{*id цели добавления в избранное*}
+{$nameCompareAdd = 'addCompare'}
+
+{*id цели использования фильтра*}
+{$nameUseFilter = 'useFilter'}
+
+{*id цели нажатия кнопок слайдера*}
+{$nameClickSwipeSlider = 'clickSwipeSlider'}
+
+{*id цели нажатия зума фото товара*}
+{$namePhotoZoom = 'photoZoom'}
+
+{*id цели нажатия кнопок слайдера*}
+{$nameTabProductInfo = 'tabProductInfo'}
+
+{*id цели нажатия на соц сети*}
+{$nameClickSocial = 'clickSocial'}
+
+{*id цели наведения на блок*}
+{$nameHoverBlock = 'hoverBlock'}
+{*селектор цели наведения на блок*}
+{$selectorHoverBlock = 'a.header_logo'}
+
+<script>
+    window.dataLayer = window.dataLayer || [];
+</script>
+
+
+<script>
+    $(document).on('ready', function () {
+        const ecomerc = {if $ecomerc}true{else}false{/if};
+        const metrikaId = {$metrikaId};
+        const idTarget = {
+            // Добавление в корзину
+            'addToCart': {
+                'id':'{$idAddToCart}',
+                'name':'{$nameAddToCart}'
+            },
+            // Оформление заказа
+            'purchase': {
+                'id': '{$idPurchase}',
+                'name': '{$namePurchase}'
+            },
+            // Удаление товара из корзины
+            'deleteProduct': {
+                'id': '{$idDeleteProduct}',
+                'name': '{$nameDeleteProduct}'
+            },
+            'clickChat': {
+                'name': '{$nameDeleteProduct}'
+            },
+            'favoriteAdd': {
+                'name': '{$nameFavoriteAdd}'
+            },
+            'compareAdd': {
+                'name': '{$nameCompareAdd}'
+            },
+            'useFilter': {
+                'name': '{$nameUseFilter}'
+            },
+            'clickSwipeSlider': {
+                'name': '{$nameClickSwipeSlider}'
+            },
+            'photoZoom': {
+                'name': '{$namePhotoZoom}'
+            },
+            'tabProductInfo': {
+                'name': '{$nameTabProductInfo}'
+            },
+            'clickSocial': {
+                'name': '{$nameClickSocial}'
+            },
+            'hoverBlock': {
+                'name': '{$nameHoverBlock}',
+                'selector': '{$selectorHoverBlock}'
+            }
+        }
+        const productId = $('#page-content').data('product-id');
+        const productName = $('h1.product_name').text().trim();
+        const productPrice = $('.product_prices').find('.product__price').data('price');
+        const productCategory = $('.breadcrumbs li span').last().text().trim();
+        const productQty = $('.product_add-services .Cart__Qty input').val();
+        {if $wa->get('action') == 'product'}
+            if (ecomerc) {
+                dataLayer.push({
+                    "ecommerce": {
+                        "currencyCode": "RUB",
+                        "detail": {
+                            "products": [
+                                {
+                                    "id": productId,
+                                    "name": productName,
+                                    "price": productPrice,
+                                    "category": productCategory,
+                                    "quantity": productQty
+                                }
+                            ]
+                        }
+                    }
+                });
+            }
+        {/if}
+        {literal}
+
+        $('.product-actions .addtocart').on('click', function () {
+            if (ecomerc) {
+                dataLayer.push({
+                    "ecommerce": {
+                        "currencyCode": "RUB",
+                        "add": {
+                            "actionField": {
+                                "id": productId,
+                                "goal_id": idTarget.addToCart.id
+                            },
+                            "products": [
+                                {
+                                    "id": productId,
+                                    "name": productName,
+                                    "price": productPrice,
+                                    "category": productCategory,
+                                    "quantity": productQty
+                                }
+                            ]
+                        }
+                    }
+                });
+            } else {
+                ym(metrikaId,'reachGoal',idTarget.addToCart.name)
+            }
+        })
+
+        $('.Product-grid .addtocart').on('click', function () {
+            ym(metrikaId,'reachGoal',idTarget.addToCart.name)
+        })
+
+        $('.js-delete-product').on('click', function () {
+            const parent = $(this).closest('.wa-product');
+            const id = parent.data('product-id');
+            const name = parent.find('.wa-name').text().trim();
+            const qty = parent.find('.wa-input').val();
+
+            if (ecomerc) {
+                dataLayer.push({
+                "ecommerce": {
+                    "currencyCode": "RUB",
+                    "remove": {
+                        "products": [
+                            {
+                                "id": id,
+                                "name": name,
+                                "quantity": qty
+                            }
+                        ]
+                    }
+                }
+            });
+            } else {
+                ym(metrikaId,'reachGoal',idTarget.deleteProduct.name)
+            }
+        });
+
+        $('.js-submit-order-button').on('click', function () {
+            productsArray = [];
+            $('.wa-product').each(function () {
+                const productObj = {
+                    "id": $(this).data('product-id'),
+                    "name": $(this).find('.wa-name').text().trim(),
+                    "price": parseInt($(this).find('.wa-price-total').text().trim()),
+                    "quantity": parseInt($(this).find('.wa-input').val())
+                }
+            })
+
+            if (ecomerc) {
+                dataLayer.push({
+                    "ecommerce": {
+                        "currencyCode": "RUB",
+                        "purchase": {
+                            "actionField": {
+                                "id": "orderid",
+                                "goal_id": idTarget.purchase.id
+                            },
+                            "products": productsArray.push(productObj)
+                        }
+                    }
+                });
+            } else {
+                ym(metrikaId,'reachGoal',idTarget.purchase.name)
+            }
+        });
+
+        if (idTarget.clickChat.name) {
+            $(`${idTarget.clickChat.class}`).on('click',function(){
+                ym(metrikaId,'reachGoal',idTarget.clickChat.name)
+            })
+        }
+        if (idTarget.favoriteAdd.name) {
+            $('.js-favorites-add').on('click',function(){
+                ym(metrikaId,'reachGoal',idTarget.favoriteAdd.name)
+            })
+        }
+        if (idTarget.compareAdd.name) {
+            $('.js-compare-add').on('click',function(){
+                ym(metrikaId,'reachGoal',idTarget.compareAdd.name)
+            })
+        }
+        if (idTarget.useFilter.name) {
+            $('#filter-body').on('change',function(){
+                ym(metrikaId,'reachGoal',idTarget.useFilter.name)
+            })
+        }
+        if (idTarget.clickSwipeSlider.name) {
+            $('.js-slider-init-action').on('click',function(){
+                ym(metrikaId,'reachGoal',idTarget.clickSwipeSlider.name)
+            })
+        }
+        if (idTarget.photoZoom.name) {
+            $('.js-product_gallery-images-main-el').on('click',function(){
+                ym(metrikaId,'reachGoal',idTarget.photoZoom.name)
+            })
+        }
+        if (idTarget.tabProductInfo.name) {
+            $('.js-tab').on('click',function(){
+                ym(metrikaId,'reachGoal',idTarget.tabProductInfo.name)
+            })
+        }
+        if (idTarget.clickSocial.name) {
+            $('.footer-social_item').on('click',function(){
+                ym(metrikaId,'reachGoal',idTarget.clickSocial.name)
+            })
+        }
+        if (idTarget.hoverBlock.name && idTarget.hoverBlock.selector) {
+            $(idTarget.hoverBlock.selector).on('mouseenter',function(){
+                ym(metrikaId,'reachGoal',idTarget.hoverBlock.name)
+            })
+        }
+        {/literal}
+    })
+</script>

@@ -1,0 +1,64 @@
+<div class="box">
+    <table class="zebra" id="s-order-list">
+        {foreach $orders as $o}
+            <tr>
+                <td class="nowrap">
+                    <a href="{$wa_app_url}?action=orders#/orders/state_id={$o.state_id}&id={$o.id}&view=split/"
+                                      style="{$o.style|escape}"
+                                      data-order-id="{$o.id}"
+                                      data-state-id="{$o.state_id}"
+                                      class="s-order-link"
+                                >
+                        <span class="icon"><i class="{$wa->shop->convertIcon($o.icon)}"></i></span>
+                        {$wa->shop->orderId($o.id)}
+                    </a>
+                </td>
+                <td>{$o.create_datetime|wa_date:'humandate'}</td>
+                <td>
+                    {if isset($o.items)}
+                        {foreach $o.items as $i}
+                            {$i.name|escape} <span class="gray">x {$i.quantity}</span><br />
+                        {/foreach}
+                    {/if}
+                </td>
+                <td>
+                    {* !!! TODO: shipping icon *}
+                    {if $o.shipping_name}
+                        {$o.shipping_name}
+                    {else}
+                        <span class="hint">[`Shipping option not specified`]</span>
+                    {/if}
+                </td>
+                <td>
+                    {* !!! TODO: payment icon *}
+                    {if $o.payment_name}
+                        {$o.payment_name}
+                    {else}
+                        <span class="hint">[`Payment option not specified`]</span>
+                    {/if}
+                </td>
+                <td class="bold nowrap align-right">{$o.total_formatted}</td>
+            </tr>
+        {foreachelse}
+            {sprintf('[`%s did not place orders yet.`]', {$contact.name|escape})}
+        {/foreach}
+    </table>
+
+    <a href="{$wa_app_url}?action=orders#/orders/new/customer_id={$contact.id}" target="_top">
+        <i class="fas fa-plus-circle"></i>
+        [`Add order`]
+    </a>
+
+</div>
+
+<script>
+    $(function() {
+        var view = (localStorage && localStorage.getItem('shop/orders/view')) || '{$orders_default_view}';
+        if (view.match(/table/)) {
+            $('#s-order-list .s-order-link').each(function() {
+                var el = $(this);
+                el.attr('href', '{$wa_app_url}?action=orders#/order/' + el.data('orderId') + '/state_id=' + el.data('stateId') + '/');
+            });
+        }
+    });
+</script>

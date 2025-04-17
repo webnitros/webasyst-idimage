@@ -1,0 +1,340 @@
+{function fieldLocalizedType field=null}
+    {strip}
+        {if $field instanceof waContactBranchField}
+            {$field_types['Branch']}
+        {elseif $field instanceof waContactStringField && $field->getParameter('input_height') > 1}
+            {$field_types['Text']}
+        {else}
+            {ifempty($field_types[$field->getType()], $field->getType())}
+        {/if}
+    {/strip}
+{/function}
+{function renderContactFieldsEditor _fields=[] _fields_config=[] _type=null}
+    {foreach $_fields as $_field_id => $_field}
+
+        {* ignore special tech fields *}
+        {if $_field_id === 'company_contact_id'}
+            {continue}
+        {/if}
+
+        {$_is_used = false}
+        {if isset($_fields_config.$_field_id)}
+            {$_is_used = true}
+        {/if}
+
+        {$_is_required = false}
+        {if !empty($_fields_config.$_field_id.required)}
+            {$_is_required = true}
+        {/if}
+        <tr class="js-field" data-type="{$_type|escape}" data-id="{$_field_id|escape}">
+            <td>
+                <div class="icon text-gray"><i class="fas fa-grip-vertical js-sort cursor-pointer"></i></div>
+
+                <label>
+                    <span class="wa-checkbox small">
+                        <input type="checkbox" class="js-used-checkbox" name="data[fields][{$_type}][{$_field_id|escape}][used]"{if $_is_used} checked{/if} title="[`Use field`]">
+                        <span>
+                            <span class="icon">
+                                <i class="fas fa-check"></i>
+                            </span>
+                        </span>
+                    </span>
+                    {$_field->getName(null, true)}
+                    <span class="hint">{$_field_id} — {fieldLocalizedType field=$_field}</span>
+                </label>
+            </td>
+
+            <td class="align-right">
+                <label>
+                    <span class="wa-checkbox small">
+                        <input type="checkbox" class="js-required-checkbox" name="data[fields][{$_type}][{$_field_id|escape}][required]"{if $_is_required} checked{/if}>
+                        <span>
+                            <span class="icon">
+                                <i class="fas fa-check"></i>
+                            </span>
+                        </span>
+                    </span>
+                    <i class="small">[`Required`]</i>
+                </label>
+            </td>
+        </tr>
+    {/foreach}
+{/function}
+
+
+{$_title = _w('Order editor')|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}
+{$_class = 's-settings-order-editor'}
+{$_id = uniqid($_class)}
+<form action="?module=SettingsOrderEditorSave" id="{$_id}">
+    <input type="hidden" name="data[use_custom_config]" value="1">
+    <h1>[`Manually added orders’ editor`]</h1>
+
+
+    <p class="custom-my-4 small">
+      {sprintf('[`Select which fields must available for the editing of orders with selected order source “%s”.`]', '[`Manual order`]')}
+      [`If a storefront is selected as an order’s source then that storefront’s checkout settings define which fields are available for order editing.`]
+    </p>
+
+    <table class="js-big-table s-table-transparent">
+        <tbody class="fields">
+            {* GENERAL SETTINGS *}
+            <tr class="js-block-wrapper tr" data-block="general">
+                <td class="custom-p-0">
+                    <div class="fields-group">
+                        <div class="flexbox space-12">
+                            <div class="wide">
+                                <h4>[`General settings`]</h4>
+                            </div>
+
+                            <div>
+                                <button type="button" class="button nobutton small light-gray js-settings-link">
+                                    <div class="icon text-blue"><i class="fas fa-cog"></i></div>
+                                    [`Settings`]
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="custom-mt-12 js-block-content" style="display: none;">
+                            <div class="fields">
+                                {* SOURCE *}
+                                <div class="field">
+                                    <div class="name">[`Default customer source`]</div>
+
+                                    <div class="value">
+                                        <input type="text" name="data[source]" class="small long"{if !empty($config.source)} value="{$config.source|escape}"{/if} placeholder="[`Type a source name`]" autocomplete="off">
+                                    </div>
+                                </div>
+
+                                <div class="custom-mt-12 js-fixed-delivery-area">
+                                    <h6>[`Pre-fill address fields`]</h6>
+
+                                    <div class="field">
+                                        <div class="name">[`Country`]</div>
+
+                                        <div class="value">
+                                            <div class="wa-select small">
+                                                <select name="data[fixed_delivery_area][country]" class="js-fix-delivery-country">
+                                                    <option value="">[`Select a country`]</option>
+                                                    {foreach $countries as $_country_id => $_country}
+                                                        <option value="{$_country_id}" title="{$_country.name|escape}"{if $config.fixed_delivery_area.country|default:null === $_country_id} selected{/if}>{$_country.name|escape|truncate:27:'...'}</option>
+                                                    {/foreach}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="field">
+                                        <div class="name">[`Regions`]</div>
+
+                                        <div class="value">
+                                            <div class="wa-select small">
+                                                <select name="data[fixed_delivery_area][region]" class="js-fix-delivery-region">
+                                                    <option value="">[`Select a region`]</option>
+                                                    {foreach $regions as $_region}
+                                                    <option value="{$_region.code|escape}" title="{$_region.name|escape}" data-country="{$_region.country_iso3|escape}"{if $config.fixed_delivery_area.country|default:null == $_region.country_iso3 && $config.fixed_delivery_area.region|default:null === $_region.code} selected{/if}>{$_region.name|escape|truncate:30:'...'}</option>
+                                                    {/foreach}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="field">
+                                        <div class="name">
+                                            [`Locality`]
+                                        </div>
+
+                                        <div class="value">
+                                            <input type="text" name="data[fixed_delivery_area][city]" class="small js-fix-delivery-city" value="{$config.fixed_delivery_area.city|default:null|escape}" autocomplete="off">
+
+                                            <div class="hint custom-mt-4">
+                                                [`These values will be selected by default for new orders created in backend.`]
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+
+            {* PERSON FIELDS *}
+            <tr class="js-block-wrapper" data-block="person">
+                <td class="custom-p-0">
+                    <div class="fields-group">
+                        <div class="flexbox space-12">
+                            <div class="wide">
+                                <h4 class="name">[`Person contacts’ fields`]</h4>
+                            </div>
+
+                            <div>
+                                <button type="button" class="button nobutton small light-gray js-settings-link">
+                                    <i class="fas fa-cog"></i>
+                                    [`Settings`]
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="custom-mt-12 js-block-content" style="display: none;">
+                            {* NAME FORMAT *}
+                            <div class="fields">
+                                <div class="field">
+                                    <div class="name">[`Name fields`]</div>
+
+                                    <div class="value">
+                                        {foreach $name_format_variants as $_variant_id => $_variant}
+                                        <div class="s-setting-variant">
+                                            <label>
+                                                <span class="wa-radio small">
+                                                    <input type="radio" class="js-name-format-variant" name="data[name_format]" value="{$_variant_id|escape}"{if $config.name_format|default:shopOrderEditorConfig::NAME_FORMAT_FULL === $_variant_id} checked{/if}>
+                                                    <span></span>
+                                                </span>
+                                                {$_variant.name|escape}
+                                            </label>
+                                        </div>
+                                        {/foreach}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {* Copmany field editor *}
+                            <table class="zebra s-sort-table js-sort-table">
+                                <tbody>
+                                    {renderContactFieldsEditor _fields=$person_fields _fields_config=$person_fields_config _type='person'}
+                                </tbody>
+                            </table>
+
+                            <div class="hint">
+                                {if !empty($wa_settings)}
+                                    {$wa_backend_url|cat:'webasyst/settings/field/'|string_format:'[`<a href="%s" target="_blank">Edit contact fields</a> <i class="icon10 new-window"></i> in Settings app.`]'}
+                                {else}
+                                    [`You need access to Settings app to edit contact fields.`]
+                                {/if}
+                            </div>
+
+                            <div class="custom-mt-8">
+                                <label>
+                                    <span class="wa-checkbox small">
+                                        <input type="checkbox" name="data[billing_address][person]" value="1"{if !empty($config.billing_address.person)} checked{/if}>
+                                        <span>
+                                            <span class="icon">
+                                                <i class="fas fa-check"></i>
+                                            </span>
+                                        </span>
+                                    </span>
+                                    [`Show payment address fields`]
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+
+            {* COMPANY FIELDS *}
+            <tr class="js-block-wrapper" data-block="company">
+                <td class="custom-p-0">
+                    <div class="fields-group">
+                        <div class="flexbox space-12">
+                            <div class="wide">
+                                <h4>[`Company contacts’ fields`]</h4>
+                            </div>
+
+                            <div>
+                                <button type="button" class="button nobutton small light-gray js-settings-link">
+                                    <i class="fas fa-cog"></i>
+                                    [`Settings`]
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="custom-mt-12 js-block-content" style="display: none;">
+                            {* Copmany field editor *}
+                            <table class="zebra s-sort-table js-sort-table">
+                                <tbody>
+                                    {renderContactFieldsEditor _fields=$company_fields _fields_config=$company_fields_config _type='company'}
+                                </tbody>
+                            </table>
+
+                            <div class="s-fields-editor-hint hint">
+                                {if !empty($wa_settings)}
+                                    {$wa_backend_url|cat:'webasyst/settings/field/'|string_format:'[`<a href="%s" target="_blank">Edit contact fields</a> <i class="icon10 new-window"></i> in Settings app.`]'}
+                                {else}
+                                    [`You need access to Settings app to edit contact fields.`]
+                                {/if}
+                            </div>
+
+                            <div class="s-billing-address-setting custom-mt-8">
+                                <label>
+                                    <span class="wa-checkbox small">
+                                        <input type="checkbox" name="data[billing_address][company]" value="1"{if !empty($config.billing_address.company)} checked{/if}>
+                                        <span>
+                                            <span class="icon">
+                                                <i class="fas fa-check"></i>
+                                            </span>
+                                        </span>
+                                    </span>
+                                    [`Show payment address fields`]
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            {* ADDRESS FIELDS *}
+            <tr class="js-block-wrapper" data-block="address">
+                <td class="custom-p-0">
+                    <div class="fields-group">
+                        <div class="flexbox space-12">
+                            <div class="wide">
+                                <h4>[`Address fields`]</h4>
+                            </div>
+
+                            <div>
+                                <button type="button" class="button nobutton small light-gray js-settings-link">
+                                    <i class="fas fa-cog"></i>
+                                    [`Settings`]
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="custom-mt-12 js-block-content" style="display: none;">
+                            {* Address field editor *}
+                            <table class="zebra s-sort-table js-sort-table">
+                                <tbody>
+                                    {renderContactFieldsEditor _fields=$address_fields _fields_config=$address_fields_config _type='address'}
+                                </tbody>
+                            </table>
+
+                            <div class="s-fields-editor-hint hint">
+                                {if !empty($wa_settings)}
+                                    {$wa_backend_url|cat:'webasyst/settings/field/'|string_format:'[`<a href="%s" target="_blank">Edit contact fields</a> <i class="icon10 new-window"></i> in Settings app.`]'}
+                                {else}
+                                    [`You need access to Settings app to edit contact fields.`]
+                                {/if}
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="bottombar sticky s-settings-fixed-bottombar">
+        <button type="submit" class="button green js-submit-button">
+            [s`Save`]
+            <span class="js-loading" style="display: none;"><i class="fas fa-spinner fa-spin"></i></span>
+        </button>
+    </div>
+</form>
+
+<script src="{$wa_app_static_url}js/settings/order_editor.js?{$wa->version()}"></script>
+<script>
+    (function ($) {
+        document.title = '{$_title}';
+
+        new ShopSettingsOrderEditor($("#{$_id}"));
+    })(jQuery);
+</script>

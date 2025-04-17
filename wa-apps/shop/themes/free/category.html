@@ -1,0 +1,163 @@
+{strip}
+    {if !isset($filters)}
+        {$filters = []}
+    {/if}
+
+    <div class="category-heder">
+        <h1 class="category-name">
+            {$category.name|escape}
+        </h1>
+        {if $theme_settings.plugin_cic != 'none'}
+            {if !empty($category.params.cic_category_items)}
+                <span class="cartegory-product-count">
+                    {$category.params.cic_category_items} товаров
+                </span>
+            {/if}
+            {if !empty($category.params.cic_category_has_discount_items)}
+                <div class="cat-badge cat-badge--discount cat-badge--cat-title">
+                    %
+                </div>
+            {/if}
+            {if !empty($category.params.cic_category_has_new_items)}
+                <div class="cat-badge cat-badge--new cat-badge--cat-title">
+                    new
+                </div>
+            {/if}
+            {if !empty($category.params.cic_category_hot)}
+                <div class="cat-badge cat-badge--hot cat-badge--cat-title">
+                    hot
+                </div>
+            {/if}
+        {/if}
+    </div>
+    <div class="category">
+        {if !$wa->isMobile()}
+            <div class="{if !$theme_settings.modal_sb}theiaStickySidebar {/if}out_sidebars -mr{if $theme_settings.modal_sb} out_sidebars--fixed out_sidebars--hidden{/if}">
+                {include file='sidebar.html' filter=$filters}
+            </div>
+        {/if}
+        {if $wa->isMobile()}
+            {include file="sb-mobile.html"}
+        {/if}
+        <div class="{if !$theme_settings.modal_sb}theiaStickySidebar {/if}content  with-sidebar">
+            <div class="cat-content">
+                {if $theme_settings.modal_sb && !$wa->isMobile()}
+                    <div class="filters-bar">
+                        <div class="filters-bar__list">
+                            {foreach $filters as $filterId => $filter}
+                                {if $filter@iteration > 3}
+                                    {break}
+                                {/if}
+                                {if $filter@first}
+                                    <div class="filters-bar__item filters-bar__item--full">
+                                        <i class="fi-rr-filter"></i>Все фильтры
+                                    </div>
+                                {/if}
+                                {if $filterId == 'price'}
+                                    <div class="filters-bar__item" data-code="price">
+                                        <div class="filters-bar__btn">Цена</div>
+                                    </div>
+                                {else}
+                                    <div class="filters-bar__item" data-code="{$filter.code}">
+                                        <div class="filters-bar__btn">{$filter.name}</div>
+                                    </div>
+                                {/if}
+                            {/foreach}
+                        </div>
+                    </div>
+                {/if}
+
+                <!-- plugin hook: 'frontend_category' -->
+                {* @event frontend_category.%plugin_id% *}
+                {foreach $frontend_category as $_}{$_}{/foreach}
+                <!-- description -->
+                {if !$theme_settings.cat_desc_bottom && $category.description && $wa->get('page', null, int) < 2}
+                    {strip}
+                        <div class="category-desc-outer">
+                            {$maxHeight = 55}
+                            {if $theme_settings.height_cat_desc}
+                                {$maxHeight = $theme_settings.height_cat_desc}
+                            {/if}
+                            <div class="category-desc-wrap{if $theme_settings.cat_desc_more} js-category-desc-wrap{/if}"{if $theme_settings.cat_desc_more} data-text-hide="Свернуть" data-text-more="Развернуть" data-max-height="{$maxHeight}" style="max-height: {$maxHeight}px"{/if} >
+                                <div class="category-desc{if $theme_settings.cat_desc_more} js-category-desc{/if}">{$category.description}</div>
+                            </div>
+                        </div>
+                    {/strip}
+                {/if}
+
+                {if $theme_settings.cat_view_subs != 'none'}
+                    {include file="sabcat.html"}
+                {/if}
+                <div class="js-product-ajax-list">
+                    {if !$products}
+                        {if $theme_settings.selected_filter}{include file="selected-filters.html"}{/if}
+                        <div class="content-box">
+                            {if !empty($filters)}
+                                [`No products were found.`]
+                            {else if !$category.subcategories}
+                                [`This category does not contain any products.`]
+                            {/if}
+                        </div>
+                    {else}
+                        {include file='list-thumbs.html' sorting=!empty($category.params.enable_sorting) isViewSwitch=true ulclass="js-cat-list cat--list"}
+                    {/if}
+                </div>
+                <div class="js-product-ajax-list-loader -Close content-box">
+                    <img alt="Loading..." src="{$wa_parent_theme_url}img/loading16.gif">
+                </div>
+
+                {if $theme_settings.cat_desc_bottom && $category.description && $wa->get('page', null, int) < 2}
+                    <div class="content-box">
+                        {strip}
+                            <div class="category-desc-outer">
+                                {$maxHeight = 55}
+                                {if $theme_settings.height_cat_desc}
+                                    {$maxHeight = $theme_settings.height_cat_desc}
+                                {/if}
+                                <div class="category-desc-wrap{if $theme_settings.cat_desc_more} js-category-desc-wrap{/if}"{if $theme_settings.cat_desc_more} data-text-hide="Свернуть" data-text-more="Развернуть" data-max-height="{$maxHeight}" style="max-height: {$maxHeight}px"{/if} >
+                                    <div class="category-desc{if $theme_settings.cat_desc_more} js-category-desc{/if}">{$category.description}</div>
+                                </div>
+                            </div>
+                        {/strip}
+                    </div>
+                {/if}
+            </div>
+        </div>
+    </div>
+{/strip}
+{if !$theme_settings.modal_sb}
+    <script src="{$wa_theme_url}ResizeSensor.min.js"></script>
+    <script src="{$wa_theme_url}theia-sticky-sidebar.min.js"></script>
+    <script>
+        jQuery(document).ready(function() {
+            jQuery('.category>.content, .category>.out_sidebars').theiaStickySidebar({
+                // Settings
+                additionalMarginTop: 30
+            });
+        });
+    </script>
+{else}
+    {literal}
+        <script>
+            $(document).on('ready',function(){
+                $(document).mouseup(function (e) {
+                    var container = $(".out_sidebars--fixed");
+                    if (container.has(e.target).length === 0){
+                        container.addClass('out_sidebars--hidden');
+                    }
+                });
+                $('.filters-bar__item').on('click',function(){
+                    if (!$(this).hasClass('filters-bar__item--full')){
+                        const code = $(this).data('code');
+                        $('#filter-body>.js-filter-el').each(function(){
+                            $('.js-filter-el').addClass('close');
+                        })
+                        $(`#filter-body>.js-filter-el[data-code="${code}"]`).removeClass('close');
+                    }
+                    $('.out_sidebars--fixed').removeClass('out_sidebars--hidden');
+                })
+            })
+
+        </script>
+    {/literal}
+{/if}

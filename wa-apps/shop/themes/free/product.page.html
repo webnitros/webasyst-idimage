@@ -1,0 +1,23 @@
+{strip}
+<article>
+    <div class="content">
+        <div class="content-box">
+            <h1>{$page.title|escape}</h1>
+
+            <!-- product page navigation -->
+            <nav>
+                <ul class="product_nav clear-list">
+                    <li><a href="{$wa->shop->productUrl($product)}">[`Overview`]</a></li>
+                    {foreach $product.pages as $p}
+                        <li><a {if $page.id == $p.id} class="selected"{/if} href="{$wa->shop->productUrl($product, 'page', ['page_url' => $p.url])}">{$p.name|escape}</a></li>
+                    {/foreach}
+                </ul>
+            </nav>
+        </div>
+
+        <div class="content-box">
+            {$page.content}
+        </div>
+    </div>
+</article>
+{/strip}

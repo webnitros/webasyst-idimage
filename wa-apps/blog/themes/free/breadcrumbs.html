@@ -1,0 +1,53 @@
+{strip}
+
+    {$_is_personal_area = $wa->globals("isMyAccount")}
+    {$_global_breadcrumbs = $wa->globals("breadcrumbs")}
+
+    {$_breadcrumbs = []}
+    {if empty($_is_personal_area)}
+        {$_name = $post.blog_name}
+        {if !empty($theme_settings.blog_breadcrumb_title)}
+            {$_name = $theme_settings.blog_breadcrumb_title}
+        {/if}
+
+        {$_breadcrumbs[] = [
+        "name" => $_name,
+        "url" => $wa_app_url
+        ]}
+    {/if}
+
+    {if !empty($breadcrumbs)}
+        {$breadcrumbs = array_merge($_breadcrumbs, $breadcrumbs)}
+
+    {elseif !empty($_global_breadcrumbs)}
+        {$breadcrumbs = array_merge($_breadcrumbs, $_global_breadcrumbs)}
+
+    {else}
+        {$breadcrumbs = $_breadcrumbs}
+    {/if}
+    {$position = 1}
+    <ul class="breadcrumbs" itemscope itemtype="http://schema.org/BreadcrumbList">
+        <li itemscope itemprop="itemListElement" itemtype="http://schema.org/ListItem">
+            <a itemprop="item" href="{$wa_url}"><span itemprop="name">[`Home`]</span></a>
+            {if ((isset($breadcrumbs) && !empty($breadcrumbs)) || !empty($nameCurrentPage)) && $wa->currentUrl(false, true) != $wa_app_url} <span class="rarr">&rarr;</span> {/if}
+            <meta itemprop="position" content="{$position}" >
+        </li>
+        {if $wa->currentUrl(false, true) != $wa_app_url}
+            {if (isset($breadcrumbs) && $breadcrumbs)}
+                {foreach $breadcrumbs as $breadcrumb}
+                    {if $breadcrumb}
+                        {$position = $position + 1}
+                        <li itemscope itemprop="itemListElement" itemtype="http://schema.org/ListItem">
+                            <a itemprop="item" href="{$breadcrumb.url}"><span itemprop="name">{$breadcrumb.name|escape}</span></a> {if !$breadcrumb@last}&rarr;{/if}
+                            <meta itemprop="position" content="{$position}">
+                        </li>
+                    {/if}
+                {/foreach}
+            {/if}
+        {/if}
+        {if !empty($nameCurrentPage)}
+            {if (isset($breadcrumbs) && !empty($breadcrumbs))} <span class="rarr">&rarr;</span> {/if}
+            <li>{$nameCurrentPage|escape}</li>
+        {/if}
+    </ul>
+{/strip}

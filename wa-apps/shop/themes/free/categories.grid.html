@@ -1,0 +1,31 @@
+{strip}
+    {if isset($categories) && count($categories)}
+
+        {$_lazy = true}
+        <div class="js-list-categories categories cat-tile-list{if $wa->param('action') == 'category'} cat-tile-list--category{/if} -{$setting_cat_in_row}" data-lazy="{$_lazy}">
+            {foreach $categories as $cat}
+                <div class="categories-tile ">
+                    <a href="{$cat.url}" class="js-cat-link">
+                        <div class="cat-tile_image">
+                            {if isset($Wmimages[$cat.id].image)}
+                                {$cat.params.image = $Wmimages[$cat.id].image}
+                            {/if}
+                            {if isset($skImages[$cat.id].image)}
+                                {$cat.params.image = $skImages[$cat.id].image}
+                            {/if}
+                            {if class_exists('shopCategoryImagesPlugin')}
+                                {if shopCategoryImagesPlugin::getCategoryImageUrl($cat.id)}
+                                    {$cat.params.image = shopCategoryImagesPlugin::getCategoryImageUrl($cat.id)}
+                                {/if}
+                            {/if}
+                            <img class="js-cat-item-image" src="{if isset($cat.params.image)}{$cat.params.image}{else} {$wa_theme_url}img/dummy96.png{/if}" alt="{$cat.name}">
+                        </div>
+                        <div class="cat-tile_name sdColor">
+                            {$cat.name}
+                        </div>
+                    </a>
+                </div>
+            {/foreach}
+        </div>
+    {/if}
+{/strip}

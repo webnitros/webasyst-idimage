@@ -1,0 +1,148 @@
+{strip}
+    {if $wa->get('cart')}
+        {$product.features = $product->features}
+        {$products = [$product.id => $product->data]}
+        {$features =  $wa->shop->features($products)}
+    {/if}
+    {$features_list = $features}
+    {if !empty($sku_features)}{$features_list = $sku_features}{/if}
+
+
+    {if $theme_settings.product_page_show_brand_right}
+        {if $theme_settings.use_plugin_brands == 'brands_pro' && class_exists('shopBrandViewHelper')}
+            {$_brand_pro = shopBrandViewHelper::getProductBrand($product)}
+        {else if $theme_settings.use_plugin_brands == 'brands' && class_exists('shopProductbrandsPlugin')}
+            {$_brand = shopProductbrandsPlugin::productBrand($product.id)}
+        {/if}
+    {/if}
+
+    {if $product.features || isset($_brand) || isset($_brand_pro) || ($product.summary && $theme_settings.product_page_show_short_description && $theme_settings.product_page_position_summary == 'after_buy_box')}
+        <div class="product_action-desc">
+            {if isset($_brand_pro) && !empty($_brand_pro)}
+                <div class="brand_product">
+                    <div class="brand_product-img">
+                        {if $_brand_pro.image_url}
+                            <a href="{$_brand_pro.frontend_url}"><img alt="{$_brand_pro.name|escape}" src="{$_brand_pro.image_url}"></a>
+                        {else}
+                            <span><b>[`Brand`]:</b> <a href="{$_brand_pro.frontend_url}">{$_brand_pro.name|escape}</a></span>
+                        {/if}
+                    </div>
+                </div>
+            {else if isset($_brand) && !empty($_brand)}
+                <div class="brand_product">
+                    <a class="brand_product-img"  href="{$_brand.url}">
+                        {if $_brand.image}
+                            <img alt="{$_brand.name|escape}" src="{$wa_url}wa-data/public/shop/brands/{$_brand.id}/{$_brand.id}{$_brand.image}">
+                        {else}
+                            <span>[`Brand`]: {$_brand.name|escape}</span>
+                        {/if}
+                    </a>
+                </div>
+            {/if}
+
+            {if $product.summary && $theme_settings.product_page_show_short_description && $theme_settings.product_page_position_summary == 'after_buy_box'}
+                <div class="product_short-desc">
+                    {$product.summary}
+                </div>
+                {if $product.description  &&  !$wa->get('cart') && $_show_description}
+                    <div class="product_link-full js-motion-to-tab" data-tab-content="product-description">
+                        <a href="#">[`Detailed description`]</a>
+                    </div>
+                {/if}
+            {/if}
+
+            {if !$wa->isMobile()}
+                {$product_features_list = $product.features}
+                {$short_list_features = []}
+
+                {foreach $product.skus as $sku}
+                {if !empty($_is_dialog) && !$sku@first}
+                    {break}
+                {/if}
+                {if !empty($sku.features)}
+                    {$product_features_list = $sku.features}
+                {/if}
+                {if !empty($product_features_list) && !empty($theme_settings.product_page_right_block_features)}
+                    {if $theme_settings.product_page_right_block_features == 'short'}
+                        {if !empty($theme_settings.product_codes_output_characteristics)}
+                            {$featAliases = ","|explode:$theme_settings.product_codes_output_characteristics}
+                            {foreach $product_features_list as $f_code => $f_value}
+                                {if in_array($f_code, $featAliases)}
+                                    {$short_list_features[$f_code] = $f_value}
+                                {/if}
+                            {/foreach}
+                        {/if}
+                    {else if $theme_settings.product_page_right_block_features == 'first'}
+                        {$count_output_short_features = (int) $theme_settings.count_output_features_right_block}
+                        {if $count_output_short_features}
+                            {foreach $product_features_list as $f_code => $f_value}
+                                {if $f_value@iteration > $count_output_short_features}{break}{/if}
+                                {$short_list_features[$f_code] = $f_value}
+                            {/foreach}
+                        {/if}
+                    {else}
+                        {$short_list_features = $product_features_list}
+                    {/if}
+                {/if}
+
+                {*featurestips*}
+                {if empty($_is_dialog) and empty($featurestips) and class_exists('shopFeaturestipsPlugin')}
+                    {$featurestips = shopFeaturestipsPlugin::ReturnFeatureTipArray($product)}
+                {/if}
+                {*!featurestips*}
+
+                {if count($short_list_features) > 0}
+                    <table data-type="{$theme_settings.product_page_right_block_features}" class="Product__features"  data-features-id="{$sku.id}"{if empty($_is_dialog) && count($product.skus) > 1 && !$sku@first} style="display:none"{/if}>
+                        {if class_exists('shopSeofilterViewHelper')}
+                            {$short_list_features = shopSeofilterViewHelper::wrapFeatureValues($short_list_features)}
+                        {/if}
+                        {foreach $short_list_features as $f_code => $f_value}
+
+                            {if !isset($features_list[$f_code]) && isset($features_list["`$f_code`.0"])}
+                                {$features_list[$f_code] = $features_list["`$f_code`.0"]}
+                                {$features_list[$f_code].name = $features_list[$f_code].name|replace:'.0':''}
+                            {/if}
+                            {if !empty($features_list[$f_code])}
+                                <tr class="Product__features-item {if $features_list[$f_code].type == 'divider'} divider{/if}" data-index="{$f_value@iteration}">
+                                    <td class="Product__features-title">
+                                        <span class="fiwex-feat" data-feat_id="{$features_list[$f_code].id}">
+                                            {$features_list[$f_code].name|escape}
+                                        </span>
+                                    </td>
+                                    <td class="Product__features-value">
+                                        {if $features_list[$f_code].type != 'divider'}
+                                            {if is_array($f_value)}
+                                                {if $features_list[$f_code].type == 'color'}
+                                                    {implode('<br /> ', $f_value)}
+                                                {else}
+                                                    {foreach $f_value as $fiwex_k => $fiwex_v name="fiwex_feature_values"}
+                                                        <span class="fiwex-feat-val" data-product_id="{$product.id}" data-fiwex-parent_id="{$features[$f_code].id}">
+                                                            {$fiwex_v}
+                                                        </span>
+                                                        {if $smarty.foreach.fiwex_feature_values.last}{else}, {/if}
+                                                    {/foreach}
+                                                {/if}
+                                            {else}
+                                                {$f_value}
+                                            {/if}
+                                        {/if}
+                                        {if !empty($featurestips)}
+                                            {shopFeaturestipsPlugin::ShowFeatureTip($featurestips, $f_code)}
+                                        {/if}
+                                    </td>
+                                </tr>
+                            {/if}
+                        {/foreach}
+                    </table>
+                {/if}
+            {/foreach}
+
+                {if count($product_features_list) > count($short_list_features) &&  !$wa->get('cart') && $_show_features  && !empty($theme_settings.product_page_right_block_features)}
+                <div class="product_link-full js-motion-to-tab" data-tab-content="product-options">
+                    <a href="#">[`Detailed specifications`]</a>
+                </div>
+            {/if}
+            {/if}
+        </div>
+    {/if}
+{/strip}

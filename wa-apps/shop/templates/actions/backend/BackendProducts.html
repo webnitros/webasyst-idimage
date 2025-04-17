@@ -1,0 +1,51 @@
+<link type="text/css" rel="stylesheet" href="{$wa_url}wa-content/js/jquery-plugins/jquery-tagsinput/jquery.tagsinput.css?{$wa->version(true)}">
+
+{wa_js file="js/product/product.min.js"}
+    {$wa_app_static_url}js/tmpl.min.js
+    {$wa_app_static_url}js/lazy.load.js
+    {$wa_app_static_url}js/live.dragndrop.js
+    {$wa_app_static_url}js/inline.editable.widget.js
+    {$wa_app_static_url}js/photo.stream.slider.js
+    {$wa_app_static_url}js/product/dragndrop.js
+    {$wa_app_static_url}js/backend/categories_tree.js
+    {$wa_app_static_url}js/product/sidebar.js
+    {$wa_app_static_url}js/products.js
+    {$wa_app_static_url}js/product/product.js
+    {$wa_app_static_url}js/rate.widget.js
+    {$wa_app_static_url}js/product/reviews.js
+    {$wa_app_static_url}js/product/images.js
+    {$wa_app_static_url}js/product/stocks.js
+    {$wa_app_static_url}js/product/stocks_log.js
+    {$wa_app_static_url}js/stocks_log.js
+    {$wa_app_static_url}js/product/orders.js
+    {$wa_url}wa-content/js/jquery-plugins/jquery-tagsinput/jquery.tagsinput.min.js
+    {$wa_app_static_url}js/product/list.js
+
+    {$wa_app_static_url}js/set/products.set.js
+
+    {*Create category*}
+    {$wa_app_static_url}js/category/products.category.js
+{/wa_js}
+<script type="text/javascript" src="{$wa_url}wa-content/js/ace/ace.js?{$wa->version(true)}"></script>
+
+<link type="text/css" rel="stylesheet" href="{$wa_url}wa-content/js/redactor/2/redactor.css?v{$wa->version(true)}">
+<script src="{$wa_url}wa-content/js/redactor/2/redactor.min.js?v{$wa->version(true)}"></script>
+{if $lang!='en'}<script src="{$wa_url}wa-content/js/redactor/2/{$lang}.js?v{$wa->version(true)}"></script>{/if}
+<script src="{$wa_url}wa-content/js/jquery-wa/editor2.js?v{$wa->version(true)}"></script>
+
+<script src="{$wa_url}wa-apps/shop/js/charts/d3.min.js?v{$wa->version()}"></script>
+<script src="{$wa_url}wa-apps/shop/js/charts/d3chart-sales.js?{$wa->version()}"></script>
+<script src="{$wa_url}wa-apps/shop/js/charts/d3chart-pie.js?{$wa->version()}"></script>
+
+<link href="{$wa_app_static_url}css/backend/products/reviews/reviews.css?v={$wa->version()}" rel="stylesheet">
+
+<div class="content blank flexbox height-100" id="s-content">
+    <div class="spinner custom-p-32" style="align-self:center;margin-inline:auto;"></div>
+</div>
+
+<script type="text/javascript">$(function() {
+    $.products.init({
+        view: 'presentation',
+        shop_url: '{$wa_app_url}',
+    });
+});</script>

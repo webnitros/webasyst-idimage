@@ -1,0 +1,11 @@
+{strip}
+<!-- plugin hook: 'frontend_footer' -->
+{* @event frontend_footer.%plugin_id% *}
+{foreach $frontend_footer as $_}{$_}{/foreach}
+
+{if $theme_settings.hide_wa_links}
+    <div>
+        <a href="https://www.webasyst.com/" title="Мы используем Webasyst"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADYAAAAJCAYAAAB5ad+lAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAMRJREFUeNpi/P//P8NwBIzD1WNMmF5l5CWkyXU1A0E17++5ElaTPougmln3TMhyDxOap9KA5CcojcsQsBoojctTYDVQGpenIGogNC5PgdVAaZLcg0iKjIzGQPIMkpwJw///Z9EMwVCzO5ThLJqnMNQIKu0+i+YpTDUz086ieQpDTZrSGaLdw8QwTAHCY5DYSQfiA2AaLbZAABoacDXosQUC0NiBq0GPLbAaSOwg1KDFFghAYweuBj22CLmHcbS4H2IAIMAAStptQQOVYPgAAAAASUVORK5CYII=" style="border:none;" alt="Логотип Webasyst"></a>
+    </div>
+{/if}
+{/strip}

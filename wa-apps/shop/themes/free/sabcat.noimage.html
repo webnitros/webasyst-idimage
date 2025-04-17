@@ -1,0 +1,35 @@
+{strip}
+{if $category.subcategories}
+    <ul class="category-subcat clear-list">
+        {foreach $category.subcategories as $sc}
+            <li class="category-subcat_item">
+                <a href="{$sc.url}" class="js-cat-link">
+                    {$sc.name|escape}
+                </a>
+                {if $theme_settings.plugin_cic != 'none'}
+                    {if !empty($sc.params.cic_category_items)}
+                        <span class="sc-product-count">
+                            {$sc.params.cic_category_items}
+                        </span>
+                    {/if}
+                    {if !empty($sc.params.cic_category_has_discount_items)}
+                        <span class="cat-badge cat-badge--discount cat-badge--sc">
+                            %
+                        </span>
+                    {/if}
+                    {if !empty($sc.params.cic_category_has_new_items)}
+                        <span class="cat-badge cat-badge--new cat-badge--sc">
+                            new
+                        </span>
+                    {/if}
+                    {if !empty($sc.params.cic_category_hot)}
+                        <div class="cat-badge cat-badge--hot cat-badge--sc">
+                            hot
+                        </div>
+                    {/if}
+                {/if}
+            </li>
+        {/foreach}
+    </ul>
+{/if}
+{/strip}

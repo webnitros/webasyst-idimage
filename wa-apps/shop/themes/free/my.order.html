@@ -1,0 +1,148 @@
+<!-- plugin hook: 'frontend_my_order' -->
+{* @event frontend_my_order.%plugin_id% *}
+{foreach $frontend_my_order as $_plugin_slug => $_}
+    <div class="Orders__Item {$_plugin_slug}">{$_}</div>
+{/foreach}
+
+{if !empty($pin_required)}
+    <div class="page-title">
+        <h1 class="Title__Main">
+            [`Order`] {$order.id_str}
+        </h1>
+    </div>
+    <form action="" method="post">
+        {if $wrong_pin}
+            <p class="My__Error--Pin">[`PIN is not valid`]</p>
+        {/if}
+        <p class="My__Message--Pin">[`Please enter a 4-digit PIN that you received with your order receipt by email.`]</p>
+        <div>
+            <input class="My__Input--Pin" type="text" name="pin" placeholder="PIN">
+        </div>
+        <div>
+            <input class="My__Button--Pin" type="submit" value="[`View order`]">
+        </div>
+    </form>
+{else}
+    <div class="page-title">
+        <h1 class="Title__Main -No-Border">
+            <span class="Orders__Link">[`Order`] {$order.id_str}</span> <span
+                    class="Orders__Badge -{$order.state->id|ucfirst}">{$order.state->getName()}</span>
+        </h1>
+    </div>
+    <div class="Orders__Header--Order">
+        <div class="Orders__Box--Info">
+            <h3 class="Orders__Title--H3">[`Date`]:</h3>
+            <p class="Orders__Text--Method">{$order.create_datetime|wa_date:'humandatetime'}</p>
+        </div>
+
+        {if $order.shipping_name}
+            <div class="Orders__Box--Info">
+                <h3 class="Orders__Title--H3">[`Shipping`]:</h3>
+                <p class="Orders__Text--Method">{$order.shipping_name}</p>
+                {if !empty($order.params.tracking_number)}
+                    <p class="Orders__Text--Method">[`Shipment tracking number`]: {$order.params.tracking_number}</p>
+                {/if}
+                <!-- shipping plugin output -->
+                {if !empty($tracking) && $order.state->getId() != 'completed'}
+                    <div class="plugin">
+                        {$tracking}
+                    </div>
+                {/if}
+            </div>
+        {/if}
+
+        <div class="Orders__Box--Info">
+            <h3 class="Orders__Title--H3">[`Customer`]:</h3>
+            <p class="Orders__Text--Method">{$contact.name|escape}</p>
+        </div>
+
+        {if $shipping_address}
+            <div class="Orders__Box--Info">
+                <h3 class="Orders__Title--H3">[`Shipping address`]:</h3>
+                <p class="Orders__Text--Method">{$shipping_address}</p>
+            </div>
+        {/if}
+
+        {if $order.payment_name}
+            <div class="Orders__Box--Info">
+                <h3 class="Orders__Title--H3">[`Payment`]:</h3>
+                <p class="Orders__Text--Method">{$order.payment_name}</p>
+            </div>
+
+            <!-- payment plugin output -->
+            <div class="Orders__Plugins">
+                {if !empty($payment)}
+                    <div class="Checkout__Plugin">{$payment}</div>
+                {/if}
+            </div>
+        {/if}
+
+        {if !empty($order.comment)}
+            <div class="Orders__Box--Info">
+                <h3 class="Orders__Title--H3">[`Comment`]</h3>
+                <p class="Orders__Text--Method">{$order.comment|escape}</p>
+            </div>
+        {/if}
+    </div>
+
+    <!-- order content and total -->
+    <div class="checkout-order-table">
+        <div class="checkout-order-heading">
+            <div class="checkout-order-heading-name -hidden">[`Name`]</div>
+            <div class="checkout-order-heading-quantity">[`Quantity`]</div>
+            <div class="checkout-order-heading-total">[`Total`]</div>
+        </div>
+        <ul class="checkout-order-list">
+            {foreach $order.items as $item}
+                <li class="checkout-order-list-item -product{if $item.type == 'service'} service{/if}" data-id="{$item.id}">
+                    <div class="checkout-order-list-name">
+                        <a href="{$wa->shop->productUrl($wa->shop->product($item.product_id))}" class="Orders__Link--Single">
+                            {if $item.type == 'service'}+ {/if}{$item.name}
+                        </a>
+                        {if $item.type == 'product' && !empty($item.download_link)}<a  class="Orders__Link--Single" href="{$item.download_link}">
+                                <strong>[`Download`]</strong></a>{/if}
+                    </div>
+                    <div class="checkout-order-list-quantity">
+                        {strip}
+                            <span class="gray">
+                {shop_currency_html($item.price, $order.currency)}
+                &nbsp;&times;
+              </span>&nbsp;{$item.quantity}
+                        {/strip}
+                    </div>
+                    <div class="checkout-order-list-total">
+                        {shop_currency_html($item.price * $item.quantity, $order.currency)}
+                    </div>
+                </li>
+            {/foreach}
+            <li class="checkout-order-list-item checkout-order-total">
+                <div class="checkout-order-total-name">[`Subtotal`]:</div>
+                <div class="checkout-order-total-total">{shop_currency_html($subtotal, $order.currency)}</div>
+            </li>
+            <li class="checkout-order-list-item checkout-order-total">
+                <div class="checkout-order-total-name">[`Discount`]:</div>
+                <div class="checkout-order-total-total">&minus;{shop_currency_html($order.discount, $order.currency)}</div>
+            </li>
+            <li class="checkout-order-list-item checkout-order-total">
+                <div class="checkout-order-total-name">
+                    [`Shipping`]:
+                    {if !empty($order.params.shipping_name)}
+                        <p class="checkout-order-total-shipping">[{$order.params.shipping_name}]</p>
+                    {/if}
+                </div>
+                <div class="checkout-order-total-total">
+                    {shop_currency_html($order.shipping, $order.currency)}
+                </div>
+            </li>
+            <li class="checkout-order-list-item checkout-order-total">
+                <div class="checkout-order-total-name">[`Total`]:</div>
+                <div class="checkout-order-total-total">{shop_currency_html($order.total, $order.currency)}</div>
+            </li>
+        </ul>
+    </div>
+    {if class_exists('shopOrderreminderPlugin')}
+        <div class="Orders__Item orderreminder">{shopOrderreminderPlugin::userReminder($order.id)}</div>
+    {/if}
+{/if}
+
+{$wa->globals('isMyAccount', true)}

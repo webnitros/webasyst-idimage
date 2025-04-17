@@ -1,0 +1,128 @@
+{strip}
+<div class="checkout-step-content" data-step-id="confirmation">
+
+    {if !empty($error)}
+        <div class="checkout-result error">
+            {$error}
+            <br><br>
+            <a href="{$wa->getUrl('/frontend/checkout')}">[`Restart checkout`]</a>
+        </div>
+    {else}
+
+        <h3>[`Ship to`]</h3>
+        <p>{$contact.name|escape}<br>
+        {$shipping_address.value}</p>
+
+        {if $adress}
+            <h3>[`Bill to`]</h3>
+            <p>{$contact.name|escape}<br>
+            {$adress.value}</p>
+        {/if}
+
+        <table class="table data-order">
+            <tr>
+                <th></th>
+                <th class="align-right"><span class="non-mobile-only">[`Quantity`]</span></th>
+                {if $tax > 0}
+                    <th class="align-right">[`Tax`]</th>
+                {/if}
+                <th class="align-right">[`Total`]</th>
+            </tr>
+            {foreach $items as $item}
+            <tr{if $item.type == 'service'} class="service"{/if}>
+                <td>{if $item.type == 'service'}+ {/if}{$item.name|escape}</td>
+                <td class="align-right "><span class="gray nowrap">{shop_currency_html($item.price, $item.currency)}</span> &times; {$item.quantity}</td>
+                {if $tax > 0}
+                    <td class="align-right nowrap">{if isset($item.tax)}{shop_currency_html($item.tax, true)}{else}&ndash;{/if}</td>
+                {/if}
+                <td class="align-right nowrap">{shop_currency_html($item.price * $item.quantity, $item.currency)}</td>
+            </tr>
+            {/foreach}
+            {if $tax > 0}{$colspan=3}{else}{$colspan=2}{/if}
+            <tr class="border-none thin">
+                <td colspan="{$colspan}" class="align-right">[`Subtotal`]</td>
+                <td class="align-right nowrap">{shop_currency_html($subtotal, true)}</td>
+            </tr>
+            <tr class="border-none thin">
+                <td colspan="{$colspan}" class="align-right">[`Discount`]</td>
+                <td class="align-right nowrap">&minus; {shop_currency_html($discount, true)}</td>
+            </tr>
+            <tr class="border-none thin">
+                <td colspan="{$colspan}" class="align-right">[`Shipping`]{if !empty($params.shipping_name)} &mdash; <strong>{$params.shipping_name}</strong>{/if}</td>
+                <td class="align-right nowrap">{shop_currency_html($shipping, true)}</td>
+            </tr>
+            {if $tax > 0}
+            <tr class="border-none thin">
+                <td colspan="{$colspan}" class="align-right">[`Tax`]</td>
+                <td class="align-right nowrap">{shop_currency_html($tax, true)}</td>
+            </tr>
+            {/if}
+            <tr class="border-none thin large">
+                <td colspan="{$colspan}" class="align-right"><b>[`Total`]</b></td>
+                <td class="align-right nowrap"><strong class="large">{shop_currency_html($total, true)}</strong></td>
+            </tr>
+        </table>
+
+        [`Comment`]<br>
+        <textarea class="comment" name="comment">{waRequest::post('comment', '', 'string')|escape}</textarea>
+
+        {if !empty($terms)}
+        <br>
+        {if waRequest::method() == 'post' && !$wa->post('terms')}
+            <p class="error">[`You must read and agree to the Terms of service to place an order.`]</p>
+        {/if}
+        <label><input type="checkbox" name="terms" value="1"> {sprintf('[`I have read and agree to the <a href="%s" target="_blank">Terms of service</a>`]', $wa->getUrl('/frontend/checkout', ['step' => 'confirmation'])|cat:'?terms=1')}</label>
+        {/if}
+
+    {/if}
+
+    <!-- plugin hook: 'frontend_checkout' -->
+    {* @event frontend_checkout.%plugin_id% *}
+    {foreach $frontend_checkout as $_}{$_}{/foreach}
+
+</div>
+
+<script>
+    $(function(){
+        function checkTermsAgreement() {
+            return $('div[data-step-id="confirmation"] label input').is(':checked');
+        }
+        function btnBlocked() {
+            if (!checkTermsAgreement()){
+                $('.checkout-submit-btn').removeClass('blocked');
+                $('.checkout-submit-btn').find('.button').remove();
+                $('.checkout-submit-btn').addClass('blocked');
+                $('.checkout-submit-btn').append($('<div class="button">Оформить заказ</>'));
+                modalToggle();
+            } else {
+                $('.checkout-submit-btn').removeClass('blocked');
+                $('.checkout-submit-btn').find('.button').remove();
+            }
+        }
+
+        function modalToggle() {
+            $('.checkout-submit-btn').find('.button').on('click', function(e){
+                e.stopPropagation();
+                const modal = $(`<div class="modal__wrap"><div class="modal"><div class="modal__text">Для оформления заказа Вы должны принять условия предоставления услуг</div><div class="modal__closed">✕</div></div></div>`);
+                $('body').append(modal);
+
+                $(document).on('click', function (e) {
+                    if ($(e.target).hasClass('modal__wrap') || $(e.target).hasClass('modal__closed')) {
+                        $('body>.modal__wrap').remove();
+                    }
+                })
+            })
+        }
+
+        btnBlocked();
+
+        $('div[data-step-id="confirmation"] label').on('click', function(){
+            setTimeout(()=>{
+                btnBlocked();
+            }, 100)
+
+        })
+    })
+
+</script>
+{/strip}

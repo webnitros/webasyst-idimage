@@ -1,0 +1,77 @@
+{function brand_plugin_category_tree categories=[]}
+	{foreach $categories as $category}
+		<li class="brand-plugin-catalog-brand-categories__item">
+			<a class="brand-plugin-catalog-brand-categories__link" href="{$category.frontend_url}">
+				{$category.name}
+			</a>
+			{if count($category.children)}
+				<ul class="brand-plugin-catalog-brand-categories__list">
+					{call brand_plugin_category_tree categories=$category.children}
+				</ul>
+			{/if}
+		</li>
+	{/foreach}
+{/function}
+
+
+{$pages_tabs}
+{strip}
+	<div class="brand-plugin-catalog__header">
+		<div class="brand-plugin-catalog-header__brand">
+			{$brand_image_url = $brand->getImageUrl('150x0')}
+			{if !$brand_image_url}
+				{$brand_image_url = $wa_app_static_url|cat:'img/image-fishki.png'}
+			{/if}
+
+			<div class="brand-plugin-catalog-header-brand__image-column">
+				<div class="brand-plugin-catalog-header-brand__image-box">
+					<img class="brand-plugin-catalog-header-brand__image" src="{$brand_image_url}" title="{$brand.name}" alt="{$brand.name}" >
+				</div>
+			</div>
+
+			<div class="brand-plugin-catalog-header-brand__description">
+				{$description}
+			</div>
+		</div>
+
+
+		<div class="brand-plugin-catalog-header__categories">
+			{$column_categories = shopBrandViewHelper::groupCategoriesPlainTreeByColumns($brand_categories_plain_tree, 1)}
+
+			<div class="brand-plugin-catalog-brand-categories">
+				{foreach $column_categories as $column => $categories}
+					{$tree = shopBrandViewHelper::toTree($categories)}
+					<div class="brand-plugin-catalog-brand-categories__column">
+						<ul class="brand-plugin-catalog-brand-categories__list brand-plugin-catalog-brand-categories__list_depth_0">
+							{call brand_plugin_category_tree categories=$tree}
+						</ul>
+					</div>
+				{/foreach}
+			</div>
+		</div>
+	</div>
+{/strip}
+
+<script>
+	function brandCategoryListOpened() {
+		const box = $('.brand-plugin-catalog-brand-categories__list_depth_0');
+		const list = box.children('.brand-plugin-catalog-brand-categories__item');
+		const maxHeight = 250;
+
+		list.each(function () {
+			if ($(this).prop('scrollHeight') > maxHeight) {
+				$(this).append('<div class="-showFullBtn">Показать все</div>');
+			}
+		})
+		$('.-showFullBtn').on('click', function () {
+			if ($(this).text().trim() == 'Показать все') {
+				$(this).parent('.brand-plugin-catalog-brand-categories__item').addClass('show');
+				$(this).text('Скрыть')
+			} else {
+				$(this).parent('.brand-plugin-catalog-brand-categories__item').removeClass('show');
+				$(this).text('Показать все')
+			}
+		})
+	}
+	brandCategoryListOpened();
+</script>

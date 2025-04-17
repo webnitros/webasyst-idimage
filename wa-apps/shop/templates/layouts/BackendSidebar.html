@@ -1,0 +1,237 @@
+{strip}
+{if empty($is_product_page)}
+    {$is_product_page = false}
+{/if}
+
+{$_sprite_url = "`$wa_url`wa-apps/shop/img/backend/products/product/icons.svg?v=`$wa->version()`"}
+
+{$_tooltips = []}
+
+{$_locales = [
+    "pin_menu" => _w("Pin menu")|escape,
+    "unpin_menu" => _w("Unpin menu")|escape
+]}
+
+{$_menu = shopMainMenu::get()}
+
+{function name=_sidebar_menu placement='body'}
+    {foreach $_menu as $_item}
+        {if ifset($_item, 'placement', 'body') != $placement}
+            {continue}
+        {/if}
+
+        {if !empty($_item["userRights"])}
+            {$_userRights_result = []}
+            {foreach $_item["userRights"] as $_userRights}
+                {$_userRights_result[] = $wa->userRights($_userRights)}
+            {/foreach}
+            {if !max($_userRights_result)}
+                {continue}
+            {/if}
+        {/if}
+        <li class="rounded">
+            {if !empty($_item["submenu"])}
+                <div class="item js-group-toggle js-{$_item["id"]}-toggle">
+                    <span class="s-icon-main icon">{$_item["icon"]}</span>
+                    <span class="s-name">
+                        {$_item["name"]|escape}
+                        <span class="hint s-icon-toggle is-expanded"><i class="fas fa-caret-down"></i></span>
+                        <span class="hint s-icon-toggle"><i class="fas fa-caret-right"></i></span>
+                    </span>
+                </div>
+
+                <ul class="menu s-sub-menu">
+                    {foreach $_item["submenu"] as $_sub_item}
+                        {if !empty($_sub_item["userRights"])}
+                            {$_userRights_result = []}
+                            {foreach $_sub_item["userRights"] as $_userRights}
+                                {$_userRights_result[] = $wa->userRights($_userRights)}
+                            {/foreach}
+                            {if !max($_userRights_result)}
+                                {continue}
+                            {/if}
+                        {/if}
+                        <li class="rounded">
+                            <a class="item" href="{$_sub_item["url"]|escape}">
+                                <span class="s-name">{$_sub_item["name"]|escape}</span>
+                            </a>
+                        </li>
+                    {/foreach}
+                </ul>
+            {else}
+                <a class="item" href="{$_item["url"]|escape}">
+                    <span class="s-icon-main icon">{$_item["icon"]}</span>
+                    <span class="s-name">{$_item["name"]|escape}</span>
+                </a>
+            {/if}
+        </li>
+    {/foreach}
+    <!-- plugin hook: 'backend_products.sidebar_top_li' -->
+    {* @event backend_products.%plugin_id%.sidebar_top_li *}
+    {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.sidebar_top_li)}{/foreach}{/if}
+{/function}
+{/strip}
+
+
+{if !$is_product_page}
+<div class="s-page-menu">
+    <div class="app-sidebar" id="js-app-sidebar" style="visibility: hidden">
+{else}
+    <div class="s-products-page-menu" id="js-products-page-menu" style="visibility: hidden">
+{/if}
+        <div class="sidebar flexbox width-adaptive hide-scrollbar mobile-friendly overflow-visible">
+            {if $wa->isSingleAppMode()}
+                {$wa->headerSingleAppUser()}
+            {/if}
+            <nav class="sidebar-mobile-toggle">
+                <div class="box align-center">
+                    <a href="javascript:void(0);">
+                        <i class="fas fa-bars"></i>&nbsp;
+                        [s`Menu`]
+                    </a>
+                </div>
+            </nav>
+            <div class="sidebar-body">
+                <div class="box custom-py-0">
+                    <ul class="menu s-main-menu custom-mb-0-mobile">
+                        {_sidebar_menu}
+                    </ul>
+
+                    <!-- plugin hook: 'backend_products.sidebar_section' -->
+                    {* @event backend_products.%plugin_id%.sidebar_section *}
+                    {if !empty($backend_products)}{foreach $backend_products as $_}{ifset($_.sidebar_section)}{/foreach}{/if}
+
+                    <div class="desktop-and-tablet-only js-overlapped-element" style="margin-top: -1.5rem;"></div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer js-overflowing-gradient">
+                <div class="box custom-py-0">
+                    <ul class="menu s-main-menu custom-mb-0 custom-mt-4 custom-mt-0-mobile">
+                        {_sidebar_menu placement="footer"}
+                        <li class="rounded s-toggle-wrapper">
+                            <div class="item js-toggle-products-page-sidebar">
+                                <span class="s-icon-main icon">
+                                    <i class="fas fa-caret-left"></i>
+                                    <i class="fas fa-caret-right"></i>
+                                </span>
+                                <span class="s-name">{$_locales["unpin_menu"]}</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="box custom-mb-4">
+                    {if $frontend_url}
+                        <div class="blank box rounded">
+                            <div class="flexbox space-4 s-menu-link-storefront-status semibold">
+                                {$has_design_access = $wa->userRights('design')}
+                                {if $has_design_access}<span style="line-height: 1.125;"><i class="fas fa-circle text-green smallest custom-mr-2"></i></span>{/if}
+                                <span class="heading wide custom-m-0">[`Storefront`]</span>
+                                {if $has_design_access}<a href="{$wa_app_url}?action=storefronts#/design/themes/" title="[`Settings`]"><i class="fas fa-cog text-light-gray"></i></a>{/if}
+                            </div>
+                            <a href="{$frontend_url}" rel="noopener" target="_blank">
+                                <div class="flexbox middle space-4">
+                                    <div class="s-menu-link-storefront-status semibold text-ellipsis">{$frontend_url_label|escape}</div>
+                                    <i class="s-icon fas fa-external-link-alt fa-xs s-menu-link-new-window"></i>
+                                </div>
+                            </a>
+                        </div>
+                    {/if}
+                </div>
+            </div>
+        </div>
+    </div>
+{if !$is_product_page}
+</div>
+<script>
+    var mainWaSidebar;
+    ( function($) {
+        const $sidebar = $('#js-app-sidebar');
+        $sidebar.waShowSidebar();
+
+        mainWaSidebar =  new initMainWaSidebar({
+            $wrapper: $("#js-app-sidebar"),
+            tooltips: {$_tooltips|json_encode},
+            locales: {$_locales|json_encode},
+            sidebar_menu_state: {if !empty($sidebar_menu_state)}true{else}false{/if},
+            urls: {
+                "sidebar_menu_state" : "{$wa_app_url}?module=backend&action=sidebarMenuSaveState"
+            },
+            app_url: "{$wa_app_url|escape}"
+        });
+    })(jQuery);
+</script>
+{else}
+    <script>
+        ( function($) {
+
+            $('#js-products-page-menu').waShowSidebar();
+
+            var $products_page = $("#js-products-page"),
+                $product_page = $("#js-product-page");
+
+            if ($products_page.length) {
+                var ready_promise = $products_page.data("ready");
+                ready_promise.done( function(controller) {
+                    controller.sidebar = init();
+                });
+            } else if ($product_page.length) {
+                var ready_promise = $product_page.data("ready");
+                ready_promise.done( function(controller) {
+                    init();
+                });
+            }
+
+            function init() {
+                return $.wa_shop_products.init.initProductsSidebar({
+                    $wrapper: $("#js-products-page-menu"),
+                    tooltips: {$_tooltips|json_encode},
+                    locales: {$_locales|json_encode},
+                    sidebar_menu_state: {if !empty($sidebar_menu_state)}true{else}false{/if},
+                    urls: {
+                        "sidebar_menu_state" : "{$wa_app_url}?module=backend&action=sidebarMenuSaveState"
+                    }
+                });
+            }
+        })(jQuery);
+    </script>
+{/if}
+<style>
+    .overflowing {
+        position: relative;
+    }
+    .overflowing::before {
+        content: "";
+        position: absolute;
+        top: -1.25rem;
+        height: 1.25rem;
+        width: 100%;
+        background: linear-gradient(180deg, var(--background-color-wa-header-transparent) 0%, var(--border-color-input-outlined) 100%);
+        z-index: 100;
+    }
+</style>
+<script>
+    $(function () {
+        const $overlappedEl = $('.js-overlapped-element');
+        if (!$overlappedEl.length || $overlappedEl.is(':hidden')) {
+            return;
+        }
+
+        const templateArrow = `
+            <div class="align-center gray small js-overflowing-arrow" style="margin-top: -1rem">
+                <i class="fas fa-angle-down"></i>
+            </div>
+        `;
+        const intersectionObserver = new IntersectionObserver((entries) => {
+            if (entries[0].intersectionRatio <= 0) {
+                $('.js-overflowing-gradient')
+                    .addClass('overflowing')
+                    .prepend(templateArrow);
+            } else {
+                $('.js-overflowing-gradient').removeClass('overflowing');
+                $('.js-overflowing-arrow').remove();
+            }
+        });
+        intersectionObserver.observe($overlappedEl.get(0));
+    })
+</script>

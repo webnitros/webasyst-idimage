@@ -1,0 +1,126 @@
+{* PAGE *}
+<div class="s-discounts-page content flexbox" id="js-discounts-page">
+
+    {* SIDEBAR *}
+    <div class="sidebar width-23rem blank">
+        {$discounts_sidebar}
+    </div>
+
+    {* CONTENT *}
+    <div class="s-page-content content">
+
+        <div class="article">
+        <div class="article-body">
+
+        {* HEADER *}
+        <header class="s-page-header">
+            <h1 class="s-title">[`By order total`]</h1>
+        </header>
+
+        <div class="s-discounts-order-total-section">
+            <form action="" id="s-discounts-order-total-form">
+                <div class="fields">
+                    <div class="fields-group">
+                        <div class="field">
+                            <div class="name for-switch">[`Status`]</div>
+                            <div class="value">
+                                <div class="switch-with-text">
+                                    <span class="switch js-switch-discount-type-status smaller">
+                                        <input type="checkbox" id="s-discount-type-status" name="enabled" value="1"{if $enabled} checked{/if}>
+                                    </span>
+                                    <label for="s-discount-type-status" data-active-text="[`Enabled`]" data-inactive-text="[`Disabled`]">{if $enabled}[`Enabled`]{else}[`Disabled`]{/if}</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="fields-group{if !$enabled} hidden{/if}">
+                        <div class="field">
+                            <div class="name">[`Discount`]</div>
+                            <div class="value">
+                                <table class="zebra small">
+                                    <thead>
+                                        <tr>
+                                            <th>&nbsp;</th>
+                                            <th>[`Order total`], {$def_cur_sym}</th>
+                                            <th>&nbsp;</th>
+                                            <th>[`Discount`], %</th>
+                                            <th>&nbsp;</th>
+                                        </tr>
+                                    </thead>
+                                    <tfoot>
+                                        <tr class="transparent">
+                                            <td></td>
+                                            <td colspan="4">
+                                                <a href="javascript:void(0)" class="inline-link js-add-template">
+                                                    <i class="fas fa-plus-circle text-green"></i> [`Add rate`]
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                    <tbody>
+                                        <tr class="{if !empty($rates)}hidden {/if}gray">
+                                            <td></td>
+                                            <td colspan="4">[`No discount rules are defined yet.`]</td>
+                                        </tr>
+
+                                        {$rates[] = ['sum' => '', 'discount' => '']}
+                                        {$_pattern = '^\d*\.?\d*$'}
+
+                                        {foreach $rates as $r}
+                                            <tr class="rate-row{if $r@last} hidden template{/if}">
+                                                <td><i class="fas fa-angle-right text-dark-gray"></i></td>
+                                                <td><input type="text" class="shorter" name="rate_sum[]" value="{$r.sum}" pattern="{$_pattern}" {if !$r@last}required{/if}></td>
+                                                <td><i class="fas fa-long-arrow-alt-right text-dark-gray"></i></td>
+                                                <td><input type="text" class="shortest" name="rate_discount[]" value="{$r.discount}" placeholder="0-100" pattern="{$_pattern}" {if !$r@last}required{/if}></td>
+                                                <td><a href="javascript:void(0)" class="js-row-delete"><i class="fas fa-trash-alt text-red"></i></a></td>
+                                            </tr>
+                                        {/foreach}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="custom-mx-16 custom-my-20{if !$enabled} hidden{/if}">
+                        <input class="button green js-submit-button" type="submit" value="[`Save`]">
+                    </div>
+                </div>
+                <input type="hidden" name="dummy" value="1">
+            </form>
+        </div>
+
+        </div>
+        </div>
+
+    </div>
+
+    <script>
+        ( function($) { "use strict";
+            $.shop.marketing.setTitle({_w("By order total")|json_encode});
+
+            const sources = [{
+                id: "wa-shop-marketing-discounts-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/marketing/discounts.js?v={$wa->version()}"
+            }];
+
+            $.shop.marketing.load(sources).then( function() {
+                const page = $.shop.marketing.init.discountsPage({
+                    $wrapper: $("#js-discounts-page"),
+                    urls: {
+                        "discounts_enable": "{$wa_app_url}marketing/?module=marketingDiscountsEnable",
+                        "save": "{$wa_app_url}marketing/?module=marketingDiscountsOrderTotalSave"
+                    },
+                    locales: {
+                        "incorrect_1": {_w("Must be a value from 0 to 100")|json_encode},
+                        "incorrect_2": {_w("Must be a positive value or zero")|json_encode}
+                    }
+                });
+
+                page.initOrderTotal();
+            });
+
+        })(jQuery);
+    </script>
+</div>

@@ -1,0 +1,8 @@
+{strip}
+{if !empty($filters)}
+    <div class="sidear-mobile">
+        {if !isset($filters)}{$filters = []}{/if}
+        {include file="`$wa_active_theme_path`/sb.filter.html" filter=$filters}
+    </div>
+{/if}
+{/strip}

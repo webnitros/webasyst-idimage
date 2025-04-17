@@ -1,0 +1,89 @@
+{strip}
+
+{if empty($_is_personal_area)}
+
+    <div class="out_sidebars -mr">
+        <div class="sb-close-btn">✖</div>
+        <aside class="left-sidebar ">
+            {$rss = $wa->blog->rssUrl()}
+
+            <div class="s-sidebar-search" role="search">
+                {$_query = $smarty.get.query|default:''|escape}
+
+                <form method="get" action="{$wa->getUrl("blog/frontend/search")}">
+                    <input class="h-text-input" type="text" name="query" value="{if !empty($_query)}{$_query}{/if}" placeholder="[`Search`]">
+                </form>
+            </div>
+
+            {$blogsArray = []}
+            {foreach $posts as $post}
+                {if !in_array($post['blog_id'], array_keys($blogsIdArray))}
+                    {$id = $post['blog_id']}
+                    {$blog = $wa->blog->blog($id)}
+                    {$blogsArray[$id] = ['id' => $id, 'name' => $blog['name'], 'link' => $blog['link']]}
+                {/if}
+            {/foreach}
+            {strip}
+                {$blogsArray = $wa->blog->blogs()}
+                {if !empty($blogsArray) && count($blogsArray) > 1}
+                    <div class="blogs">
+                        <div class="blogs__list">
+                            {foreach $blogsArray as $blog}
+                                <div class="blogs__item">
+                                    <a class="blogs__item__link" href="{$wa_app_url}{$blog.url}">{$blog.name|escape}</a>
+                                </div>
+                            {/foreach}
+                        </div>
+                    </div>
+                {/if}
+            {/strip}
+
+            {* PLUGINS *}
+            {* @event (frontend_action_default|frontend_action_post|frontend_action_page|frontend_action_error).%plugin_id%.sidebar *}
+            {foreach $frontend_action as $plugin => $output}
+                {if !empty($output.sidebar)}
+                    <div class="b-sidebar-plugin {$plugin}">{$output.sidebar}</div>
+                {/if}
+            {/foreach}
+
+            {* TIMELINE NAVIGATION *}
+            {$timeline = $wa->blog->timeline()}
+            {if !empty($timeline)}
+                <div class="s-section-body">
+                    <nav class="s-nav-wrapper">
+
+                        <ul class="b-timeline-list js-deep-list">
+                            {$year=null}
+                            {foreach $timeline as $year_month => $item}
+                            {if $year neq $item.year}
+                            {if !$item@first}
+                        </ul>
+                        </li>
+                        {/if}
+                        <li class="{if $item.year_selected}is-selected is-opened{/if} has-menu">
+                            {$year=$item.year}
+                            <span class="s-toggle js-toggle"></span>
+                            <a href="{$item.year_link}">{$item.year|default:'NULL'}</a>
+                            <ul>
+                                {/if}
+
+                                <li class="{if $item.selected}is-selected{/if}">
+                                    <a href="{$item.link}" title="{_w("%d post","%d posts",$item.count)}">{_ws(date("F",gmmktime(0,0,0,$item.month,1)))}</a>
+                                </li>
+
+                                {if $item@last}
+                            </ul>
+                        </li>
+                        {/if}
+
+                        {/foreach}
+                        </ul>
+                    </nav>
+                </div>
+            {/if}
+        </aside>
+    </div>
+{/if}
+
+{/strip}
+

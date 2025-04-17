@@ -1,0 +1,144 @@
+{strip}
+
+{$_templates = []}
+
+{/strip}
+
+<div class="s-product-page" id="js-product-page">
+    <script>
+        ( function($) {
+            $("#js-product-page").data("ready", $.Deferred());
+        })(jQuery);
+    </script>
+
+    {* APP BODY *}
+    <div class="s-page-body flexbox">
+        {* PRODUCTS MENU *}
+        <div class="s-page-menu bordered-right">{$products_menu}</div>
+        <div class="wide width-100" style="max-width: calc(100% - var(--main-sidebar-width) - 2px);overflow-x: clip;">
+            <header class="s-page-header bordered-bottom nowrap">
+                <div class="flexbox middle space-8">
+                    {* NAVIGATE BACK *}
+                    <a href="{$wa_app_url}products/{if isset($context.presentation) || isset($context.page)}?{if ifset($context.page) > 1}page={$context.page}&{/if}{if ifset($context.presentation)}presentation={$context.presentation}{/if}{/if}"
+                        title="[`Back`]"
+                        class="back"
+                    ><span class="icon size-32"><i class="fas fa-arrow-circle-left"></i></span></a>
+
+                    {if !empty($product.id) && !empty($product_list_data)}
+                        {$_tooltips = []}
+                        <div class="s-actions flexbox middle space-8 nowrap js-nearest-products">
+                            {if !empty($product_list_data["prev"])}
+                                <a class="wa-button wa-small gray-field" href="{$product_list_data['prev']['pre_url']|escape}" data-nearest-product-id="{$product_list_data['prev']['url']|escape}" data-tooltip-id="prev_product_name" data-router-disable="true">
+                                    <span class="s-icon icon"><i class="fas fa-chevron-left"></i></span>
+                                </a>
+                                {$_tooltips["prev_product_name"] = [
+                                "id" => "prev_product_name",
+                                "html" => sprintf(_w("Previous product “%s”"), $product_list_data["prev"]["name"]),
+                                "position" => "top-left"
+                                ]}
+                            {/if}
+
+                            <span class="s-text">{sprintf(_w("Product %d of %d"), $product_list_data["position"], $product_list_data["count"])}</span>
+
+                            {if !empty($product_list_data["next"])}
+                                <a class="wa-button wa-small gray-field" href="{$product_list_data['next']['pre_url']|escape}" data-nearest-product-id="{$product_list_data['next']['url']|escape}" data-tooltip-id="next_product_name" data-router-disable="true">
+                                    <span class="s-icon icon"><i class="fas fa-chevron-right"></i></span>
+                                </a>
+                                {$_tooltips["next_product_name"] = [
+                                "id" => "next_product_name",
+                                "html" => sprintf(_w("Next product “%s”"), $product_list_data["next"]["name"]),
+                                "position" => "top"
+                                ]}
+                            {/if}
+
+                            {$_tooltips["product_name"] = [
+                                "id" => "product_name",
+                                "html" => {$product.name|default:_w('New product')|escape},
+                                "width" => "40%",
+                                "position" => "bottom-left"
+                            ]}
+                            <script>
+                                ( function($) {
+                                    var tooltips = {$_tooltips|json_encode};
+                                    $.each(tooltips, function(i, tooltip) { $.wa.new.Tooltip(tooltip); });
+                                })(jQuery);
+                            </script>
+                        </div>
+                    {/if}
+                    <div class="s-title-wrapper wide">
+                        <h3 class="s-title js-product-name" data-tooltip-id="product_name">{$product.name|default:_w('New product')|escape}</h3>
+                    </div>
+                    <div class="s-details">
+                        <span class="s-ident gray">id: {$product.id|default:_w('Product ID')}</span>
+                    </div>
+
+                    <!-- plugin hook: 'backend_prod.header' -->
+                    {* @event backend_prod.%plugin_id%.header *}
+                    {if !empty($backend_prod_event)}{foreach $backend_prod_event as $_}{ifset($_.header)}{/foreach}{/if}
+
+                </div>
+            </header>
+            <div class="flexbox">
+                {* SIDEBAR *}
+                <div class="s-page-sidebar sidebar js-page-sidebar">{$sidebar}</div>
+                {* CONTENT *}
+                <div class="s-page-content content bordered-left js-page-content">{$content}</div>
+            </div>
+            <div class="s-page-alerts article" style="display:none;">
+                <div class="article-body">
+                    <div class="js-repair-product-stocks-wrapper alert warning" style="display:none;">
+                        <p>
+                            {sprintf_wp('An error has occurred because of outdated stock entries in the product properties. Click the <em>%s</em> button to remove useless stock entries.', _wp('Fix'))}
+                        </p>
+                        <button class="js-repair-prodoct-stocks button orange" type="button">[`Fix`]</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        ( function($) {
+            var sources = [{
+                id: "wa-shop-products-main-sidebar-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/main/sidebar.js?v={$wa->version()}"
+            },{
+                id: "wa-shop-products-product-sidebar-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/product/sidebar.js?v={$wa->version()}"
+            },{
+                id: "wa-shop-products-product-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/product/product.js?v={$wa->version()}"
+            }];
+
+            $.wa.loadSources(sources).done( function() {
+                $.wa_shop_products.init.initProductPage({
+                    $wrapper: $("#js-product-page"),
+                    context: {$context|json_encode},
+                    product_uri: "{$wa_app_url|escape}products/{$product.id|escape}/",
+                    product_id: "{$product.id|escape}",
+                    templates: {$_templates|json_encode},
+                    urls: {
+                        "product_delete": "{$wa_app_url}?module=products&action=deleteList",
+                        "product_delete_dialog": "{$wa_app_url}?module=prod&action=productDeleteDialog"
+                    }
+                });
+            });
+
+            $.wa.title.set({$product.name|default:_w('New product')|json_encode});
+
+            $('.s-button-back').on('click', function (event) {
+                event.preventDefault();
+                history.back();
+            });
+
+        })(jQuery);
+    </script>
+
+    <!-- plugin hook: 'backend_prod.bottom' -->
+    {* @event backend_prod.%plugin_id%.bottom *}
+    {if !empty($backend_prod_event)}{foreach $backend_prod_event as $_}{ifset($_.bottom)}{/foreach}{/if}
+
+</div>

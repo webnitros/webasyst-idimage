@@ -1,0 +1,158 @@
+{strip}
+{$fullWidthDdMenu = $theme_settings.dd_menu_full_width && $theme_settings.position_drop_down_categories == "all" && $theme_settings.break_categories_columns == "columns"}
+
+{if $wa->shop}
+    {if !$wa->isMobile()}
+        <div class="Nav__Primary-outer js-moved-content {if $theme_settings.horizontal_menu}Nav__Primary-outer--dd{/if}{if $fullWidthDdMenu} Nav__Primary-outer--full-width{/if}">
+            <div class="Nav__Primary container">
+                {if $theme_settings.horizontal_menu}
+                    <ul class="Nav__horizontal--list{if $theme_settings.horizontal_menu_between} -Between{/if}{if $fullWidthDdMenu && !$theme_settings.drop_down_horizontal_menu} container{/if}{if $fullWidthDdMenu && $theme_settings.drop_down_horizontal_menu} Nav__horizontal--list-dd-fw{/if}{if $theme_settings.drop_down_horizontal_menu_absolute && $theme_settings.position_drop_down_categories == "all"} Nav__horizontal--list--transparent{/if}">
+                        {$catListHorizontalNav = false}
+                        {if $theme_settings.horizontal_menu == 'cat' }
+                            {$catListHorizontalNav = $wa->shop->categories(0, null, true, true)}
+                        {elseif $theme_settings.horizontal_menu == 'app' && $theme_settings.horizontal_menu_app_id}
+                            {$appMenuId = $theme_settings.horizontal_menu_app_id}
+                            {$catListHorizontalNav = $wa->menu->get($appMenuId)}
+                        {/if}
+
+                        {if $catListHorizontalNav}
+                            {if $theme_settings.show_brands_menu}
+                                {$fullListBrands = shopBrandViewHelper::getAllBrands()}
+                                {$catListHorizontalNav['brands'] = ['id' => 'brands','name' => 'Бренды', 'url' => $wa->getUrl('shop/frontend/brands')]}
+                                {foreach $fullListBrands as $b}
+                                    {$catListHorizontalNav['brands']['childs'][] = ['name' => $b.name, 'url' => {$b->getFrontendUrl()}]}
+                                {/foreach}
+                            {/if}
+                            {foreach $catListHorizontalNav as $id => $cat}
+                                <li class="Nav__horizontal--item{if $theme_settings.drop_down_horizontal_menu_absolute} Nav__horizontal--item--relative{/if}">
+                                    {if $theme_settings.get_menu_from == 'app-menu' && $theme_settings.id_image_app_menu}
+                                        {$cat.params.menuIcon = $cat[$theme_settings.id_image_app_menu]}
+                                    {else}
+                                        {if isset($Wmimages[$cat.id].icon)}
+                                            {$cat.params.menuIcon = $Wmimages[$cat.id].icon}
+                                        {/if}
+                                    {/if}
+                                    <a class="Nav__horizontal--link" href="{$cat.url}">
+                                        {if !empty($cat.params.menuIcon)}
+                                            <span class="cat-menu__item--icon">
+                                                <img src="{$cat.params.menuIcon}" alt="">
+                                            </span>
+                                        {/if}
+                                        {$cat.name}
+                                        {if $cat.childs && $theme_settings.drop_down_horizontal_menu}
+                                            <i class="fi-rr-angle-down"></i>
+                                        {/if}
+                                    </a>
+                                    {if $cat.childs && $theme_settings.drop_down_horizontal_menu}
+                                        <div class="Nav__horizontal--list-2">
+                                            {if $fullWidthDdMenu && $theme_settings.drop_down_horizontal_menu && !$theme_settings.drop_down_horizontal_menu_absolute}<div class="container">{/if}
+                                                {foreach $cat.childs as $id => $cat2}
+                                                    <div class="Nav__horizontal--item-2{if $cat2.childs && $theme_settings.drop_down_horizontal_menu_absolute} -hasChilds js-cat-subs-dropdown{/if}{if $theme_settings.position_drop_down_categories == "parent"} pos-rel{/if}">
+                                                        <a class="Nav__horizontal--link-2" href="{$cat2.url}">
+                                                            {$cat2.name}
+                                                        </a>
+                                                        {if $theme_settings.plugin_cic != 'none'}
+                                                            {if !empty($cat2.params.cic_category_items)}
+                                                                <span class="menu-product-count">
+                                                                        {$cat2.params.cic_category_items}
+                                                                    </span>
+                                                            {/if}
+                                                            {if !empty($cat2.params.cic_category_has_discount_items)}
+                                                                <div class="cat-badge cat-badge--discount">
+                                                                    %
+                                                                </div>
+                                                            {/if}
+                                                            {if !empty($cat2.params.cic_category_has_new_items)}
+                                                                <div class="cat-badge cat-badge--new">
+                                                                    new
+                                                                </div>
+                                                            {/if}
+                                                            {if !empty($cat2.params.cic_category_hot)}
+                                                                <div class="cat-badge cat-badge--hot">
+                                                                    hot
+                                                                </div>
+                                                            {/if}
+                                                        {/if}
+                                                        {if $cat2.childs && $theme_settings.drop_down_horizontal_menu_absolute}
+                                                            <i class="js-cat-item-caret fi-rr-angle-small-right"></i>
+                                                        {/if}
+                                                        {if $cat2.childs}
+                                                            <div class="Nav__horizontal--list-3 js-subcategory-menu">
+                                                                {foreach $cat2.childs as $id => $cat3}
+                                                                    <div class="Nav__horizontal--item-3 {if $theme_settings.number_output_categories_third_level < $cat3@iteration && !$theme_settings.drop_down_horizontal_menu_absolute}hide{/if}">
+                                                                        <a class="Nav__horizontal--link-3" href="{$cat3.url}">
+                                                                            {$cat3.name}
+                                                                        </a>
+                                                                        {if !empty($cat3.params.cic_category_items)}
+                                                                            <span class="menu-product-count">
+                                                                                    {$cat3.params.cic_category_items}
+                                                                                </span>
+                                                                        {/if}
+                                                                        {if !empty($cat3.params.cic_category_has_discount_items)}
+                                                                            <div class="cat-badge cat-badge--discount">
+                                                                                %
+                                                                            </div>
+                                                                        {/if}
+                                                                        {if !empty($cat3.params.cic_category_has_new_items)}
+                                                                            <div class="cat-badge cat-badge--new">
+                                                                                new
+                                                                            </div>
+                                                                        {/if}
+                                                                        {if !empty($cat3.params.cic_category_hot)}
+                                                                            <div class="cat-badge cat-badge--hot">
+                                                                                hot
+                                                                            </div>
+                                                                        {/if}
+                                                                    </div>
+                                                                {/foreach}
+                                                                {if $theme_settings.number_output_categories_third_level < count($cat2.childs) && !$theme_settings.drop_down_horizontal_menu_absolute}
+                                                                    <div class="Nav__horizontal--item-more js-open-other-cat-child">
+                                                                        <div class="item-more-else">[`Else`] <i class="fi-rr-angle-small-down"></i></div>
+                                                                        <div class="item-more-hide" style="display: none">Свернуть <i class="fi-rr-angle-small-up"></i></div>
+                                                                    </div>
+                                                                {/if}
+                                                            </div>
+                                                        {/if}
+                                                    </div>
+                                                {/foreach}
+                                            {if $fullWidthDdMenu && $theme_settings.drop_down_horizontal_menu && !$theme_settings.drop_down_horizontal_menu_absolute}</div>{/if}
+                                        </div>
+                                    {/if}
+                                </li>
+                            {/foreach}
+                        {/if}
+                    </ul>
+                {/if}
+                {if !$theme_settings.drop_down_horizontal_menu && !$theme_settings.drop_down_horizontal_menu}
+                    {include file="header.dd.cat.list.html"}
+                {/if}
+            </div>
+        </div>
+    {/if}
+{/if}
+{literal}
+    <script>
+        $(document).ready(function () {
+            let textElse = `[`Else`]`;
+
+            $('.js-open-other-cat-child').click(function () {
+                if ($(this).siblings('.hide').length){
+                    $(this).siblings('.hide').each(function () {
+                        $(this).removeClass('hide');
+                        $(this).addClass('show');
+                    });
+                    $(this).find('.item-more-else').fadeOut(0);
+                    $(this).find('.item-more-hide').fadeIn(0);
+                } else {
+                    $(this).siblings('.show').each(function () {
+                        $(this).removeClass('show');
+                        $(this).addClass('hide');
+                    });
+                    $(this).find('.item-more-else').fadeIn(0);
+                    $(this).find('.item-more-hide').fadeOut(0);
+                }
+            })
+        });
+    </script>
+{/literal}
+{/strip}

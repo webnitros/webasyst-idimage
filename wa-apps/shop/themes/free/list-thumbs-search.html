@@ -1,0 +1,36 @@
+{strip}
+<!-- products mini thumbnail list view: related products, etc. -->
+{if !isset($limit)}{$limit = 5}{/if}
+{if !isset($class)}{$class = ""}{/if}
+{$index = 0}
+
+{$_price_range = $theme_settings.price_range_in_product_list}
+<div class="sb-wrap_content">
+{foreach $products as $p}
+    {if $limit && $index >= $limit}
+        {break}
+    {/if}
+    {$index = $index+1}
+
+    {$dummy96 = "{$wa_theme_url}img/dummy96.png"}
+    <a class="sb-product" href="{$p.frontend_url}">
+        <div class="sb-product_img" href="{$p.frontend_url}" title="{$p.name}">
+            {$wa->shop->productImgHtml($p, '50', ['alt' => $p.name, 'default' => $dummy96])}
+        </div>
+        <div class="sb-product_content">
+            <div class="sb-product_name" href="{$p.frontend_url}">{$p.name}</div>
+            <div class="sb-product_price nowrap">
+                {if empty($p.price) && !empty($theme_settings.text_zero_price)}
+                    <span class="price">{$theme_settings.text_zero_price}</span>
+                {elseif $_price_range && ($p.max_price && $p.min_price && $p.max_price > $p.min_price)}
+                    <span class="price"><span class="nowrap">{shop_currency_html($p.min_price)}</span> ... <span class="nowrap">{shop_currency_html($p.max_price)}</span></span>
+                {else}
+                    <span class="price">{shop_currency_html($p.price)}</span>
+                    {if $p.compare_price > 0}<span class="old-price">{shop_currency_html($p.compare_price)}</span>{/if}
+                {/if}
+            </div>
+        </div>
+    </a>
+{/foreach}
+</div>
+{/strip}

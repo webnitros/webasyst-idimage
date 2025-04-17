@@ -1,0 +1,103 @@
+{strip}
+
+
+<div class="header-top--links">
+    <div class="container">
+        {if !$wa->isMobile()}
+            {include file="header.links.desk.html"}
+        {/if}
+        <div class="header-top--right">
+            {if $theme_settings.view_socials_header}
+                <div class="header_socials">
+                    {if !empty($theme_settings.facebook)}
+                        <a target="_blank" class="header-social_item" href="{$theme_settings.facebook}">
+                            <i class="fa fi-rr-fb" aria-hidden="true"></i>
+                        </a>
+                    {/if}
+                    {if !empty($theme_settings.twitter)}
+                        <a target="_blank" class="header-social_item" href="{$theme_settings.twitter}">
+                            <i class="fa fi-rr-twitter" aria-hidden="true"></i>
+                        </a>
+                    {/if}
+                    {if !empty($theme_settings.vk)}
+                        <a target="_blank" class="header-social_item" href="{$theme_settings.vk}">
+                            <i class="fa fi-rr-vk" aria-hidden="true"></i>
+                        </a>
+                    {/if}
+                    {if !empty($theme_settings.odnoklassniki)}
+                        <a target="_blank" class="header-social_item" href="{$theme_settings.odnoklassniki}">
+                            <i class="fa fi-rr-odnok" aria-hidden="true"></i>
+                        </a>
+                    {/if}
+                    {if !empty($theme_settings.instagram)}
+                        <a target="_blank" class="header-social_item" href="{$theme_settings.instagram}">
+                            <i class="fa fi-rr-inst" aria-hidden="true"></i>
+                        </a>
+                    {/if}
+                    {if !empty($theme_settings.youtube)}
+                        <a target="_blank" class="header-social_item" href="{$theme_settings.youtube}">
+                            <i class="fa fi-rr-yt" aria-hidden="true"></i>
+                        </a>
+                    {/if}
+                    {if !empty($theme_settings.tiktok)}
+                        <a target="_blank" class="header-social_item" href="{$theme_settings.tiktok}">
+                            <svg height="16px" width="16px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                                <path d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z"></path>
+                            </svg>
+                        </a>
+                    {/if}
+                </div>
+            {/if}
+            {if $wa_app == 'shop' && $theme_settings.currency_selector}
+                {$currencies = $wa->shop->currencies()}
+                {$currency = $wa->shop->currency()}
+                {if count($currencies) > 1}
+                    <div class="header_currency js-dd-outer">
+                        {if count($currencies) > 1}
+                            [`Currency`]:
+                            <span class="header_currency__selected">{$currency}</span>
+                            <span data-id="currency-list-header" class="js-btnDrop-down currency_item fi-rr-caret-down">
+                        </span>
+                            <div id="currency-list-header" class="js-dd-wrap currency_list">
+                                <div class="dd-wrap br-top-sdСolor">
+                                    {foreach $currencies as $c_code => $c}
+                                        <span data-value="{$c_code}" class="js-currency currency_item{if $c_code == $currency} header_currency__selected{/if}">
+                                            {$c_code}
+                                        </span>
+                                    {/foreach}
+                                </div>
+                            </div>
+                            <script>
+                                $(".js-currency").click(function () {
+                                    var url = location.href;
+                                    if (url.indexOf('?') == -1) {
+                                        url += '?';
+                                    } else {
+                                        url += '&';
+                                    }
+                                    location.href = url + 'currency=' + $(this).data("value");
+                                });
+                            </script>
+                        {/if}
+                    </div>
+                {/if}
+            {/if}
+
+            {if $wa_app == 'shop' && $theme_settings.language_selector}
+                <div class="header_lang">
+                    <span  class="header_lang-ttl">[`Language`]:</span>
+                    {foreach waLocale::getAll('name') as $language => $lang_name}
+                        {$language_text = $language|regex_replace:"/[a-z_]/":""}
+                        {if $wa->locale() == $language}
+                            <span class="header_lang-el">{$language_text}</span>
+                        {else}
+                            <a class="js-language header_lang-el" data-value="{$language}" href="{$language}">{$language_text}</a>
+                        {/if}
+                    {/foreach}
+                </div>
+            {/if}
+        </div>
+    </div>
+</div>
+{/strip}
+

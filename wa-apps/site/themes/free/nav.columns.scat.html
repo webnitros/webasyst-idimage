@@ -1,0 +1,120 @@
+{strip}
+
+{$type_align_subcat = 'column'}
+{$totalColumns = 3}
+{if count($cat.childs) <= $totalColumns}
+    {$total_childs_col = 1}
+    {$totalColumns = count($cat.childs)}
+{else}
+    {$total_childs_col = ceil(count($cat.childs) / $totalColumns)}
+{/if}
+<div class="menu-subcategory cols-{if $isBrand}4{else}{ceil(count($cat.childs) / $total_childs_col)}{/if} menu-subcategory--disclosed js-subcategory-menu"{if $openCat} style="display: block"{/if}>
+    <div class="sub-category_cols">
+        <div class="{if $type_align_subcat == 'column'}sub-category_col{/if}">
+            {$index = 1}
+            {foreach $cat.childs as $keyCatChild => $catChild_2}
+                {if !isset($catChild_2.params.menu_hide)}
+                    {$_subcat_lvl2 = 0}
+                    {if !$isBrand}
+                        {if count($catChild_2.childs) && $theme_settings.depth_subcategories > 2 && !$wa->isMobile()}
+                            {$_subcat_lvl2 = 1}
+                        {/if}
+                    {/if}
+
+                    {if $index > $total_childs_col || $type_align_subcat != 'column'}
+                        {$index = 1}
+                        </div>
+                        <div class="sub-category_col">
+                    {/if}
+                        <div class="subcat-opened__el{if $_subcat_lvl2} js-subcatmenu-el has-subs{/if}">
+                            {if $_subcat_lvl2}
+                                <i class="js-cat-item-caret fi-rr-angle-small-right"></i>
+                            {/if}
+                            <div class="subcat-opened__el-name">
+                                <a  href="{$catChild_2.url}">
+                                    {$catChild_2.name}
+                                </a>
+                                {if $theme_settings.plugin_cic != 'none' && ($theme_settings.plugin_cic == 'menu' || $theme_settings.plugin_cic == 'menu_sb')}
+                                    {if !empty($catChild_2.params.cic_category_items)}
+                                        <span class="menu-product-count">
+                                            {$catChild_2.params.cic_category_items}
+                                        </span>
+                                    {/if}
+                                    {if !empty($catChild_2.params.cic_category_has_discount_items)}
+                                        <div class="cat-badge cat-badge--discount">
+                                            %
+                                        </div>
+                                    {/if}
+                                    {if !empty($catChild_2.params.cic_category_has_new_items)}
+                                        <div class="cat-badge cat-badge--new">
+                                            new
+                                        </div>
+                                    {/if}
+                                    {if !empty($catChild_2.params.cic_category_hot)}
+                                        <div class="cat-badge cat-badge--hot">
+                                            hot
+                                        </div>
+                                    {/if}
+                                {/if}
+                            </div>
+
+                            {if $_subcat_lvl2}
+                                <div class="sub-category-opened__subs js-subcategory-menu">
+                                    {foreach $catChild_2.childs as $catChild_3}
+                                        {if !isset($catChild_3.params.menu_hide)}
+                                            <div class="sub-category-opened__sub sub-category-opened__sub--lvl3 {if $theme_settings.number_output_categories_third_level < $catChild_3@iteration}hide{/if}">
+                                                <a href="{$catChild_3.url}">
+                                                    {$catChild_3.name}
+                                                </a>
+                                                {if $theme_settings.plugin_cic == 'menu' || $theme_settings.plugin_cic == 'menu_sb'}
+                                                    {if !empty($catChild_3.params.cic_category_items)}
+                                                        <span class="menu-product-count">
+                                                                {$catChild_3.params.cic_category_items}
+                                                            </span>
+                                                    {/if}
+                                                    {if !empty($catChild_3.params.cic_category_has_discount_items)}
+                                                        <div class="cat-badge cat-badge--discount">
+                                                            %
+                                                        </div>
+                                                    {/if}
+                                                    {if !empty($catChild_3.params.cic_category_has_new_items)}
+                                                        <div class="cat-badge cat-badge--new">
+                                                            new
+                                                        </div>
+                                                    {/if}
+                                                    {if !empty($catChild_3.params.cic_category_hot)}
+                                                        <div class="cat-badge cat-badge--hot">
+                                                            hot
+                                                        </div>
+                                                    {/if}
+                                                {/if}
+                                            </div>
+                                        {/if}
+                                    {/foreach}
+                                    {if $theme_settings.number_output_categories_third_level < count($catChild_2.childs)}
+                                        <div class="sub-category-opened__sub-more js-open-other-cat-child">
+                                            <div class="Nav__horizontal--item-more js-open-other-cat-child">
+                                                <div class="item-more-else">[`Else`] <i class="fi-rr-angle-small-down"></i></div>
+                                                <div class="item-more-hide" style="display: none">Свернуть <i class="fi-rr-angle-small-up"></i></div>
+                                            </div>
+                                        </div>
+                                    {/if}
+                                </div>
+                            {/if}
+                        </div>
+                     {$index = $index + 1}
+                {/if}
+            {/foreach}
+        </div>
+
+        {if !empty($cat.params.cat_menu_banner)}
+            <div class="sub-category_col">
+                {if !empty($cat.params.cat_menu_banner_url)}<a href="{$cat.params.cat_menu_banner_url}" class="sub-category__banner">{/if}
+                    <img src="{$cat.params.cat_menu_banner}" alt="">
+                {if !empty($cat.params.cat_menu_banner_url)}</a>{/if}
+            </div>
+        {/if}
+    </div>
+</div>
+{/strip}
+

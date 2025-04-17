@@ -1,0 +1,65 @@
+{$wa->globals('isMyAccount', true)}
+
+<h1 class="Title__Main -No-Border">[`Affiliate program`]</h1>
+
+    {$balance = round($customer.affiliate_bonus, 2)|wa_format_number:false}
+    {if $customer.affiliate_bonus >= 0}{$balance = '+'|cat:$balance}{/if}
+
+<div class="My__Box--Balance">
+    <div class="Bonuses__Box" data-js="bonuses_box">
+        <i class="Bonuses__Icon icon-checkout"></i>
+        <div class="Bonuses__Title">{sprintf('[`Your current affiliate bonus: <strong class="bonus">%s</strong>`]', $balance)}</div>
+    </div>
+</div>
+
+    <!-- plugin hook: 'frontend_my_affiliate' -->
+    {* @event frontend_my_affiliate.%plugin_id% *}
+{foreach $frontend_my_affiliate as $_plugin_id => $_}
+    <div class="My__Box--Plugin {$_plugin_id}">{$_}</div>
+                {/foreach}
+
+{if count($affiliate_history)}
+    <h2 class="My__Title--History">[`Bonus activity log`]:</h2>
+{/if}
+<div class="My__List--Balance">
+    {foreach $affiliate_history as $h}
+        <div class="My__Item--Balance">
+            {if $h.order_id}
+                <div class="My__Balance--Title">
+                    <a class="My__Link--Balance" href="{$h.order_url}">[`Order`] {$wa->shop->orderId($h.order_id)}</a>
+                </div>
+            {/if}
+            <div class="My__Balance--Date">
+                {$h.create_datetime|wa_date:'humandatetime'}
+            </div>
+            {if $h.comment}
+                <div class="My__Balance--Comment">
+                    <span class="My__Title--Calc">[`Comment`]:</span>
+                    <span class="My__Value--Calc">{$h.comment|escape}</span>
+                </div>
+            {/if}
+            <div class="My__List--Calc">
+                {if $h.amount > 0}
+                    <div class="My__Item--Calc">
+                        <span class="My__Title--Calc">[`Credit`]:</span>
+                        <span class="My__Value--Calc -Add">{$h.amount|wa_format_number:false}</span>
+                    </div>
+                {/if}
+                {if $h.amount < 0}
+                    <div class="My__Item--Calc">
+                        <span class="My__Title--Calc">[`Debit`]:</span>
+                        <span class="My__Value--Calc -Subtract">{abs($h.amount)|wa_format_number:false}</span>
+                    </div>
+                {/if}
+                <div class="My__Item--Calc -Balance">
+                    <span class="My__Title--Calc">[`Balance`]:</span>
+                    <span class="My__Value--Calc -Total">{$h.balance|wa_format_number:false}</span>
+                </div>
+            </div>
+        </div>
+        {foreachelse}
+        <div class="My__Item--Balance">
+            <p class="My__Balance--Empty">[`You have no affiliate history yet.`]</p>
+        </div>
+                {/foreach}
+</div>

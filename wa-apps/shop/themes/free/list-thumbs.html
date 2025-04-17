@@ -1,0 +1,362 @@
+{strip}
+    {if !isset($isViewSwitch)}{$isViewSwitch = 0}{/if}
+    {if !isset($ulclass)}{$ulclass = ''}{/if}
+    {if !isset($_not_paginate)}{$_not_paginate = 0}{/if}
+
+    <!-- products thumbnail list view -->
+    {if !isset($CategoryViewProducts) || empty($CategoryViewProducts)}
+        {$CategoryViewProducts = 'tile'}
+    {/if}
+    {$views_count = 0}
+    {$_isView_tile = false}
+    {$_isView_list = false}
+    {$_isView_tbl = false}
+    {$ignoreStock = $wa->shop->settings('ignore_stock_count')}
+
+    {if $isViewSwitch}
+        {if !empty($theme_settings.product_preview_tile)}
+            {$views_count = $views_count+1}
+            {$_isView_tile = true}
+        {/if}
+        {if !empty($theme_settings.product_preview_list)}
+            {$views_count = $views_count+1}
+            {$_isView_list = true}
+        {/if}
+        {if !empty($theme_settings.product_preview_table)}
+            {$views_count = $views_count+1}
+            {$_isView_tbl = true}
+        {/if}
+        {$CategoryViewProducts = $theme_settings.pr_prev_type_default}
+
+        {$cookieProductView = $wa->cookie('CategoryViewProducts')}
+        {if ($cookieProductView == 'tile' && $_isView_tile)
+        || ($cookieProductView == 'tbl' && $_isView_tbl)
+        || ($cookieProductView == 'list' && $_isView_list)}
+            {$CategoryViewProducts = $wa->cookie('CategoryViewProducts')}
+        {/if}
+    {/if}
+
+    {if $theme_settings.selected_filter}{include file="selected-filters.html"}{/if}
+
+    {if !empty($sorting) || ($isViewSwitch &&  $views_count > 1)}
+        <div class="cat-panel{if $theme_settings.modal_sb && !$wa->isMobile()} cat-panel-ml{/if}">
+            <div class="df-block">
+
+                {if !empty($sorting)}
+                    <!-- sorting -->
+                    {$sort_fields = [
+                    'name' => '[`Name`]',
+                    'price' => '[`Price`]',
+                    'total_sales' => '[`Bestsellers`]',
+                    'rating' => '[`Customer rating`]',
+                    'create_datetime'=>'[`Date added`]',
+                    'stock' => '[`In stock`]']}
+
+                    {$default_sort = false}
+
+                    {if isset($category.sort_products) && !empty($category.sort_products)}
+                        {$sort_active = $wa->get('sort', $category.sort_products)}
+                        {$default_sort = " "|explode:$category.sort_products}
+                    {/if}
+
+                    {if !isset($sort_active)}
+                        {$sort_active = $wa->get('sort', 'create_datetime')}
+                    {/if}
+                    <div class="cat-sort">
+                        <div class="checked-list js-selecList cat-sort_select">
+                            <div class="js-checked-toggle checked-list_toggle">
+                                {$hasActive = false}
+                                {foreach $sort_fields as $sort => $name}
+
+                                    {if $sort_active == $sort}
+                                        {$hasActive = true}
+                                        {if class_exists('shopSeofilterViewHelper')}
+                                            {shopSeofilterViewHelper::sortUrl($sort, $name, $sort_active)}
+                                        {else}
+                                            {$wa->shop->sortUrl($sort, $name, $sort_active)}
+                                        {/if}
+                                    {/if}
+                                {/foreach}
+                                {if $name@last && !$hasActive}
+                                    {if !empty($category) && !isset($sort_fields[$default_sort[0]])}
+                                        [`New & Popular`]
+                                    {else}
+                                        {$sort_fields[$default_sort[0]]}
+                                    {/if}
+                                {/if}
+                                <div class="jq-checked__arrow-trigger">
+                                    <i class=" icon fi-rr-caret-down"></i>
+                                </div>
+                            </div>
+                            <ul class="js-select-items checked-list__items">
+{*                                {if !empty($category) && !isset($sort_fields[$default_sort[0]])}*}
+{*                                    <li{if !$sort_active} class="selected"{/if}>*}
+{*                                        <a href="{$wa->currentUrl(0, 1)}">[`New & Popular`]</a>*}
+{*                                    </li>*}
+{*                                {/if}*}
+                                {foreach $sort_fields as $sort => $name}
+                                    <li{if $sort_active == $sort} class="selected"{/if}>
+                                        {if class_exists('shopSeofilterViewHelper')}
+                                            {shopSeofilterViewHelper::sortUrl($sort, $name, $sort_active)}
+                                        {else}
+                                            {$wa->shop->sortUrl($sort, $name, $sort_active)}
+                                        {/if}
+                                    </li>
+                                    {if $wa->get('sort') == $sort}{$wa->title( $wa->title()|cat:' — '|cat:$name)}{/if}
+                                {/foreach}
+                            </ul>
+                        </div>
+                    </div>
+                {/if}
+
+                {if $views_count > 1}
+                    <div class="cat-views">
+                        {if $_isView_tile == true}
+                            <i data-view="tile" class="js-switch-product-view fi-rr-chetyrekvadrata cat-views__el {if $CategoryViewProducts == 'tile'} selected{/if}" aria-hidden="true">
+                            </i>
+                        {/if}
+                        {if $_isView_list == true}
+                            <i data-view="list" class="js-switch-product-view fi-rr-trikvadratatripryamo cat-views__el {if $CategoryViewProducts == 'list'} selected{/if}" aria-hidden="true">
+                            </i>
+                        {/if}
+                        {if $_isView_tbl == true}
+                            <i data-view="tbl" class="js-switch-product-view fi-rr-chetyrecherta cat-views__el {if $CategoryViewProducts == 'tbl'} selected{/if}" aria-hidden="true">
+                            </i>
+                        {/if}
+                    </div>
+                {/if}
+                {if $theme_settings.show_filter_warehouse && class_exists('shopFstockPlugin')}
+                    {$fstockFilter = false}
+                    {foreach $filters as $filter}
+                        {if $filter['code'] == 'fstock'}
+                           {$fstockFilter = true}
+                            {break}
+                        {/if}
+                    {/foreach}
+                    {if $fstockFilter}
+                        <div class="filter_warehouse--box ">
+                        </div>
+                        <script>
+                            const fstockFilterSidebar = $('.js-filter-el[data-code="fstock"]');
+                            const fstockFilterClone = fstockFilterSidebar.clone();
+                            const filterBox = $('.filter_warehouse--box');
+                            const textStock = "[`Stock Availability`]";
+                            const filterBoxLabel = fstockFilterClone.find('label.filter-el_opts-el');
+                            const fstockFilterCloneTitle = fstockFilterClone.find('.js-filter-title');
+
+                            {literal}
+                                fstockFilterClone.find('.filter-el_title').html(`${textStock} <i class="fi-rr-angle-small-down"></i>`);
+                                fstockFilterClone.find('.fi-rr-angle-small-down').removeClass('fi-rr-angle-small-down').addClass('fi-rr-caret-down');
+                                fstockFilterClone.find('.js-filter-options').addClass('close');
+                                if (fstockFilterClone.hasClass('close')){
+                                    fstockFilterClone.removeClass('close');
+                                }
+                                fstockFilterClone.removeClass('js-filter-el');
+
+                                filterBox.append(fstockFilterClone);
+
+                                fstockFilterCloneTitle.on('click', function () {
+                                    $(this).siblings('.js-filter-options').toggleClass('close');
+                                })
+                                filterBoxLabel.on('click', function (e) {
+                                    if ($(e.target).hasClass('js-style-check-input')) {
+                                        const value = $(this).find('.js-style-check-input').val();
+                                        const fstockCheckSidebare = fstockFilterSidebar.find(`.js-style-check-input[value="${value}"]`);
+                                        $(e.target).closest('js-filter-options').removeClass('close');
+                                        fstockCheckSidebare.click();
+                                    }
+                                })
+                                $(document).mouseup(function (e) {
+                                    if (fstockFilterClone.has(e.target).length === 0){
+                                        fstockFilterClone.find('.js-filter-options').addClass('close');
+                                    }
+                                });
+                            {/literal}
+                        </script>
+                    {/if}
+                {/if}
+            </div>
+        </div>
+    {/if}
+
+    {if $wa->shop->cart->total() > 0}{$add2label_cart = '[`Add to cart`]'}{else}{$add2label_cart = '[`Buy`]'}{/if}
+    {if !isset($isCategoryViewProductsList)}{$isCategoryViewProductsList = 0}{/if}
+
+    {$isPreviewProductGalleryTile = (($CategoryViewProducts == 'tile') || ($CategoryViewProducts == 'list')) && $products}
+
+    {if $isPreviewProductGalleryTile}
+        {$products_ids = ""}
+        {foreach $products as $p}
+            {if $p.id}{$products_ids[] = $p.id}{/if}
+        {/foreach}
+        {$img_width_with_set = $theme_settings.width_grid_img|trim|default:'380'}
+        {$size_image = "`$img_width_with_set`x0"}
+        {if $CategoryViewProducts == 'list'}
+            {$size_image = '200'}
+        {/if}
+        {$products_images = $wa->shop->images($products_ids, $size_image)}
+    {/if}
+    <div class="products-{$CategoryViewProducts}-outer">
+        {$product_preview_images_lazy = true}
+        <div {if $product_preview_images_lazy}data-image-lazy="1"{/if} class="js-preview-products products-{$CategoryViewProducts} {if !empty($ulclass)} {$ulclass}{/if}"{if isset($attr)} {$attr}{/if}>
+            {$features = []}
+            {$_features_product_list = !empty($theme_settings.product_show_list_features) && $CategoryViewProducts == 'list'}
+            {if !$wa->isMobile()}
+                {$_features_product_tile = !empty($theme_settings.product_show_tile_features) && $CategoryViewProducts == 'tile'}
+            {else}
+                {$_features_product_tile = !empty($theme_settings.product_show_tile_mobile_features) && $CategoryViewProducts == 'tile'}
+            {/if}
+
+            {if $_features_product_list || $_features_product_tile}
+                {$features = $wa->shop->features($products)}
+            {/if}
+
+            {$favorites = $wa->cookie('product_favor_arr')}
+            {if $favorites}
+                {$product_favor_arr = ","|explode:$favorites}
+            {else}
+                {$product_favor_arr = []}
+            {/if}
+
+            {if ($theme_settings.show_grid_sku && $CategoryViewProducts == 'tile')
+            || ($theme_settings.show_sku_list && $CategoryViewProducts == 'list')
+            || ($theme_settings.show_sku_product_table && $CategoryViewProducts == 'tbl')}
+                {$all_skus = $wa->shop->skus(array_keys($products))}
+            {/if}
+
+            {literal}
+                <script>
+                    let imgObjProducts = new Object();
+                </script>
+            {/literal}
+
+            {foreach $products as $p}
+                {if isset($all_skus) && !empty($all_skus) && isset($all_skus[$p.id])}
+                    {$skus = $all_skus[$p.id]}
+                    {$p.skus_list = reset($skus)}
+                {/if}
+                {if $CategoryViewProducts == 'list'}
+                    {include file="list-thumbs-view-line.html" product=$p features=$features favorites=$product_favor_arr ignoreStock=$ignoreStock}
+                {else if $CategoryViewProducts == 'tbl'}
+                    {include file="list-thumbs-view-tbl.html" product=$p favorites=$product_favor_arr ignoreStock=$ignoreStock}
+                {else}
+                    {include file="list-thumbs-view-grid.html" product=$p favorites=$product_favor_arr swipeImage=true ignoreStock=$ignoreStock}
+                {/if}
+            {/foreach}
+
+            {if $isPreviewProductGalleryTile}
+                {literal}
+                    <script>
+                        $(function () {
+                            new productGridGallery();
+                        });
+                    </script>
+                {/literal}
+            {/if}
+        </div>
+    </div>
+
+    {if $theme_settings.product_on_page}
+        {$productOnPage = ","|explode:$theme_settings.product_on_page}
+    {else}
+        {$productOnPage = [24,48,64]}
+    {/if}
+
+    <div class="df-block products-pagination">
+        {if $theme_settings.pagination != 'lazyloading'  && empty($_not_paginate) && !$wa->isMobile()}
+            <div class="cat-onpage">
+                <span class="cat-onpage-title">[`Display`]</span>
+                <select id="set-per-page" class="cat-onpage_select">
+                    {$current_per_page = $wa->cookie('products_per_page')}
+                    {if $current_per_page}
+                        <option value="hide">{$current_per_page}</option>
+                    {else}
+                        <option value="hide">{$productOnPage[0]}</option>
+                    {/if}
+                    {foreach $productOnPage as $count}
+                        <option{if $current_per_page == $count} selected{/if} value="{$count}">{$count}</option>
+                    {/foreach}
+                </select>
+            </div>
+        {/if}
+    </div>
+    <div class="{if $theme_settings.pagination == 'lazyloading'}lazy-paging{else}category-pag-offset{/if}" data-times="2" data-link-text="[`Load more`]" data-loading-str="[`Loading...`]">
+        {if isset($pages_count) && $pages_count > 1  && !$_not_paginate}
+            {if class_exists('shopSeofilterViewHelper')}
+                {capture assign=pagination}
+                    {wa_pagination total=$pages_count attrs=['class' => "pagination"]}
+                {/capture}
+                {shopSeofilterViewHelper::paginationDecorate($pagination)}
+            {else}
+                {wa_pagination total=$pages_count attrs=['class' => "pagination"]}
+            {/if}
+        {/if}
+    </div>
+    <script>
+        $(function () {
+            $('.Product-grid_img').mouseout(function() {
+                $('.dotted-img__item').each(function() {
+                    if ($(this).attr('data-id') == 1) {
+                        $(this).addClass('-Active');
+                    } else {
+                        $(this).removeClass('-Active');
+                    }
+                });
+            });
+            var startCoords = {},
+                endCoords = {};
+            let productId = '';
+            let product = '';
+
+            $('.Product-grid_img').bind("touchstart", function(event) {
+                startCoords = endCoords = event.originalEvent.targetTouches[0];
+                product = $(this).closest('.Product-grid');
+                productId = $(this).closest('.Product-grid').attr("data-product-num");
+            });
+
+            $('.Product-grid_img').bind("touchmove", function(event) {
+                endCoords = event.originalEvent.targetTouches[0];
+            });
+
+            {literal}
+                $('.Product-grid_img').bind("touchend", function() {
+                    let mobileProductWrapDotted = product.find('.dotted-img__item');
+                    let startSrc = $(this).find('.js-product-preview-img').attr("src");
+                    imgObjProducts[productId].forEach((element, index) => {
+                        if (startSrc == element) {
+                            startSrcIndex = index;
+                            if (startCoords.clientX < endCoords.clientX){
+                                endSrcIndex = startSrcIndex - 1;
+                                $(this).find('.js-product-preview-img').attr("src", imgObjProducts[productId][endSrcIndex]);
+                                mobileProductWrapDotted.each(function() {
+                                    if (endSrcIndex >= 0) {
+                                        if ($(this).attr('data-id') == endSrcIndex + 1) {
+                                            $(this).addClass('-Active');
+                                        } else {
+                                            $(this).removeClass('-Active');
+                                        }
+                                    }
+                                });
+                            }
+                            if (startCoords.clientX > endCoords.clientX){
+                                endSrcIndex = startSrcIndex + 1;
+                                $(this).find('.js-product-preview-img').attr("src", imgObjProducts[productId][endSrcIndex]);
+                                mobileProductWrapDotted.each(function() {
+                                    if (endSrcIndex < mobileProductWrapDotted.length) {
+                                        if ($(this).attr('data-id') == endSrcIndex + 1) {
+                                            $(this).addClass('-Active');
+                                        } else {
+                                            $(this).removeClass('-Active');
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    })
+                });
+            {/literal}
+        })
+    </script>
+
+    <script src="{$wa_active_theme_url}options.js?v{$wa_theme_version}"></script>
+{/strip}

@@ -1,0 +1,109 @@
+<h1 class="Title__Main">[`Compare`]</h1>
+
+{if count($products)}
+    <ul class="Compare__List--Switch compare-diff-all">
+        <li class="Compare__Item--Switch selected">
+            <a class="Compare__Button Compare__Link--Switch inline-link" id="compare-show-all" href="#">[`All features`]</a>
+        </li>
+        <li class="Compare__Item--Switch">
+            <a class="Compare__Button Compare__Switch--Link inline-link" id="compare-show-diff" href="#">[`Different`]</a>
+        </li>
+        <li class="Compare__Item--Switch Compare__Item--Switch__clear-list">
+            <a class="Compare__Button Compare__Button--Clear" id="compare-reset" href="#">[`Clear comparison list`]</a>
+        </li>
+    </ul>
+{literal}
+    <script>
+
+        $("#compare-show-all").click(function () {
+            $("#compare_table tr.same").show();
+            $(this).closest('ul').find('li.selected').removeClass('selected');
+            $(this).parent().addClass('selected');
+            return false;
+        });
+        $("#compare-show-diff").click(function () {
+            $("#compare_table tr.same").hide();
+            $(this).closest('ul').find('li.selected').removeClass('selected');
+            $(this).parent().addClass('selected');
+            return false;
+        });
+
+        $("#compare-delete").on('click', function () {
+            location.href = location.href.replace(/compare\/.*/, 'compare/');
+        });
+        $('#compare-reset').on('click', function () {
+            $.cookie('shop_compare', null, {path: '/'});
+            location.href = location.href.replace(/compare\/.*/, 'compare/');
+        });
+    </script>
+{/literal}
+    <div class="Compare__Window">
+        <table id="compare_table" class="Compare__Table compare">
+            <thead>
+            <tr>
+                <th></th>
+                {$product_names = ''}
+                {foreach $products as $p}
+                    <td>
+                        <a class="Compare__Link--Remove compare-remove js-compare-add active" id="compare-delete" href="{$p.delete_url}"
+                           title="[`Remove from comparison list`]" data-product="{$p.id}">
+                            <i class="fi-rr-cross"></i>
+                        </a>
+                        <a class="Compare__Link--Image"
+                           href="{$wa->getUrl('/frontend/product/', ['product_url' => $p.url])}">
+                            {$wa->shop->productImgHtml($p, '300x0', ['itemprop' => 'image', 'id' => 'product-image', 'default' => "`$wa_theme_url`img/dummy96.png", 'title' => $p.name|cat:' ':strip_tags($p.summary)])}
+                        </a>
+                        <div class="Compare__Box--Name name-wrapper">
+                            <a class="Compare__Link--Name name-link"
+                               href="{$wa->getUrl('/frontend/product/', ['product_url' => $p.url])}">{$p.name}</a>
+                        </div>
+                        {$product_names = $product_names|cat:$p.name}
+                        {if not $p@last}
+                            {$product_names = $product_names|cat:', '}
+                        {/if}
+                    </td>
+                {/foreach}
+            </tr>
+            </thead>
+            <tr>
+                <th>[`Price`]</th>
+                {foreach $products as $p}
+                    <td style="vertical-align: middle">
+                        {if $p.compare_price > 0}
+                            <div class="Product__Price--Old">
+                                <span class="Product__Price--Inline compare-at-price">
+                                  {shop_currency_html($p.compare_price)}
+                                </span>
+                            </div>
+                        {/if}
+
+                        {strip}
+                            <span class="price nowrap">{shop_currency_html($p.price)}</span>
+                        {/strip}
+                    </td>
+                {/foreach}
+            </tr>
+            {foreach $features as $f_id=>$f}
+                <tr{if $f.same} class="same"{/if}>
+                    <th>{$f.name}</th>
+                    {foreach $products as $p}
+                        <td>
+                            {if isset($p.features[$f_id])}
+                                {if is_array($p.features[$f_id])}
+                                    {implode('<br> ', $p.features[$f_id])}
+                                {else}
+                                    {$p.features[$f_id]}
+                                {/if}
+                            {else}
+                                <span class="gray">&mdash;</span>
+                            {/if}
+                        </td>
+                    {/foreach}
+                </tr>
+            {/foreach}
+        </table>
+    </div>
+    {$wa->title( sprintf('[`Compare %s`]', $product_names))}
+{else}
+    <p>[`Product comparison list is empty.`]</p>
+{/if}

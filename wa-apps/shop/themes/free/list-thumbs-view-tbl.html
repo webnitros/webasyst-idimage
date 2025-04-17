@@ -1,0 +1,120 @@
+{strip}
+
+
+{$_price_range = $theme_settings.price_range_in_product_list}
+{$available = $ignoreStock || $p.count === null || $p.count > 0}
+{$preview_image = $wa->shop->productImgUrl($p, '60')}
+<div class="Product-table js-preview-cart">
+    <div class="Product-table-img">
+        <a href="{$p.frontend_url}" title="{$p.name}">
+            {$dummy96 = "{$wa_theme_url}img/dummy96.png"}
+            {$image = $wa->shop->productImgHtml($p, '50x0', ['class' => "js-product-preview-img", 'alt' => $p.name, 'default' => $dummy96])}
+            {$product_preview_images_lazy = true}
+            {if $product_preview_images_lazy && !empty($p.image_id)}
+                {$image = $image|replace:"src":"src='`$wa_theme_url`img/lazy-image.png' data-src"}
+            {/if}
+            {$image}
+        </a>
+    </div>
+    <div class="Product-table-info">
+        {if $theme_settings.show_sku_product_table && isset($all_skus) && count($all_skus) > 0}
+            <div class="Product-table-sku hint">
+                {if isset($p.skus_list.sku) && !empty($p.skus_list.sku)}
+                [`Vendor code`]: {$p.skus_list.sku}
+                {/if}
+            </div>
+        {/if}
+
+        <div class="Product-table-name">
+            <a href="{$p.frontend_url}">{$p.name}</a>
+
+            {if isset($p.video_url) && !empty($p.video_url)}
+                <a class="js-video-popup Product__video-icon" aria-hidden="true">
+                    <img src="{$wa_active_theme_url}/img/svg/youtube.svg" alt="">
+                </a>
+            {/if}
+            {if $theme_settings.preview_stock}
+
+                {if !empty($theme_settings.text_product_preorder)}
+                    {$text_product_preorder = $theme_settings.text_product_preorder}
+                {else}
+                    {$text_product_preorder = "[`Pre-order only`]"}
+                {/if}
+                <span class="product-tpl-stock nowrap">
+                    {if $available}
+                        {if $ignoreStock && $p.count !== null && $p.count == 0}
+                            <span class="Product-stock_item Product-stock_item-critical">
+                            {$text_product_preorder}
+                            </span>
+                        {else}
+                            <span class="Product-stock_item Product-stock_item-high">
+                                [`In stock`]
+                                {if $theme_settings.preview_stock_count && $p.count !== null}
+                                    : {$p.count} [`unit`]
+                                {/if}
+                            </span>
+                        {/if}
+                    {else}
+                        <span class="Product-stock_item Product-stock_item-out">[`Out of stock`]</span>
+                    {/if}
+                </span>
+            {/if}
+        </div>
+
+        {$badge_html = $wa->shop->badgeHtml($p.badge)}
+        {if $p.rating > 0 && $theme_settings.product_ratings}
+        <div class="Product-table-rate">
+            <span class="rating nowrap">{$wa->shop->ratingHtml($p.rating, 10)}</span>
+        </div>
+        {/if}
+
+        {if $badge_html}
+            <div class="Product-table-badge">{$badge_html}</div>
+        {/if}
+    </div>
+
+    <div class="Product-table-buy{if $_price_range} width-large{/if}{if $p.compare_price} -hasComparePrice{/if}">
+        <span class="Product-table-price ">
+            {if empty($p.price) && !empty($theme_settings.text_zero_price)}
+                <span class="bold">{$theme_settings.text_zero_price}</span>
+            {elseif $_price_range && ($p.max_price && $p.min_price && $p.max_price > $p.min_price)}
+                <span class="nowrap">{shop_currency_html($p.min_price)}</span> ... <span class="nowrap">{shop_currency_html($p.max_price)}</span>
+            {else}
+
+                <span class="price">
+                    <span class="nowrap">{shop_currency_html($p.price)}</span>
+                    <span class="Product-table-oldprice old-price nowrap">{if $p.compare_price > 0}{shop_currency_html($p.compare_price)}{/if}</span>
+                </span>
+            {/if}
+        </span>
+        <div class="Product-grid_bottom">
+            {if $available}
+                {$addedText = "[`Added`]"}
+                <form class="js-add-to-cart Product-table-cart" method="post" action="{$wa->getUrl('/frontendCart/add')}">
+                    {if $theme_settings.product_show_tbl_count_cart}
+                        <span class="js-qty Cart__Qty Cart__Qty--mini">
+                            <span data-type="-" class="js-qty-button Cart__Qty_act sdColor"><span>–</span></span>
+                            <input type="text" name="quantity" value="1" class="js-number">
+                            <span data-type="+" class="js-qty-button Cart__Qty_act sdColor"><span>+</span></span>
+                        </span>
+                    {/if}
+                    {if $p.sku_count > 1}
+                        <span class="button js-card-dialog addtocart addtocart--mini" data-href="{$p.frontend_url}{if strpos($p.frontend_url, '?')}&{else}?{/if}cart=1&select-options=1" data-added-text="{$addedText}">[`Add to cart`]</span>
+                    {else}
+                        <input type="hidden" name="product_id" value="{$p.id}">
+                        <span class="button js-submit-form addtocart addtocart--mini" data-added-text="{$addedText}">[`Add to cart`]</span>
+                    {/if}
+                </form>
+            {else}
+                <div class="Product-table-cart">
+                    {if $theme_settings.use_plugin_arrived}
+                        {shopArrivedPlugin::getListFormHtml($p)}
+                    {else}
+                        <span class="button addtocart disabled addtocart--mini">[`Add to cart`]</span>
+                    {/if}
+                </div>
+            {/if}
+        </div>
+    </div>
+</div>
+{/strip}

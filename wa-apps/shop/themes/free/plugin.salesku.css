@@ -1,0 +1,41 @@
+.Single__Label--Flat.-Alternative .Single__Input--Checkbox:checked+.Single__Name--Flat {
+    color: #fff;
+}
+.Single__Label--Flat.-Alternative .Single__Name--Flat {
+    border: 1px solid #dfdfdf;
+    border-radius: .2rem;
+    color: #404040;
+    display: inline-block;
+    font-size: 1rem;
+    margin: .5rem .5rem .5rem 0!important;
+    min-width: 3.2rem;
+    padding: 0.3rem 0.5rem;
+    text-align: left;
+    transition: .3s all;
+}
+.Single__Price--Flat{
+    display:none;
+}
+.Single__Label--Flat input[type=radio]{
+    display: none;
+}
+
+.salesku_plugin-product .skus, .salesku_plugin-product .options{
+    margin: 0;
+    padding: 0 10px 0 10px;
+    border-top: 0;
+}
+@media (max-width:640px) {
+    .salesku_plugin-product .skus, .salesku_plugin-product .options{
+        display: flex;
+        flex-direction: column;
+        padding: 0 0.3rem 0 0.3rem;
+    }
+}
+.Single__Item--Flat {
+    display: inline-flex;
+}
+.Single__Item--Option{
+    font-size: 14px;
+    margin-top: 10px;
+}

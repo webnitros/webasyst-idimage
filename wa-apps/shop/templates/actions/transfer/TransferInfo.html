@@ -1,0 +1,232 @@
+{$wrapper_id = 's-transfer-info-'|cat:$transfer.id}
+<div class="s-transfer-info-wrapper height-100" data-form-id="{$transfer.id}" style="display: none;">
+
+<form id="{$wrapper_id}" class="s-transfer-info-form">
+    <div class="s-transfer-info__content">
+        <div class="s-transfer-info__content-inner">
+            <h3>
+                <span class="break-word">{sprintf('[`Transfer %s`]', $transfer.string_id)}</span>
+            </h3>
+
+            {if $printable_docs}
+            <div class="custom-my-24">
+                <ul class="menu large js-printable-docs">
+                    {foreach $printable_docs as $plugin_id => $printable_doc}
+                        <li>
+                            <label>
+                                <span class="wa-checkbox">
+                                    <input type="checkbox" checked="true" value="{$printable_doc.url|escape}" data-name="{$plugin_id}" data-target="_printform_{$plugin_id}_{$transfer.id}">
+                                    <span>
+                                        <span class="icon">
+                                            <i class="fas fa-check"></i>
+                                        </span>
+                                    </span>
+                                </span>
+                                {$printable_doc.name|escape}
+                            </label>
+                        </li>
+                    {/foreach}
+                </ul>
+                <input type="button" value="[`Print`]" id="js-print" class="custom-mt-12 custom-mb-20 small">
+                <hr>
+            </div>
+            {/if}
+
+            <div class="fields width-100-mobile">
+                <div class="field">
+                    <div class="name">
+                        [`Status`]
+                    </div>
+                    <div class="value">
+                        {if $transfer.status == 'sent'}
+                            <em class="s-transfer-status-sent"><i class="fas fa-truck"></i> [`On its way`]</em>
+                            <p class="hint width-80">[`Products left the source stock and to be added to the destination stock as soon as the transfer is marked as completed.`]</p>
+                        {elseif $transfer.status == 'completed'}
+                            <span class="s-transfer-status-completed bold"><i class="fas fa-check-circle text-green"></i> [`Completed`]</span>
+                            <p class="hint width-80">[`Products successfully left the source stock and added to the destination stock.`]</p>
+                        {elseif $transfer.status == 'cancelled'}
+                            <span class="text-red bold"><i class="fas fa-times"></i> [`Canceled`]</span>
+                            <p class="hint width-80">[`Products were returned to the source stock.`]</p>
+                        {/if}
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">
+                        [`Source stock`]
+                    </div>
+                    <div class="value">
+                        {if !$transfer.stock_from.name}
+                            <span class="gray"><i class="fas fa-sign-in-alt"></i> [`New arrival`]</span>
+                        {else}
+                            {$transfer.stock_from.name|escape}
+                        {/if}
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">
+                        [`Destination stock`]
+                    </div>
+                    <div class="value">
+                        {if !$transfer.stock_to.name}
+                            <span class="gray"><i class="fas fa-times"></i> [`Write-off`]</span>
+                        {else}
+                            {$transfer.stock_to.name|escape}
+                        {/if}
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name for-input">
+                        [`Products`]
+                    </div>
+                    <div class="value">
+                        <table class="zebra bigdata">
+                            <thead>
+                                <tr>
+                                    <th colspan="2"></th>
+                                    <th class="nowrap align-right">[`Qty`]</th>
+                                    <th class="nowrap align-right">[`Price`]</th>
+                                </tr>
+                            </thead>
+                            <tbody class="s-transfer-products-list">
+                            {foreach $transfer.skus as $sku}
+                                <tr class="s-transfer-product-item" data-id="{$sku.id}">
+                                    <td class="min-width valign-top">
+                                        {$_image_url = ""}
+                                        {$_class_img = ""}
+                                        {if !empty($sku.sku_image_url)}
+                                            {$_image_url = $sku.sku_image_url}
+                                        {elseif !empty($sku.image_url)}
+                                            {$_image_url = $sku.image_url}
+                                        {else}
+                                            {$_image_url = "{$wa_app_static_url}img/image-dummy.svg"}
+                                            {$_class_img = " blank"}
+                                        {/if}
+                                        <img class="s-product-img{$_class_img}" src="{$_image_url}">
+                                    </td>
+                                    <td>
+                                        <a href="products/{$sku.product_id}/" class="s-product-name" target="_blank">{$sku.product_name|escape}</a>
+                                        <span class="s-sku-name hint">{$sku.sku_code|escape}{if $sku.sku_code && $sku.name}, {/if}{if $sku.name}{$sku.name|escape}{/if}</span>
+                                    </td>
+                                    <td class="nowrap align-right">
+                                        <span class="gray">&times;</span>
+                                        <span class="s-transfer-count semibold">
+                                            {$sku.transfer.count}
+                                        </span>
+                                    </td>
+                                    <td class="nowrap align-right">
+                                        {if $sku.price}
+                                            {shop_currency_html($sku.price, $transfer.currency, $transfer.currency)}
+                                        {else}
+                                            <span class="gray">—</span>
+                                        {/if}
+                                    </td>
+                                </tr>
+                            {/foreach}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- plugin hook: 'backend_stocks.%plugin_id%.transfer_info' -->
+        {* @event backend_stocks.%plugin_id%.transfer_info *}
+        {foreach $backend_stocks_hook as $_}{$_.transfer_info|default:''}{/foreach}
+    </div>
+    <div class="s-transfer-info__footer custom-mt-40">
+        {if $transfer.status === shopTransferModel::STATUS_SENT}
+            <div class="flexbox middle">
+                <div class="wide">
+                    <button type="submit" class="button green" id="js-receive"><i class="fas fa-check"></i> [`Transfer completed!`]</button>
+                    <input type="hidden" name="id" value="{$transfer.id}">
+                    <button type="button" class="button light-gray js-form-close">[`Close`]</button>
+                </div>
+                <div>
+                    <button type="button" class="f-rollback-transfer button outlined red small"><i class="fas fa-times"></i> <span class="desktop-and-tablet-only">[`Rollback this transfer`]</span></button>
+                </div>
+            </div>
+
+        {else}
+            <button class="button light-gray js-form-close">[`Close`]</button>
+        {/if}
+    </div>
+</form>
+
+<script>
+    $(function () {
+        var form = $('#{$wrapper_id}');
+        var list = $('.s-transfer-products-list', form);
+
+        var showValidateErrors = function (errors) {
+            $.each(errors, function(i, er) {
+                var el = er.name === 'id' ? list : form.find('[name="' + er.name + '"]');
+                var parent = el.parent();
+                el.addClass('state-error');
+                parent.append('<div class="state-error-hint">' + er.msg + '</div>');
+            });
+        };
+
+        var clearValidateErrors = function () {
+            form.find('.state-error-hint').remove()
+                    .end().find('.state-error').removeClass('state-error');
+        };
+
+        function submit(url) {
+            clearValidateErrors();
+            $.shop.jsonPost(
+                url,
+                form.serialize(),
+                function (r) {
+                    $('.js-form-close', form).trigger('click');
+                    // table
+                    form.trigger('afterSubmit', [r]);
+                },
+                function (r) {
+                    showValidateErrors(r.errors || []);
+                }
+            );
+        };
+
+        $.shop.changeListener(form, ':input', clearValidateErrors);
+
+        $('#js-receive').click(function () {
+            submit('?module=transfer&action=receive');
+            return false;
+        });
+
+        form.find('.f-rollback-transfer').click(function () {
+            $.waDialog.confirm({
+                title: '[`Products will be returned to the source stock. Are you sure?`]',
+                success_button_title: '[`Rollback this transfer`]',
+                success_button_class: 'danger',
+                cancel_button_title: $_('Cancel'),
+                cancel_button_class: 'light-gray',
+                onSuccess: function() {
+                    submit('?module=transfer&action=cancel');
+                }
+            });
+            return false;
+        });
+
+        $('#js-print', form).click(function () {
+            $('.js-printable-docs :checkbox', form).each(function () {
+                var $this = $(this);
+                var checked = $this.is(':checked');
+                if (checked) {
+                    window.open($this.val(), $(this).data('target').replace(/\./, '_'));
+                }
+            });
+            return false;
+        });
+
+        $('.js-form-close', form).click(function () {
+            form.closest('.s-transfer-info-wrapper').slideUp(400, function () {
+                form.closest('.s-transfer-edit-item').remove();
+            });
+            return false;
+        });
+
+    });
+</script>
+</div>

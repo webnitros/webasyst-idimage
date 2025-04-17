@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
+<theme id="free" system="0" vendor="953700" author="ardoz" app="shop" parent_theme_id="site:free" version="1.1.1" edition="0">
+  <name locale="en_US">Free</name>
+  <name locale="ru_RU">Free</name>
+  <files>
+    <file path="index.html" parent="1">
+    </file>
+    <file path="shop.css">
+    </file>
+    <file path="brand_plugin_brands_page.css" custom="0">
+      <description locale="ru_RU"/>
+    </file>
+    <file path="free.shop.js">
+    </file>
+    <file path="order.js">
+    </file>
+    <file path="head.html">
+    </file>
+    <file path="header.html" custom="0">
+    </file>
+    <file path="main.html">
+    </file>
+    <file path="breadcrumbs.html">
+    </file>
+    <file path="footer.html">
+    </file>
+    <file path="category.html">
+    </file>
+    <file path="selected-filters.html">
+    </file>
+    <file path="list-thumbs.html">
+    </file>
+    <file path="list-thumbs-search.html">
+    </file>
+    <file path="list-thumbs-view-line.html">
+    </file>
+    <file path="list-thumbs-view-tbl.html">
+    </file>
+    <file path="list-thumbs-view-grid.html">
+    </file>
+    <file path="product.html" custom="0">
+      <description locale="ru_RU"/>
+    </file>
+    <file path="product.mini-gallery.html">
+    </file>
+    <file path="product.cart.html">
+    </file>
+    <file path="product.page.html">
+    </file>
+    <file path="product.mini.desc.html">
+    </file>
+    <file path="product-three-columns.html" custom="0" modified="0">
+      <description locale="ru_RU"/>
+    </file>
+    <file path="product-two-columns.html">
+    </file>
+    <file path="review.html">
+    </file>
+    <file path="reviews.html">
+    </file>
+    <file path="compare.html">
+    </file>
+    <file path="cart.html">
+    </file>
+    <file path="checkout.html">
+    </file>
+    <file path="checkout.shipping.html">
+    </file>
+    <file path="checkout.payment.html">
+    </file>
+    <file path="checkout.contactinfo.html">
+    </file>
+    <file path="checkout.confirmation.html">
+    </file>
+    <file path="checkout.success.html">
+    </file>
+    <file path="checkout.error.html">
+    </file>
+    <file path="my.nav.html">
+    </file>
+    <file path="my.affiliate.html">
+    </file>
+    <file path="my.orders.html">
+    </file>
+    <file path="my.order.html">
+    </file>
+    <file path="my.profile.html" parent="1">
+    </file>
+    <file path="order.html">
+    </file>
+    <file path="home.html">
+    </file>
+    <file path="search.html">
+    </file>
+    <file path="page.html">
+    </file>
+    <file path="home.scat.html">
+    </file>
+    <file path="categories.grid.html">
+    </file>
+    <file path="sabcat.html">
+    </file>
+    <file path="sabcat.icons.html">
+    </file>
+    <file path="sabcat.noimage.html">
+    </file>
+    <file path="home.brands.block.html">
+    </file>
+    <file path="home.brands-pro.block.html">
+    </file>
+    <file path="home.products.view-carousel.html">
+    </file>
+    <file path="sidebar.html" custom="0">
+    </file>
+    <file path="sidebar.cat.html" custom="0">
+    </file>
+    <file path="sb.filter.html" custom="0">
+    </file>
+    <file path="sb.tags.html" custom="0">
+    </file>
+    <file path="slider.html" custom="0">
+      <description locale="ru_RU"/>
+    </file>
+    <file path="login.html" parent="1">
+    </file>
+    <file path="signup.html" parent="1">
+    </file>
+    <file path="forgotpassword.html" parent="1">
+    </file>
+    <file path="error.html" parent="1">
+    </file>
+    <file path="reviews.js">
+    </file>
+    <file path="brand_plugin_brand_page.css">
+      <description locale="ru_RU">Файл плагина "Бренды PRO"</description>
+    </file>
+    <file path="brand_plugin_catalog_header.html">
+      <description locale="ru_RU">Файл плагина "Бренды PRO"</description>
+    </file>
+  </files>
+</theme>

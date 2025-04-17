@@ -1,0 +1,93 @@
+{strip}
+{if $wa->get('ajax')}{* ajax request, for autosearch *}
+    {if $products}
+        <div>
+            <div class="js-ajax-search ajax-search">
+                {include file='list-thumbs-search.html' class="products-mini--search" limit=8 }
+                <div class="ajax-search-all"><a class="link" href="{$wa->getUrl('shop/frontend/search')}?query={$wa->get('query')}">[`View all`]</a> ({$products_count}) &rarr; </div>
+            </div>
+        </div>
+    {/if}
+{else}
+    {$class_product_list = "js-cat-list cat--list"}
+    {$_not_paginate = 0}
+	{$_is_sorting=true}
+    {if $_is_search_pro}{$_is_sorting=false}{/if}
+    {if $wa->get('list') == 'favorites' || $wa->get('list') == 'viewed'}
+        {$_not_paginate = 1}
+		{$_is_sorting=false}
+        {if $wa->get('list') == 'favorites'}
+            {$list = $wa->cookie('product_favor_arr')}
+        {else}
+            {$list = $wa->cookie('viewed_product_list')}
+        {/if}
+        {if $list}
+            {$products_arr = ","|explode:$list}
+            {$products = $wa->shop->products($products_arr)}
+            {$summary_product_list = []}
+            {foreach $products_arr as $id}
+                {foreach $products as $product}
+                    {if $product.id == $id}
+                        {$summary_product_list[$id] = $product}
+                    {/if}
+                {/foreach}
+            {/foreach}
+            {$products = $summary_product_list}
+        {else}
+            {$products = []}
+        {/if}
+    {/if}
+
+    {if $wa->get('list') == 'favorites'}
+        {$h1 = "[`Favorites products`]"}
+    {elseif $wa->get('list') == 'viewed'}
+        {$h1 = "[`Viewed products`]"}
+    {elseif $wa->get('query') != ''}
+        {$h1 = "[`Search by request`] `$title`"}
+    {elseif $title}
+        {$h1 = $title}
+    {elseif $wa->get('query') == ''}
+        {$h1 = "[`Search by request`]"}
+    {/if}
+
+    {if !$_is_search_pro || count($frontend_search) > 0}
+        <div class="content-box{if $wa->get('list')} search-title-list{/if}">
+            <h1>{$h1}</h1>
+            {if $wa->get('list') && $products}
+                <div class="search-list-clear">
+                    {if $wa->get('list') == 'viewed'}
+                        <span data-list="viewed_product_list"  class="js-clear-pr-list link link-half link-half--act">[`Clear`]</span>
+                    {elseif $wa->get('list') == 'favorites'}
+                        <span data-list="product_favor_arr"  class="js-clear-pr-list link link-half link-half--act">[`Clear`]</span>
+                    {/if}
+
+                </div>
+            {/if}
+
+            <!-- plugin hook: 'frontend_search' -->
+            {* @event frontend_search.%plugin_id% *}
+            {foreach $frontend_search as $_}{$_}{/foreach}
+        </div>
+    {else}
+        <h1>{$h1}</h1>
+    {/if}
+
+
+    {if isset($brand) && $wa->isMobile()}
+        {include file="sb-mobile.html"}
+    {/if}
+
+    {if !$products}
+        <div class="content-box">[`No products were found.`]</div>
+    {else}
+        <div class="js-product-ajax-list-loader -Close content-box"><img alt="Loading..." src="{$wa_parent_theme_url}img/loading16.gif"></div>
+        <div class="js-product-ajax-list ajax-list--box">
+            {include file='list-thumbs.html' sorting=$_is_sorting isViewSwitch=true ulclass=$class_product_list}
+        </div>
+    {/if}
+
+{/if}
+
+{$wa->globals('isSearchPage', true)}
+{if $_is_search_pro}{$wa->globals('_is_search_proPage', true)}{/if}
+{/strip}

@@ -1,0 +1,37 @@
+{$promoCards = []}
+{if $theme_settings.promo_card_one}
+    {$promoCards['One'] = [
+    'text' => $theme_settings.promo_card_one_text,
+    'url' => $theme_settings.promo_card_one,
+    'href' => $theme_settings.promo_card_href_one
+    ]}
+{/if}
+{if $theme_settings.promo_card_two}
+    {$promoCards['two'] = [
+    'text' => $theme_settings.promo_card_two_text,
+    'url' => $theme_settings.promo_card_two,
+    'href' => $theme_settings.promo_card_href_two
+    ]}
+{/if}
+{if $theme_settings.promo_card_three}
+    {$promoCards['three'] = [
+    'text' => $theme_settings.promo_card_three_text,
+    'url' => $theme_settings.promo_card_three,
+    'href' => $theme_settings.promo_card_href_three
+    ]}
+{/if}
+{$promoCardsKeys = $promoCards|@array_keys}
+<div class="promo-cards promo-cards--{$promoCardsKeys[count($promoCardsKeys)-1]}">
+    <div class="promo-cards__list">
+        {foreach $promoCards as $key => $value}
+            {if $theme_settings.display_promo_cards == 'horizontal' && $value@iteration == 3}
+                {break}
+            {/if}
+            <div class="promo-cards__item">
+                <a href="{$value.href}" class="promo-cards__item--outer" style="background-image: url('{$wa_theme_url|replace:"shop":"site"}{$value.url}')">
+                    <div class="promo-cards__text">{$value.text}</div>
+                </a>
+            </div>
+        {/foreach}
+    </div>
+</div>

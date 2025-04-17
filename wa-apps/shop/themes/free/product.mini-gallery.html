@@ -1,0 +1,227 @@
+{strip}
+    {$video = $product->video}
+    {$_popupOn = true}
+    {$_popupOnThumbs = true}
+    {$_zoomOn = $theme_settings.zoom_gallery__product && !$wa->isMobile()}
+    {if !$wa->isMobile()}
+        {$class_popup="js-image-popup-swipebox"}
+    {else}
+        {$class_popup="js-popup-photoswipe"}
+        <link rel="stylesheet" href="/wa-data/public/site/themes/free/photoswipe/photoswipe.css">
+    {/if}
+    {$productGalleryOn = false}
+    {if count($product.images) > 1 || (count($product.images) === 1 && $video)}
+        {$productGalleryOn = true}
+    {/if}
+
+    {$proportions = explode(' ', $theme_settings.product_image_proportions)}
+
+    <div class="product-page_main-left{if $productGalleryOn} -productMiniGallery{/if}{if $theme_settings.product_horizontal_gallery} -horizontalMiniature{/if}" {if !$wa->isMobile() && $theme_settings.product_image_proportions != 'auto'}data-form="{$proportions[0]}" data-size="{$proportions[1]}"{/if}>
+        {if $productGalleryOn}
+            {$_carouselOn = count($product.images) > 6 && !$wa->isMobile()}
+            {$productThreeColums = true}
+            <div id="product-gallery" class="previews_gallery{if $_carouselOn && !$theme_settings.product_horizontal_gallery} carousel-vertical{/if}">
+                <div class="image-preview-list{if $_carouselOn && !$theme_settings.product_horizontal_gallery} js-previews-gallery{/if}" {if $_carouselOn && !$theme_settings.product_horizontal_gallery}data-min-items="6"{/if}>
+                    {$position = 0}
+                    {foreach $product.images as $image}
+                        <div data-id="{$image.id}" data-position="{$position}" class="js-id-preview-gallery image-preview{if $image.id == $product.image_id} selected{/if}">
+                            <a id="product-image-{$image.id}" href="{$wa->shop->imgUrl($image, $theme_settings.product_image_size_zoom)}">
+                                {if !$wa->isMobile()}
+                                    {$wa->shop->imgHtml($image, '50')}
+                                {else}
+                                    {$wa->shop->imgHtml($image, '96')}
+                                {/if}
+                            </a>
+                        </div>
+                        {$position = $position + 1}
+                    {/foreach}
+                    {if $video && $wa->isMobile()}
+                        <div data-id="video" data-video="true" data-position="{$position}" class="js-id-preview-gallery image-preview image-preview--video{if count($product.images) == 0} selected{/if}">
+                            {$videoId = $video.url|replace:'//www.youtube.com/embed/':''}
+
+                            <a href="{$video.url}">
+                                <img class="prewiev" src="https://img.youtube.com/vi/{$videoId}/0.jpg" alt="">
+                                <img class="video-icon" src="{$wa_active_theme_url}/img/svg/youtube.svg" alt="">
+                            </a>
+                        </div>
+                        {$position = $position + 1}
+                    {/if}
+                    {if $video && !$wa->isMobile() && $theme_settings.product_horizontal_gallery}
+                        <div data-id="video" data-video="true" data-position="{$position}" class="js-id-preview-gallery image-preview image-preview--video{if count($product.images) == 0} selected{/if}">
+                            {$videoId = $video.url|replace:'//www.youtube.com/embed/':''}
+
+                            <a href="{$video.url}">
+                                <img class="prewiev" src="https://img.youtube.com/vi/{$videoId}/0.jpg" alt="">
+                                <img class="video-icon" src="{$wa_active_theme_url}/img/svg/youtube.svg" alt="">
+                            </a>
+                        </div>
+                        {$position = $position + 1}
+                    {/if}
+                </div>
+                {if $video && !$wa->isMobile() && !$theme_settings.product_horizontal_gallery}
+                    <div data-id="video" data-video="true" data-position="{$position}" class="js-id-preview-gallery image-preview image-preview--video{if count($product.images) == 0} selected{/if}">
+                        {$videoId = $video.url|replace:'//www.youtube.com/embed/':''}
+
+                        <a href="{$video.url}">
+                            <img class="prewiev" src="https://img.youtube.com/vi/{$videoId}/0.jpg" alt="">
+                            <img class="video-icon" src="{$wa_active_theme_url}/img/svg/youtube.svg" alt="">
+                        </a>
+                    </div>
+                    {$position = $position + 1}
+                {/if}
+            </div>
+        {/if}
+
+        {if isset($product.autobadge) && !empty($product.autobadge)}{$product.autobadge}{/if}
+        <div class="product_gallery-images js-product_gallery-images"{if !empty($_popupOnThumbs)} data-thumbs="true"{/if} data-zoom="{$_zoomOn}"  data-popup="{$_popupOn}">
+            <!-- main image -->
+            <div data-position="fixed" class="js-preview-cart" id="product-core-image">
+                <div class="js-product_gallery-images-main product_gallery-images-main owl-carousel{if $theme_settings.product_image_proportions != 'auto'} product_gallery-images-main--align-center{/if}">
+                    {if $product.images || $video}
+                        {$position = 0}
+                        {if $product.images}
+                            {foreach $product.images as $image}
+                                {$img_size = '970'}
+                                {if $image@first}
+                                    {$imageHtml = $wa->shop->imgHtml($image, $img_size, ['class' => 'product_gallery-images-main-img'])}
+                                {else}
+                                    {$imageHtml = $wa->shop->imgHtml($image, $img_size, ['class' => 'owl-lazy product_gallery-images-main-img'])|replace:"src":"src=`$wa_theme_url`img/lazy-image.png data-src"}
+                                {/if}
+                                {if $wa->isMobile()}
+                                    {if $wa->shop->imgUrl($image, $img_size) and file_exists($wa->server('DOCUMENT_ROOT')|cat:$wa->shop->imgUrl($image, $img_size))}
+                                        {$img_props = getimagesize($wa->server('DOCUMENT_ROOT')|cat:$wa->shop->imgUrl($image, $img_size))}
+                                    {/if}
+                                {/if}
+                                <span class="product_gallery-images-main-el-outer">
+                                    <a data-id="{$image.id}" {if $image@iteration == 1} itemprop="image"{/if} class="product_gallery-images-main-el js-product_gallery-images-main-el{if $_popupOn} {$class_popup}{/if}{if !$_popupOn} cursor-default{/if}" href="{$wa->shop->imgUrl($image, $theme_settings.product_image_size_zoom)}" data-position="{$position}" {if $wa->isMobile() && $img_props}data-pswp-width="{$img_props[0]}" data-pswp-height="{$img_props[1]}"{/if}>
+                                        {$imageHtml}
+                                    </a>
+                                </span>
+                                {$position = $position + 1}
+                                {if $image@first}
+                                    {$first_image = $wa->shop->imgUrl($image, '970x0')}
+                                    {$wa->globals('preload_image', $first_image)}
+                                {/if}
+                            {/foreach}
+                        {/if}
+                        {if $video}
+                            <div data-id="video" data-video-url="{$video.url}" data-video-width="{$video.width}" data-video-height="{$video.height}" class="product_gallery-images-main-el js-product_gallery-images-main-el" data-position="{$position}">
+                                {if $position == 0}
+                                    <iframe src="{$video.url}" width="{$video.width}" height="{$video.height}" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+                                {/if}
+                            </div>
+                            {$position = $position + 1}
+                        {/if}
+                    {else}
+                        {$dummy96 = "{$wa_theme_url}img/dummy96.png"}
+                        <img src="{$dummy96}" alt="{$product.name|escape}">
+                    {/if}
+                </div>
+
+                {if $wa->isMobile()}
+                {literal}
+                    <script>
+                        $(document).on('ready', function(){
+                            const className = '.js-product_gallery-images-main';
+                            let data = $('.product_gallery-images-main-el-outer a').first().data('pswp-width');
+
+                            if (!data) {
+                                let interval = setInterval(()=>{
+                                    data = $(document).find(className).find('.product_gallery-images-main-el-outer a').first().data('pswp-width');
+
+                                    if (data) {
+                                        clearInterval(interval);
+                                    } else {
+                                        $(className).load(`${window.location.href} ${className}`);
+                                    }
+                                }, 100)
+                            }
+                        });
+                    </script>
+                {/literal}
+                {/if}
+            </div>
+        </div>
+        {if !$wa->isMobile()  && $theme_settings.product_image_proportions != 'auto'}
+        {literal}
+            <script>
+                function editSizeImage(){
+                    const form = $('.product-page_main-left').data('form');
+                    const size = $('.product-page_main-left').data('size');
+                    let neededHeight = new String();
+                    if (form == 'horizontal') {
+                        neededHeight = $('.product-page_main-left .js-product_gallery-images').width() / size;
+                    }
+                    if (form == 'vertical') {
+                        neededHeight = $('.product-page_main-left .js-product_gallery-images').width() * size;
+                    }
+                    $('.product_gallery-images-main-el-outer').css('max-height', `${neededHeight}px`);
+                }
+                editSizeImage();
+            </script>
+        {/literal}
+        {/if}
+    </div>
+{/strip}
+{if $wa->isMobile()}
+    <script type="module">
+        import PhotoSwipeLightbox from '/wa-data/public/site/themes/free/photoswipe/photoswipe-lightbox.esm.js';
+        const lightbox = new PhotoSwipeLightbox({
+            gallery: '.js-product_gallery-images-main',
+            children: '.js-popup-photoswipe',
+            pswpModule: () => import('/wa-data/public/site/themes/free/photoswipe/photoswipe.esm.js')
+        });
+        lightbox.init();
+    </script>
+{/if}
+{if $product.sku_type}
+    <script>
+        $(document).on('ready', function(){
+            const skuImages = {json_encode($product.images)};
+            const skuFeaturesSelectable = {json_encode($sku_features_selectable)};
+
+            function editSrcSkuImage() {
+                {literal}
+                    const rows = $('.select-v-inline');
+                    rows.each(function(){
+                        const row = $(this);
+                        const skuBtns = row.find('a');
+                        const featuresId = row.find('input').data('feature-id');
+
+                        row.addClass('--edit');
+                        skuBtns.each(function(){
+                            const skuBtn = $(this);
+                            const featValueId = skuBtn.data('value');
+                            const skuFeaturesId = `${featuresId}:${featValueId};`;
+                            let skuFeaturesIdFull = '';
+
+                            skuBtn.find('.sku-image').remove();
+                            skuBtn.siblings('.option-color_text').removeAttr('style');
+                            rows.each(function(){
+                                if ($(this).hasClass('--edit')) {
+                                    skuFeaturesIdFull += skuFeaturesId;
+                                } else {
+                                    skuFeaturesIdFull += `${$(this).find('input').data('feature-id')}:${$(this).find('.selected').data('value')};`;
+                                }
+                            });
+
+                            if (skuFeaturesSelectable[skuFeaturesIdFull].image_id) {
+                                const image_id = skuFeaturesSelectable[skuFeaturesIdFull].image_id;
+                                const src = skuImages[image_id]['url_crop'];
+
+                                skuBtn.append(`<div class="js-sku-image sku-image" style="background: url('${src}') center center/cover no-repeat"></div>`);
+                                skuBtn.siblings('.option-color_text').attr('style', 'display:none!important');
+                            }
+                        })
+                        row.removeClass('--edit');
+                    })
+                {/literal}
+            }
+
+            editSrcSkuImage();
+            $('.select-v-inline a').on('click', function(){
+                editSrcSkuImage();
+            });
+        })
+    </script>
+{/if}

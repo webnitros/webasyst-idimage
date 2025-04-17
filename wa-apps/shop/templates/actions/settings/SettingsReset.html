@@ -1,0 +1,31 @@
+<h1>[`Reset`]</h1>
+
+<p>[`If you want to restart your online store from scratch, you may delete the entire store content and settings using the form below. This will delete all products, orders, checkout, shipping and payment options, currencies. The operation cannot be undone. Be sure to know what you are doing.`]</p>
+
+<form action="?module=settings&action=reset" method="POST" id="s-settings-reset">
+    <div class="fields">
+        <input type="hidden" name="reset" value="1">
+
+        {if !empty($confirm)}
+        <div class="custom-mb-12">
+            <h5>[`Enter the following text`] — <span class="highlighted">{$confirm|escape}</span></h5>
+
+            <input type="text" autocomplete="off" name="confirm" class="small{if !empty($error)} error{/if}">
+
+            <p class="small state-error">[`You are about to reset entire store reset content and settings without the ability to rollback!`]</p>
+        </div>
+        {/if}
+
+        {$wa->csrf()}
+        <button type="submit" class="button red">[`Erase all content and settings`]</button>
+    </div>
+</form>
+
+<script src="{$wa_app_static_url}js/settings/reset.js?{$wa->version()}"></script>
+<script>
+    document.title = '{"[`Reset`]"|cat:" — ":{$wa->accountName(false)}|escape:'javascript'}';
+
+    if(typeof($)!='undefined') {
+        $.settings.resetInit();
+    }
+</script>

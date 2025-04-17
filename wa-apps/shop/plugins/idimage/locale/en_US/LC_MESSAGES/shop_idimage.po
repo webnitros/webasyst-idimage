@@ -1,0 +1,73 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: shop/plugins/idimage\n"
+"POT-Creation-Date: 2025-04-17 15:03+0300\n"
+"PO-Revision-Date: \n"
+"Last-Translator: shop/plugins/idimage\n"
+"Language-Team: shop/plugins/idimage\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-Language: en_US\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: utf-8\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPath-1: .\n"
+
+msgid "Enable plugin"
+msgstr ""
+
+msgid "Token"
+msgstr ""
+
+msgid "Enter token to work with api"
+msgstr ""
+
+msgid "Crop image"
+msgstr ""
+
+msgid "Image size for finding similar products"
+msgstr ""
+
+msgid "API URL"
+msgstr ""
+
+msgid "Enter API URL to work with API"
+msgstr ""
+
+msgid "Maximum found"
+msgstr ""
+
+msgid "Maximum number of products to save"
+msgstr ""
+
+msgid "Minimum score"
+msgstr ""
+
+msgid "Minimum similarity score"
+msgstr ""
+
+msgid "Selector thumb"
+msgstr ""
+
+msgid "Selector to bind the similar products button"
+msgstr ""
+
+msgid "Selector button"
+msgstr ""
+
+msgid "Selector of button that opens similar products modal (must have data-product-id attribute)"
+msgstr ""
+
+msgid "Selector"
+msgstr ""
+
+msgid "Main wrapper class for the button"
+msgstr ""
+
+msgid "Selector Products Id"
+msgstr ""
+
+msgid "Selector that contains product ID"
+msgstr ""
